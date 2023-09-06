@@ -343,11 +343,9 @@ local success, errorcode = pcall(function()
 		-- Assign the start button to open up the start menu
 		startbutton.MouseButton1Click:Connect(function()
 			if startmenustatus == true then
-				print("invisibling")
 				brazil:AddChild(startmenu)
 				startmenustatus = false
 			else
-				print("visibling")
 				startbutton:AddChild(startmenu)
 				startmenustatus = true
 			end
@@ -355,6 +353,23 @@ local success, errorcode = pcall(function()
 		-- Return all of these items
 		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp
 	end
+	local powerCheck = coroutine.create(function()
+		if GetPartFromPort(1, "Instrument") ~= nil then
+			while true do
+				wait(0.25)
+				if tonumber(GetPartFromPort(1, "Instrument"):GetReading(5)) <= 500 then
+					CreateSelfTestOutput("Error: Insufficient power", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
+					CreateSelfTestOutput("Error: Shutting down...", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
+					wait(3)
+					shutdown()
+				end
+			end
+		else
+			CreateSelfTestOutput("Warning: Can't detect power stored", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,255,0))
+		end
+	end)
+	coroutines[#coroutines + 1] = powerCheck
+	coroutine.resume(powerCheck)
 	local function tableRepilicate(tableToCopy)
 		local newTable = {}
 		for i, v in pairs(tableToCopy) do
@@ -363,7 +378,7 @@ local success, errorcode = pcall(function()
 		return newTable
 	end
 	-- Continue the init process
-
+	
 	-- Set some variables (for self testing)
 	local importantselftest1passed = false
 	local importantselftest2passed = false
@@ -1732,7 +1747,7 @@ local success, errorcode = pcall(function()
 				--WARNING: always increment the version number each publication on github gist, if this is below the
 				--amount of revisions, roll back to the github gist version, because its most likely the script got
 				--corrupted.
-				terminalout("wOS Codename BasicSystem, Version 275")
+				terminalout("wOS Codename BasicSystem, Version 1 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
