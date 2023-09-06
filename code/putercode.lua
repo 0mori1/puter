@@ -357,12 +357,32 @@ local success, errorcode = pcall(function()
 		if GetPartFromPort(1, "Instrument") ~= nil then
 			while true do
 				wait(0.25)
-				print(tostring(tonumber(GetPartFromPort(1, "Instrument"):GetReading(4))))
 				if tonumber(GetPartFromPort(1, "Instrument"):GetReading(4)) <= 500 then
 					screen:ClearElements()
+					screen:CreateElement("Frame", {
+						BorderSizePixel = 0;
+						Size = UDim2.fromOffset(800, 450);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+					})
+					screen:CreateElement("TextLabel", {
+						Position = UDim2.fromOffset(350, 225);
+						Size = UDim2.fromOffset(100, 50);
+						Text = "wOS";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(130, 204, 158);
+						BackgroundTransparency = 1
+					})
+					for i = 0, 1, 1 do
+						screen:CreateElement("Frame", {
+							Position = UDim2.fromOffset(350, 220 + i * 60);
+							Size = UDim2.fromOffset(100, 5);
+							BackgroundColor3 = Color3.fromRGB(130, 204, 158);
+						})
+					end
 					CreateSelfTestOutput("Error: Insufficient power", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
 					CreateSelfTestOutput("Error: Shutting down...", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
 					wait(3)
+					screen:ClearElements()
 					shutdown()
 				end
 			end
