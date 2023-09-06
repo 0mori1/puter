@@ -716,9 +716,11 @@ local success, errorcode = pcall(function()
 			for i, v in pairs(filesystem.scanPath("/", mounteddisks[1])) do
 				print(v)
 			end
+			print("done root")
 			for i, v in pairs(filesystem.scanPath("/Goober/", mounteddisks[1])) do
 				print(v)
 			end
+			print("done goober")
 		end
 		local recorded = {}
 		local recordedtext = {}
