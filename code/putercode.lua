@@ -677,18 +677,12 @@ local success, errorcode = pcall(function()
 				end
 				if disk:Read(path) == "t:folder" then
 					disk:Write(path .. filename, data)
-					return true, path .. "/" .. filename
+					return true, path .. filename
 				else
 					return false, "not a folder"
 				end
 			end;
 			read = function(path, disk)
-				if string.sub(path, 1, 1) ~= "/" then
-					path = "/" .. path
-				end
-				if string.sub(path, #path, #path) ~= "/" then
-					path = path .. "/"
-				end
 				return disk:Read(path)
 			end;
 		}
