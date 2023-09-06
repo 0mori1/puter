@@ -1182,6 +1182,7 @@ local success, errorcode = pcall(function()
 								playButton.MouseButton1Click:Connect(function()
 									puter.PlayAudio(v2, speaker)
 								end)
+								local clickedDelete = false
 								local deleteButton = puter.AddElement(parentFrame, "TextButton", {
 									Text = "Delete";
 									TextScaled = true;
@@ -1192,10 +1193,20 @@ local success, errorcode = pcall(function()
 									Position = UDim2.fromOffset(350, 0);
 								})
 								deleteButton.MouseButton1Click:Connect(function()
+									if clickedDelete == true then
 									musicList[i] = nil
 									storage:Write("musicList", encodeMusicList(musicList))
 									parentFrame:Destroy()
-									refresh()
+										refresh()
+									else
+										deleteButton:ChangeProperties({Text  = "Are you sure?"})
+										clickedDelete = true
+										wait(2.5)
+										if deleteButton ~= nil then
+											deleteButton:ChangeProperties({Text = ""})
+										end
+										clickedDelete = false
+									end
 								end)
 							end
 						end
@@ -1769,7 +1780,7 @@ local success, errorcode = pcall(function()
 				--WARNING: always increment the version number each publication on github gist, if this is below the
 				--amount of revisions, roll back to the github gist version, because its most likely the script got
 				--corrupted.
-				terminalout("wOS Codename BasicSystem, Version 1 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 2 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
