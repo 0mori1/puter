@@ -357,6 +357,7 @@ local success, errorcode = pcall(function()
 		if GetPartFromPort(1, "Instrument") ~= nil then
 			while true do
 				wait(0.25)
+				print(tostring(tonumber(GetPartFromPort(1, "Instrument"):GetReading(4))))
 				if tonumber(GetPartFromPort(1, "Instrument"):GetReading(4)) <= 500 then
 					screen:ClearElements()
 					CreateSelfTestOutput("Error: Insufficient power", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
