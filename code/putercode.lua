@@ -558,7 +558,7 @@ local success, errorcode = pcall(function()
 					Size = UDim2.fromOffset(x - 50, 25);
 					Position = UDim2.fromOffset(posx, posy);
 					Text = title;
-					TextColor3 = Color3.fromRGB(255,255,255);
+					TextColor3 = textcolor;
 					BackgroundColor3 = titlebarcolor;
 					BorderSizePixel = 0;
 					TextScaled = true;
@@ -676,7 +676,8 @@ local success, errorcode = pcall(function()
 					path = path .. "/"
 				end
 				if disk:Read(path) == "t:folder" then
-					disk:Write(path .. "/" .. filename, data)
+					disk:Write(path .. filename, data)
+					return true, path .. "/" .. filename
 				else
 					return false, "not a folder"
 				end
@@ -706,8 +707,13 @@ local success, errorcode = pcall(function()
 		if mounteddisks[1] ~= nil then
 			mounteddisks[1]:ClearDisk()
 			filesystem.createDirectory("/Goober/", mounteddisks[1])
-			filesystem.write("/Goober/", "goofy", "im a goofy goober", mounteddisks[1])
-			print(filesystem.read("/Goober/goofy/", mounteddisks[1]))
+			local succeeded, general = filesystem.write("/Goober/", "goofy", "im a goofy goober", mounteddisks[1])
+			if succeeded == true then
+				print("SUCCEEDED, WRITTEN AT " .. general)
+			else
+				print("FAILED: " .. general)
+			end
+			print(filesystem.read("/Goober/goofy", mounteddisks[1]))
 		end
 		local recorded = {}
 		local recordedtext = {}
@@ -1777,10 +1783,10 @@ local success, errorcode = pcall(function()
 					addTextToOutput(Out)
 					updateOutput()
 				end
-				--WARNING: always increment the version number each publication on github gist, if this is below the
-				--amount of revisions, roll back to the github gist version, because its most likely the script got
+				--WARNING: always increment the version number each publication on the github repository, if this is below the
+				--amount of revisions, roll back to the github version, because its most likely the script got
 				--corrupted.
-				terminalout("wOS Codename BasicSystem, Version 2 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 3 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
