@@ -642,7 +642,7 @@ local success, errorcode = pcall(function()
 				end
 				for i, v in pairs(disk:ReadEntireDisk()) do
 					if string.sub(i, 1, #path) == path then
-						buffer1[buffer1 + 1] = i
+						buffer1[#buffer1 + 1] = i
 					end
 				end
 				for i, v in pairs(buffer1) do
