@@ -698,6 +698,7 @@ local success, errorcode = pcall(function()
 				Text = errorMessage
 			})
 		end
+		--filesystem library stress test
 		if mounteddisks[1] ~= nil then
 			mounteddisks[1]:ClearDisk()
 			filesystem.createDirectory("/Goober/", mounteddisks[1])
@@ -708,6 +709,16 @@ local success, errorcode = pcall(function()
 				print("FAILED: " .. general)
 			end
 			print(filesystem.read("/Goober/goofy", mounteddisks[1]))
+			filesystem.createDirectory("/Goober/Silly1", mounteddisks[1])
+			filesystem.createDirectory("/Goober/Silly2", mounteddisks[1])
+			filesystem.createDirectory("/Goober/Silly3", mounteddisks[1])
+			filesystem.createDirectory("/Goober/Silly4", mounteddisks[1])
+			for i, v in pairs(filesystem.scanPath("/", mounteddisks[1])) do
+				print(v)
+			end
+			for i, v in pairs(filesystem.scanPath("/Goober/", mounteddisks[1])) do
+				print(v)
+			end
 		end
 		local recorded = {}
 		local recordedtext = {}
