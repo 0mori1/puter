@@ -1839,10 +1839,8 @@ local success, errorcode = pcall(function()
 					addTextToOutput(Out)
 					updateOutput()
 				end
-				--WARNING: always increment the version number each publication on the github repository, if this is below the
-				--amount of revisions, roll back to the github version, because its most likely the script got
-				--corrupted.
-				terminalout("wOS Codename BasicSystem, Version 3 Revision 2")
+				--increment the version each major change
+				terminalout("wOS Codename BasicSystem, Version 4 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
