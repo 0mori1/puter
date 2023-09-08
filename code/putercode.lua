@@ -643,8 +643,8 @@ local success, errorcode = pcall(function()
 				end
 				for i, v in pairs(disk:ReadEntireDisk()) do
 					if string.sub(i, 1, #path) == path then
-						buffer1[#buffer1 + 1] = string.sub(i, 1, #path)
-						print("match of " .. i .. "with " .. path .. ", saved to buffer 1 as " .. string.sub(i, 1, #path))
+						buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
+						print("match of " .. i .. "with " .. path .. ", saved to buffer 1 as " .. string.sub(i, #path + 1, #i))
 					end
 				end
 				for i, v in pairs(buffer1) do
@@ -653,13 +653,14 @@ local success, errorcode = pcall(function()
 							if buffer2[string.sub(v, 1, i - 1)] == nil then
 								buffer2[string.sub(v, 1, i - 1)] = true
 							else
-								print("")
+								print("did not add " .. buffer2[string.sub(v, 1, i - 1)] .. ", because it already exists in buffer 2")
 							end
 						end
 					end
 				end
 				for i, v in pairs(buffer2) do
 					buffer3[#buffer3 + 1] = i
+					print("moved key " .. i .. " from buffer 2 to buffer 3 value at key " .. tostring(#buffer3 + 1))
 				end
 				return buffer3
 			end;
@@ -1211,7 +1212,7 @@ local success, errorcode = pcall(function()
 										clickedDelete = true
 										wait(2.5)
 										if deleteButton ~= nil then
-											deleteButton:ChangeProperties({Text = ""})
+											deleteButton:ChangeProperties({Text = "Delete"})
 										end
 										clickedDelete = false
 									end
