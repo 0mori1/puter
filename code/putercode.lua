@@ -400,7 +400,7 @@ local success, errorcode = pcall(function()
 		return newTable
 	end
 	-- Continue the init process
-	
+
 	-- Set some variables (for self testing)
 	local importantselftest1passed = false
 	local importantselftest2passed = false
@@ -637,36 +637,45 @@ local success, errorcode = pcall(function()
 			scanPath = function(path, disk)
 				local buffer1 = {}
 				local buffer2 = {}
+				local buffer3 = {}
 				if string.sub(path, #path, #path) ~= "/" then
 					path = path .. "/"
 				end
 				for i, v in pairs(disk:ReadEntireDisk()) do
 					if string.sub(i, 1, #path) == path then
-						buffer1[#buffer1 + 1] = i
+						buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
+						print("match of " .. i .. " with " .. path .. ", saved to buffer 1 as " .. string.sub(i, #path + 1, #i))
 					end
 				end
 				for i, v in pairs(buffer1) do
-					local isNext = nil
-					if isNext == nil then
-						local nameStart = #path + 1
-						local slashFound = false
-						local noInitPath = string.sub(v, #path, #v)
-						for i = 1, #v, 1 do
-							if string.sub(noInitPath, i, i) == "/" and slashFound == false then
-								if slashFound == false then
-									slashFound = true
-								end
+					local added = false
+					for i = 1, #v, 1 do
+						if string.sub(v, i, i) == "/" and added == false then
+							added = true
+							if buffer2[string.sub(v, 1, i - 1)] == nil then
+								buffer2[string.sub(v, 1, i - 1)] = true
+								print("added " .. string.sub(v, 1, i - 1) .. "to buffer 2")
+								print("debug info: " .. v .. ", " .. i)
+							else
+								print("did not add " .. string.sub(v, 1, i - 1) .. ", because it already exists in buffer 2")
 							end
-							if slashFound == true then
-								isNext = false
+						elseif i == #v and added == false then
+							added = true
+							if buffer2[string.sub(v, 1, i)] == nil then
+								buffer2[string.sub(v, 1, i)] = true
+								print("added " .. string.sub(v, 1, i) .. "to buffer 2")
+								print("debug info: " .. v .. ", " .. i)
+							else
+								print("did not add " .. string.sub(v, 1, i) .. ", because it already exists in buffer 2")
 							end
-						end
-						if slashFound == true and isNext == true then
-							buffer2[#buffer2 + 1] = v
 						end
 					end
 				end
-				return buffer2
+				for i, v in pairs(buffer2) do
+					buffer3[#buffer3 + 1] = i
+					print("moved key " .. i .. " from buffer 2 to buffer 3 value at key " .. tostring(#buffer3 + 1))
+				end
+				return buffer3
 			end;
 			write = function(path, filename, data, disk)
 				if string.sub(path, 1, 1) ~= "/" then
@@ -1207,16 +1216,16 @@ local success, errorcode = pcall(function()
 								})
 								deleteButton.MouseButton1Click:Connect(function()
 									if clickedDelete == true then
-									musicList[i] = nil
-									storage:Write("musicList", encodeMusicList(musicList))
-									parentFrame:Destroy()
+										musicList[i] = nil
+										storage:Write("musicList", encodeMusicList(musicList))
+										parentFrame:Destroy()
 										refresh()
 									else
 										deleteButton:ChangeProperties({Text  = "Are you sure?"})
 										clickedDelete = true
 										wait(2.5)
 										if deleteButton ~= nil then
-											deleteButton:ChangeProperties({Text = ""})
+											deleteButton:ChangeProperties({Text = "Delete"})
 										end
 										clickedDelete = false
 									end
@@ -1373,7 +1382,47 @@ local success, errorcode = pcall(function()
 					canopenexplorer = true
 				end)
 				local function openMainExplorer()
-					puter.AddWindowElement(explorerwindow, "TextLabel", {Size = UDim2.fromOffset(500, 225); Text = "sorry no exploring"; TextScaled = true; TextColor3 = Color3.fromRGB(255,255,255); BackgroundColor3 = Color3.fromRGB(0,0,0); ZIndex = 4})
+					puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(500, 25);
+						Text = "Under construciton, stay away!";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundTransparency = 1;
+						Position = UDim2.fromOffset(0, 50);
+					})
+					puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(300, 25);
+						Text = "Filename";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Position = UDim2.fromOffset(0, 25);
+						BorderSizePixel = 0;
+					})
+					puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(200, 25);
+						Text = "Type";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Position = UDim2.fromOffset(300, 25);
+						BorderSizePixel = 0;
+					})
+					local actionParentFrame = puter.AddWindowElement(explorerwindow, "Frame", {
+						Size = UDim2.fromOffset(500, 25);
+						Position = UDim2.fromOffset(0,0);
+						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
+						BorderSizePixel = 0;
+					})
+					local actionFile = puter.AddElement(actionParentFrame, "TextButton", {
+						Size = UDim2.fromOffset(50, 25);
+						Text = "File";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
+						Position = UDim2.fromOffset(0, 0);
+						BorderSizePixel = 0;
+					})
 				end
 				openMainExplorer()
 			end
@@ -1790,10 +1839,8 @@ local success, errorcode = pcall(function()
 					addTextToOutput(Out)
 					updateOutput()
 				end
-				--WARNING: always increment the version number each publication on the github repository, if this is below the
-				--amount of revisions, roll back to the github version, because its most likely the script got
-				--corrupted.
-				terminalout("wOS Codename BasicSystem, Version 3 Revision 2")
+				--increment the version each major change
+				terminalout("wOS Codename BasicSystem, Version 4 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
