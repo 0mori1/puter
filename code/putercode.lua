@@ -644,7 +644,7 @@ local success, errorcode = pcall(function()
 				for i, v in pairs(disk:ReadEntireDisk()) do
 					if string.sub(i, 1, #path) == path then
 						buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
-						print("match of " .. i .. "with " .. path .. ", saved to buffer 1 as " .. string.sub(i, #path + 1, #i))
+						print("match of " .. i .. " with " .. path .. ", saved to buffer 1 as " .. string.sub(i, #path + 1, #i))
 					end
 				end
 				for i, v in pairs(buffer1) do
@@ -652,6 +652,8 @@ local success, errorcode = pcall(function()
 						if string.sub(v, i, i) == "/" then
 							if buffer2[string.sub(v, 1, i - 1)] == nil then
 								buffer2[string.sub(v, 1, i - 1)] = true
+								print("added " .. string.sub(v, 1, i - 1) .. "to buffer 2")
+								print("debug info: " .. v .. ", " .. i)
 							else
 								print("did not add " .. string.sub(v, 1, i - 1) .. ", because it already exists in buffer 2")
 							end
