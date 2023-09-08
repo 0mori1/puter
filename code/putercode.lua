@@ -400,7 +400,7 @@ local success, errorcode = pcall(function()
 		return newTable
 	end
 	-- Continue the init process
-	
+
 	-- Set some variables (for self testing)
 	local importantselftest1passed = false
 	local importantselftest2passed = false
@@ -637,36 +637,31 @@ local success, errorcode = pcall(function()
 			scanPath = function(path, disk)
 				local buffer1 = {}
 				local buffer2 = {}
+				local buffer3 = {}
 				if string.sub(path, #path, #path) ~= "/" then
 					path = path .. "/"
 				end
 				for i, v in pairs(disk:ReadEntireDisk()) do
 					if string.sub(i, 1, #path) == path then
-						buffer1[#buffer1 + 1] = i
+						buffer1[#buffer1 + 1] = string.sub(i, 1, #path)
+						print("match of " .. i .. "with " .. path .. ", saved to buffer 1 as " .. string.sub(i, 1, #path))
 					end
 				end
 				for i, v in pairs(buffer1) do
-					local isNext = nil
-					if isNext == nil then
-						local nameStart = #path + 1
-						local slashFound = false
-						local noInitPath = string.sub(v, #path, #v)
-						for i = 1, #v, 1 do
-							if string.sub(noInitPath, i, i) == "/" and slashFound == false then
-								if slashFound == false then
-									slashFound = true
-								end
+					for i = 1, #v, 1 do
+						if string.sub(v, i, i) == "/" then
+							if buffer2[string.sub(v, 1, i - 1)] == nil then
+								buffer2[string.sub(v, 1, i - 1)] = true
+							else
+								print("")
 							end
-							if slashFound == true then
-								isNext = false
-							end
-						end
-						if slashFound == true and isNext == true then
-							buffer2[#buffer2 + 1] = v
 						end
 					end
 				end
-				return buffer2
+				for i, v in pairs(buffer2) do
+					buffer3[#buffer3 + 1] = i
+				end
+				return buffer3
 			end;
 			write = function(path, filename, data, disk)
 				if string.sub(path, 1, 1) ~= "/" then
@@ -1207,9 +1202,9 @@ local success, errorcode = pcall(function()
 								})
 								deleteButton.MouseButton1Click:Connect(function()
 									if clickedDelete == true then
-									musicList[i] = nil
-									storage:Write("musicList", encodeMusicList(musicList))
-									parentFrame:Destroy()
+										musicList[i] = nil
+										storage:Write("musicList", encodeMusicList(musicList))
+										parentFrame:Destroy()
 										refresh()
 									else
 										deleteButton:ChangeProperties({Text  = "Are you sure?"})
