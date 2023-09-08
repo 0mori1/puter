@@ -1384,7 +1384,7 @@ local success, errorcode = pcall(function()
 				local function openMainExplorer()
 					puter.AddWindowElement(explorerwindow, "TextLabel", {
 						Size = UDim2.fromOffset(500, 25);
-						Text = "Under construciton, stay away!";
+						Text = "Under construction, stay away!";
 						TextScaled = true;
 						TextColor3 = Color3.fromRGB(0,0,0);
 						BackgroundTransparency = 1;
