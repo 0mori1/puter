@@ -1382,7 +1382,47 @@ local success, errorcode = pcall(function()
 					canopenexplorer = true
 				end)
 				local function openMainExplorer()
-					puter.AddWindowElement(explorerwindow, "TextLabel", {Size = UDim2.fromOffset(500, 225); Text = "sorry no exploring"; TextScaled = true; TextColor3 = Color3.fromRGB(255,255,255); BackgroundColor3 = Color3.fromRGB(0,0,0); ZIndex = 4})
+					puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(500, 25);
+						Text = "Under construciton, stay away!";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundTransparency = 1;
+						Position = UDim2.fromOffset(0, 50);
+					})
+					puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(300, 25);
+						Text = "Filename";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Position = UDim2.fromOffset(0, 25);
+						BorderSizePixel = 0;
+					})
+					puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(200, 25);
+						Text = "Type";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Position = UDim2.fromOffset(300, 25);
+						BorderSizePixel = 0;
+					})
+					local actionParentFrame = puter.AddWindowElement(explorerwindow, "Frame", {
+						Size = UDim2.fromOffset(500, 25);
+						Position = UDim2.fromOffset(0,0);
+						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
+						BorderSizePixel = 0;
+					})
+					local actionFile = puter.AddElement(actionParentFrame, "TextButton", {
+						Size = UDim2.fromOffset(50, 25);
+						Text = "File";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
+						Position = UDim2.fromOffset(0, 0);
+						BorderSizePixel = 0;
+					})
 				end
 				openMainExplorer()
 			end
