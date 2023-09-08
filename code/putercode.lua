@@ -650,7 +650,7 @@ local success, errorcode = pcall(function()
 				for i, v in pairs(buffer1) do
 					local added = false
 					for i = 1, #v, 1 do
-						if string.sub(v, i, i) == "/" and added == false then
+						if string.sub(v, i, i) == "/" and added == false or i == #v and added == false then
 							added = true
 							if buffer2[string.sub(v, 1, i - 1)] == nil then
 								buffer2[string.sub(v, 1, i - 1)] = true
