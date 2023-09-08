@@ -653,7 +653,7 @@ local success, errorcode = pcall(function()
 							if buffer2[string.sub(v, 1, i - 1)] == nil then
 								buffer2[string.sub(v, 1, i - 1)] = true
 							else
-								print("did not add " .. buffer2[string.sub(v, 1, i - 1)] .. ", because it already exists in buffer 2")
+								print("did not add " .. string.sub(v, 1, i - 1) .. ", because it already exists in buffer 2")
 							end
 						end
 					end
