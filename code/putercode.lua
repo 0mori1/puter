@@ -1178,7 +1178,7 @@ local success, errorcode = pcall(function()
 					for i, v in pairs(musicList) do
 						local parentFrame = puter.AddElement(scrollFrame, "Frame", {
 							Size = UDim2.fromOffset(398, 25);
-							Position = UDim2.fromOffset(0, (i - 1) * 25);
+							Position = UDim2.fromOffset(0, i * 25);
 							BackgroundTransparency = 1;
 						})
 						scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i - 1) * 25)})
@@ -1480,6 +1480,7 @@ local success, errorcode = pcall(function()
 							})
 						else
 							fileFrame:Destroy()
+							fileFrame = nil
 						end
 					end)
 				end
