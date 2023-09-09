@@ -545,15 +545,15 @@ local success, errorcode = pcall(function()
 				Speaker:Configure({Audio = audioInputted})
 				Speaker:Trigger()
 			end;
-			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor)
+			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
 				local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
 				local title = ifNotNilThenSetToThatElseDont(temptitle, "App")
 				local titlebarcolor = ifNotNilThenSetToThatElseDont(temptitlebarcolor, Color3.fromHex("#000000"))
 				local textcolor = ifNotNilThenSetToThatElseDont(temptextcolor, Color3.fromHex("#FFFFFF"))
 				--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
-				--centers the window
-				local posx = (800 - x) / 2
-				local posy = (450 - y) / 2 - 36
+				--centers the window if the override positions are nil
+				local posx = ifNotNilThenSetToThatElseDont(overrideX, (800 - x) / 2)
+				local posy = ifNotNilThenSetToThatElseDont(overrideY, (450 - y) / 2 - 36)
 				local titlebar = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x - 50, 25);
 					Position = UDim2.fromOffset(posx, posy);
@@ -642,9 +642,8 @@ local success, errorcode = pcall(function()
 					path = path .. "/"
 				end
 				for i, v in pairs(disk:ReadEntireDisk()) do
-					if string.sub(i, 1, #path) == path then
+					if string.sub(i, 1, #path) == path and v ~= nil then
 						buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
-						print("match of " .. i .. " with " .. path .. ", saved to buffer 1 as " .. string.sub(i, #path + 1, #i))
 					end
 				end
 				for i, v in pairs(buffer1) do
@@ -654,26 +653,17 @@ local success, errorcode = pcall(function()
 							added = true
 							if buffer2[string.sub(v, 1, i - 1)] == nil then
 								buffer2[string.sub(v, 1, i - 1)] = true
-								print("added " .. string.sub(v, 1, i - 1) .. "to buffer 2")
-								print("debug info: " .. v .. ", " .. i)
-							else
-								print("did not add " .. string.sub(v, 1, i - 1) .. ", because it already exists in buffer 2")
 							end
 						elseif i == #v and added == false then
 							added = true
 							if buffer2[string.sub(v, 1, i)] == nil then
 								buffer2[string.sub(v, 1, i)] = true
-								print("added " .. string.sub(v, 1, i) .. "to buffer 2")
-								print("debug info: " .. v .. ", " .. i)
-							else
-								print("did not add " .. string.sub(v, 1, i) .. ", because it already exists in buffer 2")
 							end
 						end
 					end
 				end
 				for i, v in pairs(buffer2) do
 					buffer3[#buffer3 + 1] = i
-					print("moved key " .. i .. " from buffer 2 to buffer 3 value at key " .. tostring(#buffer3 + 1))
 				end
 				return buffer3
 			end;
@@ -706,30 +696,6 @@ local success, errorcode = pcall(function()
 				TextScaled = true;
 				Text = errorMessage
 			})
-		end
-		--filesystem library stress test
-		if mounteddisks[1] ~= nil then
-			mounteddisks[1]:ClearDisk()
-			filesystem.createDirectory("/Goober/", mounteddisks[1])
-			local succeeded, general = filesystem.write("/Goober/", "goofy", "im a goofy goober", mounteddisks[1])
-			if succeeded == true then
-				print("SUCCEEDED, WRITTEN AT " .. general)
-			else
-				print("FAILED: " .. general)
-			end
-			print(filesystem.read("/Goober/goofy", mounteddisks[1]))
-			filesystem.createDirectory("/Goober/Silly1", mounteddisks[1])
-			filesystem.createDirectory("/Goober/Silly2", mounteddisks[1])
-			filesystem.createDirectory("/Goober/Silly3", mounteddisks[1])
-			filesystem.createDirectory("/Goober/Silly4", mounteddisks[1])
-			for i, v in pairs(filesystem.scanPath("/", mounteddisks[1])) do
-				print(v)
-			end
-			print("done root")
-			for i, v in pairs(filesystem.scanPath("/Goober/", mounteddisks[1])) do
-				print(v)
-			end
-			print("done goober")
 		end
 		local recorded = {}
 		local recordedtext = {}
@@ -809,12 +775,17 @@ local success, errorcode = pcall(function()
 					recorded = {}
 				elseif string.sub(text, 1, 10) == "play audio" then
 					if speaker ~= nil then
+						speaker:Configure({Pitch = 1})
 						puter.PlayAudio(string.sub(text, 12, #text), speaker)
 					end
 				elseif string.sub(text, 1, 13) == "display image" then
 					local image = string.sub(text, 15, #text)
 					if displayingimg == false then
 						local frame, closebutton = puter.CreateWindow(400, 275, "ImageViewer")
+						closebutton.MouseButton1Click:Connect(function()
+							displayingimg = false
+						end)
+						displayingimg = true
 						puter.AddWindowElement(frame , "ImageLabel", {
 							Image = "http://www.roblox.com/asset/?id=" .. image;
 							Size = UDim2.fromOffset(400, 225);
@@ -912,6 +883,41 @@ local success, errorcode = pcall(function()
 				return true, "no robloxes are allowed to use the puter"
 			end
 		end
+		local knownFileTypes = {
+			["lua"] = function(code)
+				luarun(code, GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"))
+			end;
+			["image"] = function(imageID)
+				check("display image " .. imageID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
+			end;
+			["audio"] = function(audioID)
+				check("play audio " .. audioID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
+			end;
+			["video"] = function(videoID)
+				check("play video " .. videoID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
+			end;
+		}
+		local fileTypeNames = {
+			["lua"] = "Lua Script";
+			["image"] = "Image";
+			["audio"] = "Audio";
+			["video"] = "Video"
+		}
+		local function typeParser(input)
+			if string.sub(input, 1, 2) == "t:" then
+				for i = 1, #input, 1 do
+					if string.sub(input, i, i) == "/" then
+						if knownFileTypes[string.sub(input, 1, i - 1)] ~= nil then
+							return string.sub(input, 1, i - 1)
+						else
+							return "Unknown"
+						end
+					end
+				end
+			else
+				return "Unknown"
+			end
+		end
 		local function lagometer()
 			if canopenlagometer == true then
 				canopenlagometer = false
@@ -957,8 +963,10 @@ local success, errorcode = pcall(function()
 							color = Color3.fromRGB(255,255,0)
 						elseif framerate >= 15 then
 							color = Color3.fromRGB(255,126,0)
-						else
+						elseif framerate >= 1 then
 							color = Color3.fromRGB(255,0,0)
+						else
+							color = Color3.fromRGB(143, 255, 244)
 						end
 						currentFPS:ChangeProperties({Text = tostring(framerate); TextColor3 = color;})
 					end
@@ -1047,8 +1055,8 @@ local success, errorcode = pcall(function()
 					--example of an output:
 					--{
 					--	[1] = {
-					--		"example"
-					--		"000000001"
+					--		["name"] = "example"
+					--		["id"] = "000000001"
 					--	}
 					--}
 					local name
@@ -1173,6 +1181,7 @@ local success, errorcode = pcall(function()
 							Position = UDim2.fromOffset(0, (i - 1) * 25);
 							BackgroundTransparency = 1;
 						})
+						scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i - 1) * 25)})
 						for i2, v2 in pairs(v) do
 							if i2 == "name" then
 								puter.AddElement(parentFrame, "TextLabel", {
@@ -1376,7 +1385,7 @@ local success, errorcode = pcall(function()
 		local canopenexplorer = true
 		explorerApp.MouseButton1Click:Connect(function()
 			if canopenexplorer == true then
-				local explorerwindow, closeexplorer = puter.CreateWindow(500, 225, "Explorer")
+				local explorerwindow, closeexplorer = puter.CreateWindow(500, 300, "Explorer")
 				canopenexplorer = false
 				closeexplorer.MouseButton1Click:Connect(function()
 					canopenexplorer = true
@@ -1388,7 +1397,7 @@ local success, errorcode = pcall(function()
 						TextScaled = true;
 						TextColor3 = Color3.fromRGB(0,0,0);
 						BackgroundTransparency = 1;
-						Position = UDim2.fromOffset(0, 50);
+						Position = UDim2.fromOffset(0, 75);
 					})
 					puter.AddWindowElement(explorerwindow, "TextLabel", {
 						Size = UDim2.fromOffset(300, 25);
@@ -1396,7 +1405,7 @@ local success, errorcode = pcall(function()
 						TextScaled = true;
 						TextColor3 = Color3.fromRGB(255,255,255);
 						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						Position = UDim2.fromOffset(0, 25);
+						Position = UDim2.fromOffset(0, 50);
 						BorderSizePixel = 0;
 					})
 					puter.AddWindowElement(explorerwindow, "TextLabel", {
@@ -1405,7 +1414,7 @@ local success, errorcode = pcall(function()
 						TextScaled = true;
 						TextColor3 = Color3.fromRGB(255,255,255);
 						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						Position = UDim2.fromOffset(300, 25);
+						Position = UDim2.fromOffset(300, 50);
 						BorderSizePixel = 0;
 					})
 					local actionParentFrame = puter.AddWindowElement(explorerwindow, "Frame", {
@@ -1414,6 +1423,7 @@ local success, errorcode = pcall(function()
 						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
 						BorderSizePixel = 0;
 					})
+					local fileFrame
 					local actionFile = puter.AddElement(actionParentFrame, "TextButton", {
 						Size = UDim2.fromOffset(50, 25);
 						Text = "File";
@@ -1423,6 +1433,25 @@ local success, errorcode = pcall(function()
 						Position = UDim2.fromOffset(0, 0);
 						BorderSizePixel = 0;
 					})
+					local actionRefresh = puter.AddElement(actionParentFrame, "TextButton", {
+						Size = UDim2.fromOffset(75, 25);
+						Text = "Refresh";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
+						Position = UDim2.fromOffset(50, 0);
+						BorderSizePixel = 0;
+					})
+					actionFile.MouseButton1Click:Connect(function()
+						if fileFrame == nil then
+							fileFrame = puter.AddElement(actionFile, "Frame", {
+								Size = UDim2.fromOffset(100, 50);
+								Position = UDim2.fromOffset(0, 25);
+								BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+								BorderSizePixel = 0;
+							})
+						end
+					end)
 				end
 				openMainExplorer()
 			end
