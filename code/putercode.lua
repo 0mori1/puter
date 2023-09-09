@@ -1041,14 +1041,14 @@ local success, errorcode = pcall(function()
 				end)
 				canopenmusic = false
 				local specialCharactersIn = {
-					["%00"] = "/";
-					["%01"] = ",";
-					["%02"] = "%";
+					["%0"] = "/";
+					["%1"] = ",";
+					["%2"] = "%";
 				}
 				local specialCharactersOut = {
-					["/"] = "%00";
-					[","] = "%01";
-					["%"] = "%02";
+					["/"] = "%0";
+					[","] = "%1";
+					["%"] = "%2";
 				}
 				local function decodeRawMusicList(raw)
 					local musicList = {}
@@ -1065,8 +1065,8 @@ local success, errorcode = pcall(function()
 					local readState = nil
 					local parsedData = ""
 					for i = 1, #raw, 1 do
-						if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 2)] ~= nil then
-							parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 2)]
+						if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
+							parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
 							i = i + 2
 						elseif string.sub(raw, i, i) == "/" then
 							name = parsedData
@@ -1121,7 +1121,7 @@ local success, errorcode = pcall(function()
 				})
 				local space = puter.AddWindowElement(window, "TextLabel", {
 					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					Text = tostring(#musicList) .. " / 25";
+					Text = tostring(#musicList) .. " / 70";
 					TextScaled = true;
 					TextColor3 = Color3.fromRGB(255,255,255);
 					BorderSizePixel = 0;
@@ -1165,7 +1165,7 @@ local success, errorcode = pcall(function()
 				})
 				local function refresh()
 					musicList = decodeRawMusicList(storage:Read("musicList"))
-					space:ChangeProperties({Text = tostring(#musicList) .. " / 25"})
+					space:ChangeProperties({Text = tostring(#musicList) .. " / 70"})
 					scrollFrame:Destroy()
 					scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
 						Size = UDim2.fromOffset(400, 250);
@@ -1303,7 +1303,7 @@ local success, errorcode = pcall(function()
 						okbutton.MouseButton1Click:Connect(function()
 							if name ~= nil then
 								if id ~= nil then
-									if #musicList <= 24 then
+									if #musicList <= 69 then
 										musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
 										storage:Write("musicList", encodeMusicList(musicList))
 										refresh()
