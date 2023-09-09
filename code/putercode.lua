@@ -1178,10 +1178,10 @@ local success, errorcode = pcall(function()
 					for i, v in pairs(musicList) do
 						local parentFrame = puter.AddElement(scrollFrame, "Frame", {
 							Size = UDim2.fromOffset(398, 25);
-							Position = UDim2.fromOffset(0, i * 25);
+							Position = UDim2.fromOffset(0, (i - 1) * 25);
 							BackgroundTransparency = 1;
 						})
-						scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i - 1) * 25)})
+						scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
 						for i2, v2 in pairs(v) do
 							if i2 == "name" then
 								puter.AddElement(parentFrame, "TextLabel", {
