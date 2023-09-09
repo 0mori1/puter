@@ -1454,12 +1454,11 @@ local success, errorcode = pcall(function()
 					})
 					actionFile.MouseButton1Click:Connect(function()
 						if fileFrame == nil then
-							fileFrame = puter.AddElement(actionFile, "Frame", {
+							fileFrame = puter.AddWindowElement(explorerwindow, "Frame", {
 								Size = UDim2.fromOffset(100, 50);
 								Position = UDim2.fromOffset(0, 25);
 								BackgroundColor3 = Color3.fromRGB(48, 48, 48);
 								BorderSizePixel = 0;
-								ZIndex = 3;
 							})
 							local createDirectory = puter.AddElement(fileFrame, "TextButton", {
 								Size = UDim2.fromOffset(100, 25);
