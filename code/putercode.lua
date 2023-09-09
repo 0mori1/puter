@@ -1459,6 +1459,7 @@ local success, errorcode = pcall(function()
 								Position = UDim2.fromOffset(0, 25);
 								BackgroundColor3 = Color3.fromRGB(48, 48, 48);
 								BorderSizePixel = 0;
+								ZIndex = 3;
 							})
 							local createDirectory = puter.AddElement(fileFrame, "TextButton", {
 								Size = UDim2.fromOffset(100, 25);
