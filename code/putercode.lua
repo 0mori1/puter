@@ -1156,10 +1156,10 @@ local success, errorcode = pcall(function()
 					Size = UDim2.fromOffset(100, 25);
 				})
 				local scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
-					Size = UDim2.fromOffset(400, 250);
+					Size = UDim2.fromOffset(350, 250);
 					Position = UDim2.fromOffset(0, 50);
 					BackgroundColor3 = Color3.fromRGB(86, 86, 86);
-					ScrollBarThickness = 3;
+					ScrollBarThickness = 2;
 					ScrollingDirection = Enum.ScrollingDirection.Y;
 					CanvasSize = UDim2.fromOffset(0, 0);
 				})
@@ -1168,16 +1168,16 @@ local success, errorcode = pcall(function()
 					space:ChangeProperties({Text = tostring(#musicList) .. " / 70"})
 					scrollFrame:Destroy()
 					scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
-						Size = UDim2.fromOffset(400, 250);
+						Size = UDim2.fromOffset(350, 250);
 						Position = UDim2.fromOffset(0, 50);
 						BackgroundColor3 = Color3.fromRGB(86, 86, 86);
-						ScrollBarThickness = 3;
+						ScrollBarThickness = 2;
 						ScrollingDirection = Enum.ScrollingDirection.Y;
 						CanvasSize = UDim2.fromOffset(0, 0);
 					})
 					for i, v in pairs(musicList) do
 						local parentFrame = puter.AddElement(scrollFrame, "Frame", {
-							Size = UDim2.fromOffset(400, 25);
+							Size = UDim2.fromOffset(398, 25);
 							Position = UDim2.fromOffset(0, (i - 1) * 25);
 							BackgroundTransparency = 1;
 						})
@@ -1207,7 +1207,7 @@ local success, errorcode = pcall(function()
 									TextColor3 = Color3.fromRGB(0,0,0);
 									BackgroundColor3 = Color3.fromRGB(0,255,0);
 									BorderSizePixel = 0;
-									Size = UDim2.fromOffset(50, 25);
+									Size = UDim2.fromOffset(49, 25);
 									Position = UDim2.fromOffset(300, 0);
 								})
 								playButton.MouseButton1Click:Connect(function()
@@ -1220,8 +1220,8 @@ local success, errorcode = pcall(function()
 									TextColor3 = Color3.fromRGB(0,0,0);
 									BackgroundColor3 = Color3.fromRGB(255,0,0);
 									BorderSizePixel = 0;
-									Size = UDim2.fromOffset(50, 25);
-									Position = UDim2.fromOffset(350, 0);
+									Size = UDim2.fromOffset(49, 25);
+									Position = UDim2.fromOffset(349, 0);
 								})
 								deleteButton.MouseButton1Click:Connect(function()
 									if clickedDelete == true then
@@ -1423,6 +1423,16 @@ local success, errorcode = pcall(function()
 						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
 						BorderSizePixel = 0;
 					})
+					local path = puter.AddWindowElement(explorerwindow, "TextLabel", {
+						Size = UDim2.fromOffset(495, 25);
+						Position = UDim2.fromOffset(5, 25);
+						BorderSizePixel = 0;
+						BackgroundTransparency = 1;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						TextScaled = true;
+						Text = "Disk View";
+						TextXAlignment = Enum.TextXAlignment.Left;
+					})
 					local fileFrame
 					local actionFile = puter.AddElement(actionParentFrame, "TextButton", {
 						Size = UDim2.fromOffset(50, 25);
@@ -1439,7 +1449,7 @@ local success, errorcode = pcall(function()
 						TextScaled = true;
 						TextColor3 = Color3.fromRGB(255,255,255);
 						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
-						Position = UDim2.fromOffset(50, 0);
+						Position = UDim2.fromOffset(75, 0);
 						BorderSizePixel = 0;
 					})
 					actionFile.MouseButton1Click:Connect(function()
@@ -1450,6 +1460,26 @@ local success, errorcode = pcall(function()
 								BackgroundColor3 = Color3.fromRGB(48, 48, 48);
 								BorderSizePixel = 0;
 							})
+							local createDirectory = puter.AddElement(fileFrame, "TextButton", {
+								Size = UDim2.fromOffset(100, 25);
+								Position = UDim2.fromOffset(0, 0);
+								BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Create Directory";
+							})
+							local createFile = puter.AddElement(fileFrame, "TextButton", {
+								Size = UDim2.fromOffset(100, 25);
+								Position = UDim2.fromOffset(0, 25);
+								BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Create File";
+							})
+						else
+							fileFrame:Destroy()
 						end
 					end)
 				end
