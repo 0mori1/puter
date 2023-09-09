@@ -1156,7 +1156,7 @@ local success, errorcode = pcall(function()
 					Size = UDim2.fromOffset(100, 25);
 				})
 				local scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
-					Size = UDim2.fromOffset(350, 250);
+					Size = UDim2.fromOffset(400, 250);
 					Position = UDim2.fromOffset(0, 50);
 					BackgroundColor3 = Color3.fromRGB(86, 86, 86);
 					ScrollBarThickness = 2;
@@ -1168,7 +1168,7 @@ local success, errorcode = pcall(function()
 					space:ChangeProperties({Text = tostring(#musicList) .. " / 70"})
 					scrollFrame:Destroy()
 					scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
-						Size = UDim2.fromOffset(350, 250);
+						Size = UDim2.fromOffset(400, 250);
 						Position = UDim2.fromOffset(0, 50);
 						BackgroundColor3 = Color3.fromRGB(86, 86, 86);
 						ScrollBarThickness = 2;
