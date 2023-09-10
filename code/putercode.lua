@@ -901,21 +901,22 @@ local success, errorcode = pcall(function()
 			["lua"] = "Lua Script";
 			["image"] = "Image";
 			["audio"] = "Audio";
-			["video"] = "Video"
+			["video"] = "Video";
+			["folder"] = "Folder"
 		}
 		local function typeParser(input)
 			if string.sub(input, 1, 2) == "t:" then
 				for i = 1, #input, 1 do
 					if string.sub(input, i, i) == "/" then
-						if knownFileTypes[string.sub(input, 1, i - 1)] ~= nil then
-							return string.sub(input, 1, i - 1)
+						if knownFileTypes[string.sub(input, 3, i - 1)] ~= nil or string.sub(input, 3, i - 1) == "folder" then
+							return string.sub(input, 3, i - 1), string.sub(input, i + 1, #input)
 						else
-							return "Unknown"
+							return "Unknown", string.sub(input, i + 1, #input)
 						end
 					end
 				end
 			else
-				return "Unknown"
+				return "Unknown", input
 			end
 		end
 		local function lagometer()
@@ -1387,18 +1388,7 @@ local success, errorcode = pcall(function()
 			if canopenexplorer == true then
 				local explorerwindow, closeexplorer = puter.CreateWindow(500, 300, "Explorer")
 				canopenexplorer = false
-				closeexplorer.MouseButton1Click:Connect(function()
-					canopenexplorer = true
-				end)
 				local function openMainExplorer()
-					puter.AddWindowElement(explorerwindow, "TextLabel", {
-						Size = UDim2.fromOffset(500, 25);
-						Text = "Under construction, stay away!";
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(0,0,0);
-						BackgroundTransparency = 1;
-						Position = UDim2.fromOffset(0, 75);
-					})
 					puter.AddWindowElement(explorerwindow, "TextLabel", {
 						Size = UDim2.fromOffset(300, 25);
 						Text = "Filename";
@@ -1423,17 +1413,22 @@ local success, errorcode = pcall(function()
 						BackgroundColor3 = Color3.fromRGB(44, 44, 44);
 						BorderSizePixel = 0;
 					})
-					local path = puter.AddWindowElement(explorerwindow, "TextLabel", {
+					local called = true
+					local path = "Disk View"
+					local viewingDisk
+					local pathLabel = puter.AddWindowElement(explorerwindow, "TextLabel", {
 						Size = UDim2.fromOffset(495, 25);
 						Position = UDim2.fromOffset(5, 25);
 						BorderSizePixel = 0;
 						BackgroundTransparency = 1;
 						TextColor3 = Color3.fromRGB(255,255,255);
 						TextScaled = true;
-						Text = "Disk View";
+						Text = path;
 						TextXAlignment = Enum.TextXAlignment.Left;
 					})
 					local fileFrame
+					local canopencfolder = true
+					local canopencfile = true
 					local actionFile = puter.AddElement(actionParentFrame, "TextButton", {
 						Size = UDim2.fromOffset(50, 25);
 						Text = "File";
@@ -1452,6 +1447,188 @@ local success, errorcode = pcall(function()
 						Position = UDim2.fromOffset(75, 0);
 						BorderSizePixel = 0;
 					})
+					local mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+						Size = UDim2.fromOffset(500, 225);
+						Position = UDim2.fromOffset(0, 75);
+						BorderSizePixel = 0;
+						BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+						ScrollBarThickness = 2;
+						CanvasSize = UDim2.fromOffset(0,0);
+					})
+					local function addFile(fileName, fileType, position, data)
+						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+							Size = UDim2.fromOffset(498, 25);
+							Position = position;
+							BorderSizePixel = 0;
+							BackgroundTransparency = 1;
+						})
+						local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+							Size = UDim2.fromOffset(300, 25);
+							Position = UDim2.fromOffset(0,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = fileName
+						})
+						local fileTypeName
+						if fileTypeNames[fileType] ~= nil then
+							fileTypeName = fileTypeNames[fileType]
+						else
+							fileTypeName = "Unknown"
+						end
+						puter.AddElement(parentFrame, "TextLabel", {
+							Size = UDim2.fromOffset(198, 25);
+							Position = UDim2.fromOffset(300,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = fileTypeName
+						})
+						fileNameButton.MouseButton1Click:Connect(function()
+							local thingToDo = knownFileTypes[fileType]
+							if thingToDo ~= nil then
+								thingToDo(data)
+							elseif fileType == "folder" then
+								if string.sub(path, #path, #path) ~= "/" then
+									path = path .. "/"
+								end
+								path = path .. fileName
+								called = true
+							else
+								errorPopup("Unknown file type")
+							end
+						end)
+					end
+					local function getUp()
+						if path ~= "/" then
+							for i = #path, 1, -1 do
+								if string.sub(path, i, i) == "/" then
+									path = string.sub(path, 1, i - 1)
+									called = true
+								end
+							end
+						else
+							path = "Disk View"
+							viewingDisk = nil
+							called = true
+						end
+					end
+					local function getPath(path, disk)
+						pathLabel:ChangeProperties({Text = path})
+						mainScrollFrame:Destroy()
+						mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+							Size = UDim2.fromOffset(500, 225);
+							Position = UDim2.fromOffset(0, 75);
+							BorderSizePixel = 0;
+							BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+							ScrollBarThickness = 2;
+							CanvasSize = UDim2.fromOffset(0,0);
+						})
+						if string.sub(path, #path, #path) ~= "/" then
+							path = path .. "/"
+						end
+						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+							Size = UDim2.fromOffset(498, 25);
+							Position = UDim2.fromOffset(0, 0);
+							BorderSizePixel = 0;
+							BackgroundTransparency = 1;
+						})
+						local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+							Size = UDim2.fromOffset(300, 25);
+							Position = UDim2.fromOffset(0,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = ".."
+						})
+						puter.AddElement(parentFrame, "TextLabel", {
+							Size = UDim2.fromOffset(198, 25);
+							Position = UDim2.fromOffset(300,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = "Folder"
+						})
+						fileNameButton.MouseButton1Click:Connect(function()
+							getUp()
+						end)
+						local files = filesystem.scanPath(path, disk)
+						for i, v in pairs(files) do
+							local file = filesystem.read(path .. v, disk)
+							local fileType, data = typeParser(file)
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
+							addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+						end
+					end
+					local function displayDisks()
+						for i, v in pairs(mounteddisks) do
+							mainScrollFrame:Destroy()
+							mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+								Size = UDim2.fromOffset(500, 225);
+								Position = UDim2.fromOffset(0, 75);
+								BorderSizePixel = 0;
+								BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+								ScrollBarThickness = 2;
+								CanvasSize = UDim2.fromOffset(0,0);
+							})
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
+							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+								Size = UDim2.fromOffset(498, 25);
+								Position = UDim2.fromOffset(0, (i - 1) * 25);
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+							})
+							local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+								Size = UDim2.fromOffset(300, 25);
+								Position = UDim2.fromOffset(0,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Disk " ..  tostring(i)
+							})
+							puter.AddElement(parentFrame, "TextLabel", {
+								Size = UDim2.fromOffset(198, 25);
+								Position = UDim2.fromOffset(300,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Disk"
+							})
+							fileNameButton.MouseButton1Click:Connect(function()
+								viewingDisk = v
+								path = "/"
+								called = true
+							end)
+						end
+					end
+					local director = coroutine.create(function()
+						while called == true do
+							wait(0.1)
+							if viewingDisk ~= nil then
+								if path ~= "Disk View" then
+									getPath(path, viewingDisk)
+								else
+									viewingDisk = nil
+									displayDisks()
+								end
+							else
+								displayDisks()
+							end
+							called = false
+						end
+					end)
+					coroutines[#coroutines + 1] = director
+					coroutine.resume(director)
+					closeexplorer.MouseButton1Click:Connect(function()
+						canopenexplorer = true
+						coroutine.close(director)
+					end)
 					actionFile.MouseButton1Click:Connect(function()
 						if fileFrame == nil then
 							fileFrame = puter.AddWindowElement(explorerwindow, "Frame", {
@@ -1478,6 +1655,94 @@ local success, errorcode = pcall(function()
 								TextScaled = true;
 								Text = "Create File";
 							})
+							createDirectory.MouseButton1Click:Connect(function()
+								if canopencfolder == true then
+									local focusedOn = nil
+									local name
+									local path
+									local disk
+									local window, closebutton = puter.CreateWindow(400, 225, "Directory Creator")
+									closebutton.MouseButton1Click:Connect(function()
+										canopencfolder = true
+									end)
+									canopencfolder = false
+									local nameButton = puter.AddWindowElement(window, "TextButton", {
+										Text = "Name: ";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+										Size = UDim2.fromOffset(380, 25);
+										Position = UDim2.fromOffset(10, 10);
+									})
+									local pathButton = puter.AddWindowElement(window, "TextButton", {
+										Text = "Path: ";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+										Size = UDim2.fromOffset(380, 25);
+										Position = UDim2.fromOffset(10, 45);
+									})
+									local diskButton = puter.AddWindowElement(window, "TextButton", {
+										Text = "Disk (number): ";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+										Size = UDim2.fromOffset(380, 25);
+										Position = UDim2.fromOffset(10, 80);
+									})
+									local createButton = puter.AddWindowElement(window, "TextButton", {
+										Text = "Create";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+										Size = UDim2.fromOffset(100, 25);
+										Position = UDim2.fromOffset(150, 175);
+									})
+									nameButton.MouseButton1Click:Connect(function()
+										focusedOn = "name"
+										nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+										pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+									end)
+									pathButton.MouseButton1Click:Connect(function()
+										focusedOn = "path"
+										nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+									end)
+									diskButton.MouseButton1Click:Connect(function()
+										focusedOn = "disk"
+										nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+									end)
+									createButton.MouseButton1Click:Connect(function()
+										local err = puter.AddWindowElement(window, "TextLabel", {
+											Text = "sorry, still under construction";
+											Size = UDim2.fromOffset(400, 25);
+											Position = UDim2.fromOffset(0, 175);
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(255,0,0);
+											BackgroundTransparency = 1;
+										})
+										wait(1)
+										err:Destroy()
+									end)
+									keyboard:Connect("TextInputted", function(text, plr)
+										text = string.sub(text, 1, #text - 1)
+										if focusedOn == "name" then
+											name = text
+											nameButton:ChangeProperties({Text = "Name: " .. text})
+										elseif focusedOn == "path" then
+											path = text
+											pathButton:ChangeProperties({Text = "Path: " .. text})
+										elseif focusedOn == "disk" then
+											disk = tonumber(text)
+											pathButton:ChangeProperties({Text = "Disk (number): " .. text})
+										end
+									end)
+								end
+							end)
 						else
 							fileFrame:Destroy()
 							fileFrame = nil
