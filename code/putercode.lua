@@ -1,6 +1,7 @@
 local screen
 local coroutines = {}
 local function shutdown()
+	Beep()
 	for i, v in pairs(coroutines) do
 		coroutine.close(v)
 	end
