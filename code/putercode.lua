@@ -694,6 +694,7 @@ local success, errorcode = pcall(function()
 		}
 		if mounteddisks[1] ~= nil then
 			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/c6ae29a1718726c988ae3ee52b78c012b1186ea1/destroybot.lua", mounteddisks[1])
+			print(filesystem.read("/DestroyBot", mounteddisks[1]))
 		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
