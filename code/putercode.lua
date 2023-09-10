@@ -692,6 +692,9 @@ local success, errorcode = pcall(function()
 				return disk:Read(path)
 			end;
 		}
+		for i, v in pairs(mounteddisks) do
+			v:Write("/", "t:folder")
+		end
 		if mounteddisks[1] ~= nil then
 			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/c6ae29a1718726c988ae3ee52b78c012b1186ea1/destroybot.lua", mounteddisks[1])
 			print(filesystem.read("/DestroyBot", mounteddisks[1]))
@@ -2185,7 +2188,7 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 5 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 6 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
