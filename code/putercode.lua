@@ -99,23 +99,29 @@ local success, errorcode = pcall(function()
 				Window:AddChild(element)
 				return element
 			end;
+			AddElement = function(Parent, Element, Properties)
+				local element = screen:CreateElement(Element, Properties)
+				Parent:AddChild(element)
+				return element
+			end;
 			PlayAudio = function(audioInputted, Speaker)
 				Speaker:Configure({Audio = audioInputted})
 				Speaker:Trigger()
 			end;
-			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor)
+			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
 				local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
 				local title = ifNotNilThenSetToThatElseDont(temptitle, "App")
 				local titlebarcolor = ifNotNilThenSetToThatElseDont(temptitlebarcolor, Color3.fromHex("#000000"))
 				local textcolor = ifNotNilThenSetToThatElseDont(temptextcolor, Color3.fromHex("#FFFFFF"))
-				--centers the window
-				local posx = (800 - x) / 2
-				local posy = (450 - y) / 2 - 36
+				--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
+				--centers the window if the override positions are nil
+				local posx = ifNotNilThenSetToThatElseDont(overrideX, (800 - x) / 2)
+				local posy = ifNotNilThenSetToThatElseDont(overrideY, (450 - y) / 2 - 36)
 				local titlebar = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x - 50, 25);
 					Position = UDim2.fromOffset(posx, posy);
 					Text = title;
-					TextColor3 = Color3.fromRGB(255,255,255);
+					TextColor3 = textcolor;
 					BackgroundColor3 = titlebarcolor;
 					BorderSizePixel = 0;
 					TextScaled = true;
@@ -2175,7 +2181,7 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 4 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 5 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
