@@ -1608,19 +1608,27 @@ local success, errorcode = pcall(function()
 						end
 					end
 					local director = coroutine.create(function()
-						while called == true do
+						while true do
 							wait(0.1)
-							if viewingDisk ~= nil then
-								if path ~= "Disk View" then
-									getPath(path, viewingDisk)
+							if called == true then
+								print("i got called")
+								if viewingDisk ~= nil then
+									print("viewing disk is not nil")
+									if path ~= "Disk View" then
+										print("getting data at path " .. path)
+										getPath(path, viewingDisk)
+									else
+										print("the path is Disk View, cmon you know thats not valid")
+										viewingDisk = nil
+										displayDisks()
+									end
 								else
-									viewingDisk = nil
+									print("viewing disk is nil, displaying the disk displayer")
 									displayDisks()
 								end
-							else
-								displayDisks()
+								called = false
+								print("ending call")
 							end
-							called = false
 						end
 					end)
 					coroutines[#coroutines + 1] = director
