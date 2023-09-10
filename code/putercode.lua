@@ -1566,6 +1566,7 @@ local success, errorcode = pcall(function()
 					end
 					local function displayDisks()
 						for i, v in pairs(mounteddisks) do
+							pathLabel:ChangeProperties({Text = "Disk View"})
 							mainScrollFrame:Destroy()
 							mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
 								Size = UDim2.fromOffset(500, 225);
