@@ -636,9 +636,6 @@ local success, errorcode = pcall(function()
 				if string.sub(path, 1, 1) ~= "/" then
 					path = "/" .. path
 				end
-				if string.sub(path, #path, #path) ~= "/" then
-					path = path .. "/"
-				end
 				disk:Write(path, "t:folder")
 			end;
 			scanPath = function(path, disk)
@@ -682,8 +679,12 @@ local success, errorcode = pcall(function()
 					path = path .. "/"
 				end
 				if disk:Read(path) == "t:folder" then
-					disk:Write(path .. filename, data)
-					return true, path .. filename
+					if disk:Read(path .. filename) ~= "t:folder" then
+						disk:Write(path .. filename, data)
+						return true, path .. filename
+					else
+						return false, "do not overwrite folders, its not cool"
+					end
 				else
 					return false, "not a folder"
 				end
@@ -1580,7 +1581,10 @@ local success, errorcode = pcall(function()
 						end)
 						if yay == false then
 							print(noooo)
-							print("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+							print("DEBUG DATA: [KEY: DATA]")
+							for i, v in pairs(disk:ReadEntireDisk()) do
+								print(i .. ": " .. v)
+							end
 						end
 					end
 					local function displayDisks()
