@@ -633,10 +633,12 @@ local success, errorcode = pcall(function()
 		}
 		local filesystem = {
 			createDirectory = function(path, disk)
+				print(path)
 				if string.sub(path, 1, 1) ~= "/" then
 					path = "/" .. path
 				end
 				disk:Write(path, "t:folder")
+				print(path)
 			end;
 			scanPath = function(path, disk)
 				local buffer1 = {}
