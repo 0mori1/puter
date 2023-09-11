@@ -1529,52 +1529,58 @@ local success, errorcode = pcall(function()
 						end
 					end
 					local function getPath(path, disk)
-						pathLabel:ChangeProperties({Text = path})
-						mainScrollFrame:Destroy()
-						mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
-							Size = UDim2.fromOffset(500, 225);
-							Position = UDim2.fromOffset(0, 75);
-							BorderSizePixel = 0;
-							BackgroundColor3 = Color3.fromRGB(60, 60, 60);
-							ScrollBarThickness = 2;
-							CanvasSize = UDim2.fromOffset(0,0);
-						})
-						if string.sub(path, #path, #path) ~= "/" then
-							path = path .. "/"
-						end
-						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
-							Size = UDim2.fromOffset(498, 25);
-							Position = UDim2.fromOffset(0, 0);
-							BorderSizePixel = 0;
-							BackgroundTransparency = 1;
-						})
-						local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
-							Size = UDim2.fromOffset(300, 25);
-							Position = UDim2.fromOffset(0,0);
-							BackgroundColor3 = Color3.fromRGB(100,100,100);
-							BorderSizePixel = 0;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							TextScaled = true;
-							Text = ".."
-						})
-						puter.AddElement(parentFrame, "TextLabel", {
-							Size = UDim2.fromOffset(198, 25);
-							Position = UDim2.fromOffset(300,0);
-							BackgroundColor3 = Color3.fromRGB(100,100,100);
-							BorderSizePixel = 0;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							TextScaled = true;
-							Text = "Folder"
-						})
-						fileNameButton.MouseButton1Click:Connect(function()
-							getUp()
+						local yay, noooo = pcall(function()
+							pathLabel:ChangeProperties({Text = path})
+							mainScrollFrame:Destroy()
+							mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+								Size = UDim2.fromOffset(500, 225);
+								Position = UDim2.fromOffset(0, 75);
+								BorderSizePixel = 0;
+								BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+								ScrollBarThickness = 2;
+								CanvasSize = UDim2.fromOffset(0,0);
+							})
+							if string.sub(path, #path, #path) ~= "/" then
+								path = path .. "/"
+							end
+							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+								Size = UDim2.fromOffset(498, 25);
+								Position = UDim2.fromOffset(0, 0);
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+							})
+							local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+								Size = UDim2.fromOffset(300, 25);
+								Position = UDim2.fromOffset(0,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = ".."
+							})
+							puter.AddElement(parentFrame, "TextLabel", {
+								Size = UDim2.fromOffset(198, 25);
+								Position = UDim2.fromOffset(300,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Folder"
+							})
+							fileNameButton.MouseButton1Click:Connect(function()
+								getUp()
+							end)
+							local files = filesystem.scanPath(path, disk)
+							for i, v in pairs(files) do
+								local file = filesystem.read(path .. v, disk)
+								local fileType, data = typeParser(file)
+								mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
+								addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+							end
 						end)
-						local files = filesystem.scanPath(path, disk)
-						for i, v in pairs(files) do
-							local file = filesystem.read(path .. v, disk)
-							local fileType, data = typeParser(file)
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
-							addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+						if yay == false then
+							print(noooo)
+							print("WAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 						end
 					end
 					local function displayDisks()
@@ -1766,19 +1772,24 @@ local success, errorcode = pcall(function()
 														print("glued a / to the path")
 													end
 													if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
-														local badName = false
-														for i = 1, #name, 1 do
-															if string.sub(name, i, i) == "/" then
-																badName = true
+														if name ~= nil then
+															local badName = false
+															for i = 1, #name, 1 do
+																if string.sub(name, i, i) == "/" then
+																	badName = true
+																end
 															end
-														end
-														if badName == false then
-															print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
-															filesystem.createDirectory(path .. name, mounteddisks[disk])
-															called = true
+															if badName == false then
+																print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
+																filesystem.createDirectory(path .. name, mounteddisks[disk])
+																called = true
+															else
+																print("you're an idiot")
+																throwError("dont put a / in the name you doofus")
+															end
 														else
-															print("you're an idiot")
-															throwError("dont put a / in the name you doofus")
+															print("me when the untitled")
+															throwError("please input a name")
 														end
 													else
 														print("dawg that aint a folder")
