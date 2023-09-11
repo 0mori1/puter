@@ -1740,16 +1740,43 @@ local success, errorcode = pcall(function()
 										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
 									end)
 									createButton.MouseButton1Click:Connect(function()
-										local err = puter.AddWindowElement(window, "TextLabel", {
-											Text = "sorry, still under construction";
-											Size = UDim2.fromOffset(400, 25);
-											Position = UDim2.fromOffset(0, 175);
-											TextScaled = true;
-											TextColor3 = Color3.fromRGB(255,0,0);
-											BackgroundTransparency = 1;
-										})
-										wait(1)
-										err:Destroy()
+										local function throwError(text)
+											local err = puter.AddWindowElement(window, "TextLabel", {
+												Text = text;
+												Size = UDim2.fromOffset(400, 25);
+												Position = UDim2.fromOffset(0, 150);
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(255,0,0);
+												BackgroundTransparency = 1;
+											})
+											wait(1)
+											err:Destroy()
+										end
+										local function notYet()
+											if string.sub(path, #path, #path) ~= "/" then
+												path = path .. "/"
+											end
+											if mounteddisks[disk] ~= nil then
+												if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+													local badName = false
+													for i = 1, #name, 1 do
+														if string.sub(name, i, i) == "/" then
+															badName = true
+														end
+													end
+													if badName == false then
+														filesystem.createDirectory(path .. name, mounteddisks[disk])
+													else
+														throwError("dont put a / in the name you doofus")
+													end
+												else
+													throwError("path specified is not a folder")
+												end
+											else
+												throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
+											end
+										end
+										throwError("sorry, still under construction")
 									end)
 									keyboard:Connect("TextInputted", function(text, plr)
 										text = string.sub(text, 1, #text - 1)
@@ -1761,7 +1788,7 @@ local success, errorcode = pcall(function()
 											pathButton:ChangeProperties({Text = "Path: " .. text})
 										elseif focusedOn == "disk" then
 											disk = tonumber(text)
-											pathButton:ChangeProperties({Text = "Disk (number): " .. text})
+											diskButton:ChangeProperties({Text = "Disk (number): " .. text})
 										end
 									end)
 								end
