@@ -1579,17 +1579,17 @@ local success, errorcode = pcall(function()
 						end
 					end
 					local function displayDisks()
+						pathLabel:ChangeProperties({Text = "Disk View"})
+						mainScrollFrame:Destroy()
+						mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+							Size = UDim2.fromOffset(500, 225);
+							Position = UDim2.fromOffset(0, 75);
+							BorderSizePixel = 0;
+							BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+							ScrollBarThickness = 2;
+							CanvasSize = UDim2.fromOffset(0,0);
+						})
 						for i, v in pairs(mounteddisks) do
-							pathLabel:ChangeProperties({Text = "Disk View"})
-							mainScrollFrame:Destroy()
-							mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
-								Size = UDim2.fromOffset(500, 225);
-								Position = UDim2.fromOffset(0, 75);
-								BorderSizePixel = 0;
-								BackgroundColor3 = Color3.fromRGB(60, 60, 60);
-								ScrollBarThickness = 2;
-								CanvasSize = UDim2.fromOffset(0,0);
-							})
 							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
 							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 								Size = UDim2.fromOffset(498, 25);
