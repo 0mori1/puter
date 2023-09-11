@@ -637,6 +637,9 @@ local success, errorcode = pcall(function()
 				if string.sub(path, 1, 1) ~= "/" then
 					path = "/" .. path
 				end
+				if string.sub(path, #path, #path) ~= "/" then
+					path = path .. "/"
+				end
 				disk:Write(path, "t:folder")
 				print(path)
 			end;
@@ -681,12 +684,8 @@ local success, errorcode = pcall(function()
 					path = path .. "/"
 				end
 				if disk:Read(path) == "t:folder" then
-					if disk:Read(path .. filename) ~= "t:folder" then
-						disk:Write(path .. filename, data)
-						return true, path .. filename
-					else
-						return false, "do not overwrite folders, its not cool"
-					end
+					disk:Write(path .. filename, data)
+					return true, path .. filename
 				else
 					return false, "not a folder"
 				end
@@ -1513,7 +1512,7 @@ local success, errorcode = pcall(function()
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
-								path = path .. fileName
+								path = path .. fileName .. "/"
 								called = true
 							else
 								errorPopup("Unknown file type")
@@ -1522,9 +1521,9 @@ local success, errorcode = pcall(function()
 					end
 					local function getUp()
 						if path ~= "/" then
-							for i = #path - 1, 1, -1 do
+							for i = #path, 1, -1 do
 								if string.sub(path, i, i) == "/" then
-									path = string.sub(path, 1, i - 1)
+									path = string.sub(path, 1, i)
 									called = true
 								end
 							end
@@ -1533,6 +1532,45 @@ local success, errorcode = pcall(function()
 							viewingDisk = nil
 							called = true
 						end
+					end
+					local function getFolders(path, disk)
+						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+							Size = UDim2.fromOffset(498, 25);
+							Position = UDim2.fromOffset(0, 0);
+							BorderSizePixel = 0;
+							BackgroundTransparency = 1;
+						})
+						local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+							Size = UDim2.fromOffset(300, 25);
+							Position = UDim2.fromOffset(0,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = ".."
+						})
+						puter.AddElement(parentFrame, "TextLabel", {
+							Size = UDim2.fromOffset(198, 25);
+							Position = UDim2.fromOffset(300,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = "Folder"
+						})
+						fileNameButton.MouseButton1Click:Connect(function()
+							getUp()
+						end)
+						local files = filesystem.scanPath(path, disk)
+						for i, v in pairs(files) do
+							local file = filesystem.read(path .. v .. "/", disk)
+							local fileType, data = typeParser(file)
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
+							addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+						end
+					end
+					local function getFiles(path, disk)
+
 					end
 					local function getPath(path, disk)
 						local yay, noooo = pcall(function()
@@ -1546,9 +1584,6 @@ local success, errorcode = pcall(function()
 								ScrollBarThickness = 2;
 								CanvasSize = UDim2.fromOffset(0,0);
 							})
-							if string.sub(path, #path, #path) ~= "/" then
-								path = path .. "/"
-							end
 							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 								Size = UDim2.fromOffset(498, 25);
 								Position = UDim2.fromOffset(0, 0);
@@ -1789,8 +1824,7 @@ local success, errorcode = pcall(function()
 																end
 															end
 															if badName == false then
-																print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
-																filesystem.createDirectory(path .. name, mounteddisks[disk])
+																filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
 																called = true
 															else
 																print("you're an idiot")
