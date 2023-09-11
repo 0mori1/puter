@@ -1758,30 +1758,35 @@ local success, errorcode = pcall(function()
 											print("error is GONE :sob:")
 										end
 										local goodjob, uhoh = pcall(function()
-											if string.sub(path, #path, #path) ~= "/" then
-												path = path .. "/"
-												print("glued a / to the path")
-											end
 											print("time to check")
 											if mounteddisks[disk] ~= nil then
-												if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
-													local badName = false
-													for i = 1, #name, 1 do
-														if string.sub(name, i, i) == "/" then
-															badName = true
-														end
+												if path ~= nil then
+													if string.sub(path, #path, #path) ~= "/" then
+														path = path .. "/"
+														print("glued a / to the path")
 													end
-													if badName == false then
-														print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
-														filesystem.createDirectory(path .. name, mounteddisks[disk])
-														called = true
+													if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+														local badName = false
+														for i = 1, #name, 1 do
+															if string.sub(name, i, i) == "/" then
+																badName = true
+															end
+														end
+														if badName == false then
+															print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
+															filesystem.createDirectory(path .. name, mounteddisks[disk])
+															called = true
+														else
+															print("you're an idiot")
+															throwError("dont put a / in the name you doofus")
+														end
 													else
-														print("you're an idiot")
-														throwError("dont put a / in the name you doofus")
+														print("dawg that aint a folder")
+														throwError("path specified is not a folder")
 													end
 												else
-													print("dawg that aint a folder")
-													throwError("path specified is not a folder")
+													print("wheres da path")
+													throwError("please input a path")
 												end
 											else
 												print("disk where?")
@@ -1792,8 +1797,6 @@ local success, errorcode = pcall(function()
 										if goodjob == false then
 											throwError(uhoh)
 										end
-										--backup in case of the first check epicly failing somehow
-										
 									end)
 									keyboard:Connect("TextInputted", function(text, plr)
 										text = string.sub(text, 1, #text - 1)
