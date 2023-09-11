@@ -1652,6 +1652,9 @@ local success, errorcode = pcall(function()
 						canopenexplorer = true
 						coroutine.close(director)
 					end)
+					actionRefresh.MouseButton1Click:Connect(function()
+						called = true
+					end)
 					actionFile.MouseButton1Click:Connect(function()
 						if fileFrame == nil then
 							fileFrame = puter.AddWindowElement(explorerwindow, "Frame", {
@@ -1752,31 +1755,29 @@ local success, errorcode = pcall(function()
 											wait(1)
 											err:Destroy()
 										end
-										local function notYet()
-											if string.sub(path, #path, #path) ~= "/" then
-												path = path .. "/"
-											end
-											if mounteddisks[disk] ~= nil then
-												if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
-													local badName = false
-													for i = 1, #name, 1 do
-														if string.sub(name, i, i) == "/" then
-															badName = true
-														end
+										if string.sub(path, #path, #path) ~= "/" then
+											path = path .. "/"
+										end
+										if mounteddisks[disk] ~= nil then
+											if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+												local badName = false
+												for i = 1, #name, 1 do
+													if string.sub(name, i, i) == "/" then
+														badName = true
 													end
-													if badName == false then
-														filesystem.createDirectory(path .. name, mounteddisks[disk])
-													else
-														throwError("dont put a / in the name you doofus")
-													end
+												end
+												if badName == false then
+													filesystem.createDirectory(path .. name, mounteddisks[disk])
+													called = true
 												else
-													throwError("path specified is not a folder")
+													throwError("dont put a / in the name you doofus")
 												end
 											else
-												throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
+												throwError("path specified is not a folder")
 											end
+										else
+											throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
 										end
-										throwError("sorry, still under construction")
 									end)
 									keyboard:Connect("TextInputted", function(text, plr)
 										text = string.sub(text, 1, #text - 1)
@@ -2215,7 +2216,7 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 7 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 8 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
