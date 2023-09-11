@@ -921,8 +921,8 @@ local success, errorcode = pcall(function()
 			["folder"] = "Folder"
 		}
 		local function typeParser(input)
-			if string.sub() == "t:folder" then
-				
+			if input == "t:folder" then
+				return "folder", input
 			elseif string.sub(input, 1, 2) == "t:" then
 				for i = 1, #input, 1 do
 					if string.sub(input, i, i) == "/" then
