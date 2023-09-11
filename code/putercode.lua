@@ -921,7 +921,9 @@ local success, errorcode = pcall(function()
 			["folder"] = "Folder"
 		}
 		local function typeParser(input)
-			if string.sub(input, 1, 2) == "t:" then
+			if string.sub() == "t:folder" then
+				
+			elseif string.sub(input, 1, 2) == "t:" then
 				for i = 1, #input, 1 do
 					if string.sub(input, i, i) == "/" then
 						if knownFileTypes[string.sub(input, 3, i - 1)] ~= nil or string.sub(input, 3, i - 1) == "folder" then
@@ -1507,7 +1509,7 @@ local success, errorcode = pcall(function()
 							print(fileType)
 							if thingToDo ~= nil then
 								thingToDo(data)
-							elseif fileType == "t:folder" then
+							elseif fileType == "folder" then
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
