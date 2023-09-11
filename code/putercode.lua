@@ -1742,6 +1742,7 @@ local success, errorcode = pcall(function()
 										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
 									end)
 									createButton.MouseButton1Click:Connect(function()
+										Beep()
 										local function throwError(text)
 											local err = puter.AddWindowElement(window, "TextLabel", {
 												Text = text;
