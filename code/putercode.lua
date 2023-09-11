@@ -2188,7 +2188,7 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 6 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 7 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
