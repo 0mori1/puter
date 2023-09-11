@@ -697,7 +697,6 @@ local success, errorcode = pcall(function()
 		end
 		if mounteddisks[1] ~= nil then
 			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/7fca2440fb964c491a6ab86151c23ba69cf1105d/destroybot.lua", mounteddisks[1])
-			print(filesystem.read("/DestroyBot", mounteddisks[1]))
 		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
@@ -1752,12 +1751,16 @@ local success, errorcode = pcall(function()
 												TextColor3 = Color3.fromRGB(255,0,0);
 												BackgroundTransparency = 1;
 											})
+											print("threw error " .. text)
 											wait(1)
 											err:Destroy()
+											print("error is GONE :sob:")
 										end
 										if string.sub(path, #path, #path) ~= "/" then
 											path = path .. "/"
+											print("glued a / to the path")
 										end
+										print("time to check")
 										if mounteddisks[disk] ~= nil then
 											if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
 												local badName = false
@@ -1767,17 +1770,22 @@ local success, errorcode = pcall(function()
 													end
 												end
 												if badName == false then
+													print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
 													filesystem.createDirectory(path .. name, mounteddisks[disk])
 													called = true
 												else
+													print("you're an idiot")
 													throwError("dont put a / in the name you doofus")
 												end
 											else
+												print("dawg that aint a folder")
 												throwError("path specified is not a folder")
 											end
 										else
+											print("disk where?")
 											throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
 										end
+										print("back to my 1 millisecond break")
 									end)
 									keyboard:Connect("TextInputted", function(text, plr)
 										text = string.sub(text, 1, #text - 1)
