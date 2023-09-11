@@ -1534,43 +1534,29 @@ local success, errorcode = pcall(function()
 						end
 					end
 					local function getFolders(path, disk)
-						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
-							Size = UDim2.fromOffset(498, 25);
-							Position = UDim2.fromOffset(0, 0);
-							BorderSizePixel = 0;
-							BackgroundTransparency = 1;
-						})
-						local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
-							Size = UDim2.fromOffset(300, 25);
-							Position = UDim2.fromOffset(0,0);
-							BackgroundColor3 = Color3.fromRGB(100,100,100);
-							BorderSizePixel = 0;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							TextScaled = true;
-							Text = ".."
-						})
-						puter.AddElement(parentFrame, "TextLabel", {
-							Size = UDim2.fromOffset(198, 25);
-							Position = UDim2.fromOffset(300,0);
-							BackgroundColor3 = Color3.fromRGB(100,100,100);
-							BorderSizePixel = 0;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							TextScaled = true;
-							Text = "Folder"
-						})
-						fileNameButton.MouseButton1Click:Connect(function()
-							getUp()
-						end)
+						local folders = filesystem.scanPath(path, disk)
+						local offset
+						for i, v in pairs(folders) do
+							local folder = filesystem.read(path .. v .. "/", disk)
+							if folder ~= nil then
+								local fileType, data = typeParser(folder)
+								addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+							end
+							offset = i
+						end
+						return offset * 25
+					end
+					local function getFiles(path, disk, offset)
 						local files = filesystem.scanPath(path, disk)
 						for i, v in pairs(files) do
-							local file = filesystem.read(path .. v .. "/", disk)
-							local fileType, data = typeParser(file)
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
-							addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+							local file = filesystem.read(path .. v, disk)
+							if file ~= nil then
+								local fileType, data = typeParser(file)
+								addFile(v, fileType, UDim2.fromOffset(0, i * 25 + offset), data)
+							end
+							offset = i
 						end
-					end
-					local function getFiles(path, disk)
-
+						return offset * 25
 					end
 					local function getPath(path, disk)
 						local yay, noooo = pcall(function()
@@ -1612,12 +1598,8 @@ local success, errorcode = pcall(function()
 								getUp()
 							end)
 							local files = filesystem.scanPath(path, disk)
-							for i, v in pairs(files) do
-								local file = filesystem.read(path .. v, disk)
-								local fileType, data = typeParser(file)
-								mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
-								addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
-							end
+							local offset = getFolders(path, disk)
+							getFiles(path, disk, offset)
 						end)
 						if yay == false then
 							print(noooo)
