@@ -1504,9 +1504,10 @@ local success, errorcode = pcall(function()
 						})
 						fileNameButton.MouseButton1Click:Connect(function()
 							local thingToDo = knownFileTypes[fileType]
+							print(fileType)
 							if thingToDo ~= nil then
 								thingToDo(data)
-							elseif fileType == "folder" then
+							elseif fileType == "t:folder" then
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
