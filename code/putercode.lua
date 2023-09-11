@@ -696,7 +696,7 @@ local success, errorcode = pcall(function()
 			v:Write("/", "t:folder")
 		end
 		if mounteddisks[1] ~= nil then
-			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/c6ae29a1718726c988ae3ee52b78c012b1186ea1/destroybot.lua", mounteddisks[1])
+			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/7fca2440fb964c491a6ab86151c23ba69cf1105d/destroybot.lua", mounteddisks[1])
 			print(filesystem.read("/DestroyBot", mounteddisks[1]))
 		end
 		local function errorPopup(errorMessage)
