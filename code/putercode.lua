@@ -1522,7 +1522,7 @@ local success, errorcode = pcall(function()
 					end
 					local function getUp()
 						if path ~= "/" then
-							for i = #path, 1, -1 do
+							for i = #path - 1, 1, -1 do
 								if string.sub(path, i, i) == "/" then
 									path = string.sub(path, 1, i - 1)
 									called = true
