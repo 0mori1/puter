@@ -2057,7 +2057,7 @@ local success, errorcode = pcall(function()
 																	end
 																	if badName == false then
 																		if fileType ~= nil then
-																			filesystem.write(path, name, data, mounteddisks[disk])
+																			filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
 																		else
 																			print("type in a type")
 																			throwError("please input a type")
