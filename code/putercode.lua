@@ -1550,17 +1550,18 @@ local success, errorcode = pcall(function()
 					end
 					local function getFiles(path, disk, offset)
 						local files = filesystem.scanPath(path, disk)
+						local offsetv2 = 0
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
-							local offsetv2 = 0
 							if file ~= nil then
 								local fileType, data = typeParser(file)
 								addFile(v, fileType, UDim2.fromOffset(0, i * 25 + offset), data)
 								offsetv2 = offsetv2 + 1
 								print("i got a file")
 							end
-							return offset * 25
 						end
+						print(offsetv2)
+						return offsetv2 * 25
 					end
 					local function getPath(path, disk)
 						local yay, noooo = pcall(function()
