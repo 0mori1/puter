@@ -1086,21 +1086,26 @@ local success, errorcode = pcall(function()
 					local dataPos = 1
 					local readState = nil
 					local parsedData = ""
+					local skip = 0
 					for i = 1, #raw, 1 do
-						if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
-							parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
-							i = i + 2
-						elseif string.sub(raw, i, i) == "/" then
-							name = parsedData
-							parsedData = ""
-							dataPos = i + 1
-						elseif string.sub(raw, i, i) == "," then
-							id = parsedData
-							parsedData = ""
-							dataPos = i + 1
-							musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
+						if skip <= 0 then
+							if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
+								parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
+								skip = 2
+							elseif string.sub(raw, i, i) == "/" then
+								name = parsedData
+								parsedData = ""
+								dataPos = i + 1
+							elseif string.sub(raw, i, i) == "," then
+								id = parsedData
+								parsedData = ""
+								dataPos = i + 1
+								musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
+							else
+								parsedData = parsedData .. string.sub(raw, i, i)
+							end
 						else
-							parsedData = parsedData .. string.sub(raw, i, i)
+							skip = skip - 1
 						end
 					end
 					return musicList
@@ -1922,7 +1927,7 @@ local success, errorcode = pcall(function()
 											local disk
 											local fileType
 											local data
-											local window, closebutton = puter.CreateWindow(400, 225, "Directory Creator")
+											local window, closebutton = puter.CreateWindow(400, 225, "File Creator")
 											closebutton.MouseButton1Click:Connect(function()
 												canopencfile = true
 											end)
