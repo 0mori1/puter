@@ -1914,6 +1914,201 @@ local success, errorcode = pcall(function()
 											diskButton:ChangeProperties({Text = "Disk (number): " .. text})
 										end
 									end)
+									createFile.MouseButton1Click:Connect(function()
+										if canopencfile == true then
+											local focusedOn = nil
+											local name
+											local path
+											local disk
+											local fileType
+											local data
+											local window, closebutton = puter.CreateWindow(400, 225, "Directory Creator")
+											closebutton.MouseButton1Click:Connect(function()
+												canopencfolder = true
+											end)
+											canopencfolder = false
+											local nameButton = puter.AddWindowElement(window, "TextButton", {
+												Text = "Name: ";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+												Size = UDim2.fromOffset(380, 20);
+												Position = UDim2.fromOffset(10, 5);
+											})
+											local pathButton = puter.AddWindowElement(window, "TextButton", {
+												Text = "Path: ";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+												Size = UDim2.fromOffset(380, 20);
+												Position = UDim2.fromOffset(10, 30);
+											})
+											local diskButton = puter.AddWindowElement(window, "TextButton", {
+												Text = "Disk (number): ";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+												Size = UDim2.fromOffset(380, 20);
+												Position = UDim2.fromOffset(10, 55);
+											})
+											local typeButton = puter.AddWindowElement(window, "TextButton", {
+												Text = "Type: ";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+												Size = UDim2.fromOffset(380, 20);
+												Position = UDim2.fromOffset(10, 80);
+											})
+											local dataButton = puter.AddWindowElement(window, "TextButton", {
+												Text = "Data: ";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+												Size = UDim2.fromOffset(380, 20);
+												Position = UDim2.fromOffset(10, 105);
+											})
+											puter.AddWindowElement(window, "TextLabel", {
+												Text = "Valid types: lua, image, audio, video";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundTransparency = 1;
+												Size = UDim2.fromOffset(380, 20);
+												Position = UDim2.fromOffset(10, 130);
+											})
+											local createButton = puter.AddWindowElement(window, "TextButton", {
+												Text = "Create";
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,0,0);
+												BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+												Size = UDim2.fromOffset(100, 25);
+												Position = UDim2.fromOffset(150, 195);
+											})
+											nameButton.MouseButton1Click:Connect(function()
+												focusedOn = "name"
+												nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+												pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											end)
+											pathButton.MouseButton1Click:Connect(function()
+												focusedOn = "path"
+												nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+												diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											end)
+											diskButton.MouseButton1Click:Connect(function()
+												focusedOn = "disk"
+												nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+												typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											end)
+											typeButton.MouseButton1Click:Connect(function()
+												focusedOn = "type"
+												nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
+												dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											end)
+											dataButton.MouseButton1Click:Connect(function()
+												focusedOn = "data"
+												nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+												dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
+											end)
+											createButton.MouseButton1Click:Connect(function()
+												Beep()
+												local function throwError(text)
+													local err = puter.AddWindowElement(window, "TextLabel", {
+														Text = text;
+														Size = UDim2.fromOffset(400, 25);
+														Position = UDim2.fromOffset(0, 150);
+														TextScaled = true;
+														TextColor3 = Color3.fromRGB(255,0,0);
+														BackgroundTransparency = 1;
+													})
+													print("threw error " .. text)
+													wait(1)
+													err:Destroy()
+													print("error is GONE :sob:")
+												end
+												local goodjob, uhoh = pcall(function()
+													print("time to check")
+													if mounteddisks[disk] ~= nil then
+														if path ~= nil then
+															if string.sub(path, #path, #path) ~= "/" then
+																path = path .. "/"
+																print("glued a / to the path")
+															end
+															if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+																if name ~= nil then
+																	local badName = false
+																	for i = 1, #name, 1 do
+																		if string.sub(name, i, i) == "/" then
+																			badName = true
+																		end
+																	end
+																	if badName == false then
+																		if fileType ~= nil then
+																			filesystem.write(path, name, data, mounteddisks[disk])
+																		else
+																			print("type in a type")
+																			throwError("please input a type")
+																		end
+																	else
+																		print("you're an idiot")
+																		throwError("dont put a / in the name you doofus")
+																	end
+																else
+																	print("me when the untitled")
+																	throwError("please input a name")
+																end
+															else
+																print("dawg that aint a folder")
+																throwError("path specified is not a folder")
+															end
+														else
+															print("wheres da path")
+															throwError("please input a path")
+														end
+													else
+														print("disk where?")
+														throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
+													end
+													print("back to my 1 millisecond break")
+												end)
+												if goodjob == false then
+													throwError(uhoh)
+												end
+											end)
+											keyboard:Connect("TextInputted", function(text, plr)
+												text = string.sub(text, 1, #text - 1)
+												if focusedOn == "name" then
+													name = text
+													nameButton:ChangeProperties({Text = "Name: " .. text})
+												elseif focusedOn == "path" then
+													path = text
+													pathButton:ChangeProperties({Text = "Path: " .. text})
+												elseif focusedOn == "disk" then
+													disk = tonumber(text)
+													diskButton:ChangeProperties({Text = "Disk (number): " .. text})
+												elseif focusedOn == "type" then
+													fileType = text
+													typeButton:ChangeProperties({Text = "Type: " .. text})
+												elseif focusedOn == "data" then
+													data = text
+													dataButton:ChangeProperties({Text = "Data: " .. text})
+												end
+											end)
+										end
+									end)
 								end
 							end)
 						else
