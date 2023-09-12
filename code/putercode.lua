@@ -1541,9 +1541,11 @@ local success, errorcode = pcall(function()
 							if folder ~= nil then
 								local fileType, data = typeParser(folder)
 								addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+								offset = i
+								print("i got a folder")
 							end
-							offset = i
 						end
+						print(offset * 25)
 						return offset * 25
 					end
 					local function getFiles(path, disk, offset)
@@ -1553,9 +1555,11 @@ local success, errorcode = pcall(function()
 							if file ~= nil then
 								local fileType, data = typeParser(file)
 								addFile(v, fileType, UDim2.fromOffset(0, i * 25 + offset), data)
+								offset = i
+								print("i got a file")
 							end
-							offset = i
 						end
+						print(offset * 25)
 						return offset * 25
 					end
 					local function getPath(path, disk)
