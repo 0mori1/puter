@@ -1924,9 +1924,9 @@ local success, errorcode = pcall(function()
 											local data
 											local window, closebutton = puter.CreateWindow(400, 225, "Directory Creator")
 											closebutton.MouseButton1Click:Connect(function()
-												canopencfolder = true
+												canopencfile = true
 											end)
-											canopencfolder = false
+											canopencfile = false
 											local nameButton = puter.AddWindowElement(window, "TextButton", {
 												Text = "Name: ";
 												TextScaled = true;
