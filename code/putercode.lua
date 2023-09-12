@@ -1524,6 +1524,7 @@ local success, errorcode = pcall(function()
 							for i = #path, 1, -1 do
 								if string.sub(path, i, i) == "/" then
 									path = string.sub(path, 1, i)
+									print("i set the path to " .. path .. " because 'i' was " .. tostring(i))
 									called = true
 								end
 							end
@@ -1540,8 +1541,8 @@ local success, errorcode = pcall(function()
 							local folder = filesystem.read(path .. v .. "/", disk)
 							if folder ~= nil then
 								local fileType, data = typeParser(folder)
-								addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
 								offset = offset + 1
+								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data)
 								print("i got a folder")
 							end
 						end
@@ -1555,8 +1556,8 @@ local success, errorcode = pcall(function()
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
 								local fileType, data = typeParser(file)
-								addFile(v, fileType, UDim2.fromOffset(0, i * 25 + offset), data)
 								offsetv2 = offsetv2 + 1
+								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data)
 								print("i got a file")
 							end
 						end
