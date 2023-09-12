@@ -1472,8 +1472,9 @@ local success, errorcode = pcall(function()
 						ScrollBarThickness = 2;
 						CanvasSize = UDim2.fromOffset(0,0);
 					})
-					local contextmenu = nil
+					local canopenproperties = true
 					local function addFile(fileName, fileType, position, data)
+						local cachedpath = path .. fileName
 						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 							Size = UDim2.fromOffset(498, 25);
 							Position = position;
@@ -1496,13 +1497,22 @@ local success, errorcode = pcall(function()
 							fileTypeName = "Unknown"
 						end
 						puter.AddElement(parentFrame, "TextLabel", {
-							Size = UDim2.fromOffset(198, 25);
+							Size = UDim2.fromOffset(148, 25);
 							Position = UDim2.fromOffset(300,0);
 							BackgroundColor3 = Color3.fromRGB(100,100,100);
 							BorderSizePixel = 0;
 							TextColor3 = Color3.fromRGB(255,255,255);
 							TextScaled = true;
 							Text = fileTypeName
+						})
+						local propertiesbutton = puter.AddElement(parentFrame, "TextButton", {
+							Size = UDim2.fromOffset(50, 25);
+							Position = UDim2.fromOffset(448,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = "Properties"
 						})
 						fileNameButton.MouseButton1Click:Connect(function()
 							local thingToDo = knownFileTypes[fileType]
@@ -1513,41 +1523,38 @@ local success, errorcode = pcall(function()
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
-								path = path .. fileName .. "/"
+								path = cachedpath .. "/"
 								called = true
 							else
 								errorPopup("Unknown file type")
 							end
 						end)
-						fileNameButton.MouseButton2Click:Connect(function(x, y)
-							if contextmenu == nil then
-								contextmenu = puter.AddElement(fileNameButton, "Frame", {
-									Size = UDim2.fromOffset(100, 50);
-									Position = UDim2.fromOffset(x, y);
+						propertiesbutton.MouseButton1Click:Connect(function()
+							if canopenproperties == true then
+								local window, closebutton, titlebar = puter.CreateWindow(300, 300, "Properties")
+								closebutton.MouseButton1Click:Connect(function()
+									canopenproperties = true
+								end)
+								canopenproperties = false
+								puter.AddWindowElement(window, "TextLabel", {
+									Size = UDim2.fromOffset(280, 25);
+									Position = UDim2.fromOffset(10, 10);
 									BorderSizePixel = 0;
-									BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+									BackgroundTransparency = 1;
+									TextColor = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = "Filename: " .. fileName;
 								})
-								wait(5)
-								if contextmenu ~= nil then
-									contextmenu:Destroy()
-								end
-								contextmenu = nil
-							else
-								if contextmenu ~= nil then
-									contextmenu:Destroy()
-								end
-								contextmenu = nil
-								contextmenu = puter.AddElement(fileNameButton, "Frame", {
-									Size = UDim2.fromOffset(100, 50);
-									Position = UDim2.fromOffset(x, y);
+								puter.AddWindowElement(window, "TextLabel", {
+									Size = UDim2.fromOffset(280, 25);
+									Position = UDim2.fromOffset(10, 10);
 									BorderSizePixel = 0;
-									BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+									BackgroundTransparency = 1;
+									TextColor = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = "Path: " .. path;
+									TextXAlignment = Enum.TextXAlignment.Left
 								})
-								wait(5)
-								if contextmenu ~= nil then
-									contextmenu:Destroy()
-								end
-								contextmenu = nil
 							end
 						end)
 					end
