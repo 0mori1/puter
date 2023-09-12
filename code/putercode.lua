@@ -1555,6 +1555,7 @@ local success, errorcode = pcall(function()
 									Text = "Path: " .. path;
 									TextXAlignment = Enum.TextXAlignment.Left
 								})
+								print("Type: " .. fileTypeName .. " (" .. trueType .. ")")
 								puter.AddWindowElement(window, "TextLabel", {
 									Size = UDim2.fromOffset(280, 25);
 									Position = UDim2.fromOffset(10, 80);
@@ -1565,6 +1566,7 @@ local success, errorcode = pcall(function()
 									Text = "Type: " .. fileTypeName .. " (" .. trueType .. ")";
 									TextXAlignment = Enum.TextXAlignment.Left
 								})
+								Beep(2)
 							end
 						end)
 					end
