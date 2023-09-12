@@ -1541,7 +1541,7 @@ local success, errorcode = pcall(function()
 									Position = UDim2.fromOffset(10, 10);
 									BorderSizePixel = 0;
 									BackgroundTransparency = 1;
-									TextColor = Color3.fromRGB(255,255,255);
+									TextColor3 = Color3.fromRGB(255,255,255);
 									TextScaled = true;
 									Text = "Filename: " .. fileName;
 								})
@@ -1550,7 +1550,7 @@ local success, errorcode = pcall(function()
 									Position = UDim2.fromOffset(10, 10);
 									BorderSizePixel = 0;
 									BackgroundTransparency = 1;
-									TextColor = Color3.fromRGB(255,255,255);
+									TextColor3 = Color3.fromRGB(255,255,255);
 									TextScaled = true;
 									Text = "Path: " .. path;
 									TextXAlignment = Enum.TextXAlignment.Left
