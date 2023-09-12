@@ -921,19 +921,19 @@ local success, errorcode = pcall(function()
 		}
 		local function typeParser(input)
 			if input == "t:folder" then
-				return "folder", input
+				return "folder", input, "t:folder"
 			elseif string.sub(input, 1, 2) == "t:" then
 				for i = 1, #input, 1 do
 					if string.sub(input, i, i) == "/" then
 						if knownFileTypes[string.sub(input, 3, i - 1)] ~= nil or string.sub(input, 3, i - 1) == "folder" then
 							return string.sub(input, 3, i - 1), string.sub(input, i + 1, #input)
 						else
-							return "Unknown", string.sub(input, i + 1, #input), string.sub(input, 3, i - 1)
+							return "Unknown", string.sub(input, i + 1, #input), string.sub(input, 1, i - 1)
 						end
 					end
 				end
 			else
-				return "Unknown", input
+				return "Unknown", input, "unknown"
 			end
 		end
 		local function lagometer()
@@ -1606,6 +1606,7 @@ local success, errorcode = pcall(function()
 							if folder ~= nil then
 								local fileType, data, trueType = typeParser(folder)
 								offset = offset + 1
+								print(trueType)
 								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, filesystem.read(path .. v .. "/", disk))
 								print("i got a folder")
 							end
@@ -1620,6 +1621,7 @@ local success, errorcode = pcall(function()
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
 								local fileType, data, trueType = typeParser(file)
+								print(trueType)
 								offsetv2 = offsetv2 + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, filesystem.read(path .. v, disk))
 								print("i got a file")
