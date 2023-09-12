@@ -1472,6 +1472,7 @@ local success, errorcode = pcall(function()
 						ScrollBarThickness = 2;
 						CanvasSize = UDim2.fromOffset(0,0);
 					})
+					local contextmenu = nil
 					local function addFile(fileName, fileType, position, data)
 						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 							Size = UDim2.fromOffset(498, 25);
@@ -1516,6 +1517,37 @@ local success, errorcode = pcall(function()
 								called = true
 							else
 								errorPopup("Unknown file type")
+							end
+						end)
+						fileNameButton.MouseButton2Click:Connect(function(x, y)
+							if contextmenu == nil then
+								contextmenu = puter.AddElement(fileNameButton, "Frame", {
+									Size = UDim2.fromOffset(100, 50);
+									Position = UDim2.fromOffset(x, y);
+									BorderSizePixel = 0;
+									BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+								})
+								wait(5)
+								if contextmenu ~= nil then
+									contextmenu:Destroy()
+								end
+								contextmenu = nil
+							else
+								if contextmenu ~= nil then
+									contextmenu:Destroy()
+								end
+								contextmenu = nil
+								contextmenu = puter.AddElement(fileNameButton, "Frame", {
+									Size = UDim2.fromOffset(100, 50);
+									Position = UDim2.fromOffset(x, y);
+									BorderSizePixel = 0;
+									BackgroundColor3 = Color3.fromRGB(48, 48, 48);
+								})
+								wait(5)
+								if contextmenu ~= nil then
+									contextmenu:Destroy()
+								end
+								contextmenu = nil
 							end
 						end)
 					end
