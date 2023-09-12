@@ -1531,42 +1531,49 @@ local success, errorcode = pcall(function()
 						end)
 						propertiesbutton.MouseButton1Click:Connect(function()
 							if canopenproperties == true then
-								local window, closebutton, titlebar = puter.CreateWindow(300, 300, "Properties")
-								closebutton.MouseButton1Click:Connect(function()
-									canopenproperties = true
+								local yes, bruh = pcall(function()
+									local window, closebutton, titlebar = puter.CreateWindow(300, 300, "Properties")
+									closebutton.MouseButton1Click:Connect(function()
+										canopenproperties = true
+									end)
+									canopenproperties = false
+									puter.AddWindowElement(window, "TextLabel", {
+										Size = UDim2.fromOffset(280, 25);
+										Position = UDim2.fromOffset(10, 10);
+										BorderSizePixel = 0;
+										BackgroundTransparency = 1;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										Text = "Filename: " .. fileName;
+									})
+									puter.AddWindowElement(window, "TextLabel", {
+										Size = UDim2.fromOffset(280, 25);
+										Position = UDim2.fromOffset(10, 45);
+										BorderSizePixel = 0;
+										BackgroundTransparency = 1;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										Text = "Path: " .. path;
+										TextXAlignment = Enum.TextXAlignment.Left
+									})
+									print(fileTypeName)
+									print(trueType)
+									print("Type: " .. fileTypeName .. " (" .. trueType .. ")")
+									puter.AddWindowElement(window, "TextLabel", {
+										Size = UDim2.fromOffset(280, 25);
+										Position = UDim2.fromOffset(10, 80);
+										BorderSizePixel = 0;
+										BackgroundTransparency = 1;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										Text = "Type: " .. fileTypeName .. " (" .. trueType .. ")";
+										TextXAlignment = Enum.TextXAlignment.Left
+									})
+									Beep(2)
 								end)
-								canopenproperties = false
-								puter.AddWindowElement(window, "TextLabel", {
-									Size = UDim2.fromOffset(280, 25);
-									Position = UDim2.fromOffset(10, 10);
-									BorderSizePixel = 0;
-									BackgroundTransparency = 1;
-									TextColor3 = Color3.fromRGB(255,255,255);
-									TextScaled = true;
-									Text = "Filename: " .. fileName;
-								})
-								puter.AddWindowElement(window, "TextLabel", {
-									Size = UDim2.fromOffset(280, 25);
-									Position = UDim2.fromOffset(10, 45);
-									BorderSizePixel = 0;
-									BackgroundTransparency = 1;
-									TextColor3 = Color3.fromRGB(255,255,255);
-									TextScaled = true;
-									Text = "Path: " .. path;
-									TextXAlignment = Enum.TextXAlignment.Left
-								})
-								print("Type: " .. fileTypeName .. " (" .. trueType .. ")")
-								puter.AddWindowElement(window, "TextLabel", {
-									Size = UDim2.fromOffset(280, 25);
-									Position = UDim2.fromOffset(10, 80);
-									BorderSizePixel = 0;
-									BackgroundTransparency = 1;
-									TextColor3 = Color3.fromRGB(255,255,255);
-									TextScaled = true;
-									Text = "Type: " .. fileTypeName .. " (" .. trueType .. ")";
-									TextXAlignment = Enum.TextXAlignment.Left
-								})
-								Beep(2)
+								if yes == false then
+									print(bruh)
+								end
 							end
 						end)
 					end
