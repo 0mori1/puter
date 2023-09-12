@@ -1541,7 +1541,7 @@ local success, errorcode = pcall(function()
 							if folder ~= nil then
 								local fileType, data = typeParser(folder)
 								addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
-								offset = i
+								offset = offset + 1
 								print("i got a folder")
 							end
 						end
@@ -1552,12 +1552,14 @@ local success, errorcode = pcall(function()
 						local files = filesystem.scanPath(path, disk)
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
+							local offsetv2 = 0
 							if file ~= nil then
 								local fileType, data = typeParser(file)
 								addFile(v, fileType, UDim2.fromOffset(0, i * 25 + offset), data)
-								offset = i
+								offsetv2 = offsetv2 + 1
 								print("i got a file")
 							end
+							return offset * 25
 						end
 					end
 					local function getPath(path, disk)
@@ -1601,7 +1603,8 @@ local success, errorcode = pcall(function()
 							end)
 							local files = filesystem.scanPath(path, disk)
 							local offset = getFolders(path, disk)
-							getFiles(path, disk, offset)
+							local offsetv2 = getFiles(path, disk, offset)
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset + offsetv2)})
 						end)
 						if yay == false then
 							print(noooo)
