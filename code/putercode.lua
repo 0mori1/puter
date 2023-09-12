@@ -1535,7 +1535,7 @@ local success, errorcode = pcall(function()
 					end
 					local function getFolders(path, disk)
 						local folders = filesystem.scanPath(path, disk)
-						local offset
+						local offset = 0
 						for i, v in pairs(folders) do
 							local folder = filesystem.read(path .. v .. "/", disk)
 							if folder ~= nil then
@@ -1559,8 +1559,6 @@ local success, errorcode = pcall(function()
 								print("i got a file")
 							end
 						end
-						print(offset * 25)
-						return offset * 25
 					end
 					local function getPath(path, disk)
 						local yay, noooo = pcall(function()
