@@ -1520,11 +1520,13 @@ local success, errorcode = pcall(function()
 						end)
 					end
 					local function getUp()
+						local set = false
 						if path ~= "/" then
 							for i = #path, 1, -1 do
-								if string.sub(path, i, i) == "/" then
+								if string.sub(path, i, i) == "/" and set == false then
 									path = string.sub(path, 1, i)
 									print("i set the path to " .. path .. " because 'i' was " .. tostring(i))
+									set = true
 									called = true
 								end
 							end
