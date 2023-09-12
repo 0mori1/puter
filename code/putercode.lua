@@ -928,7 +928,7 @@ local success, errorcode = pcall(function()
 						if knownFileTypes[string.sub(input, 3, i - 1)] ~= nil or string.sub(input, 3, i - 1) == "folder" then
 							return string.sub(input, 3, i - 1), string.sub(input, i + 1, #input)
 						else
-							return "Unknown", string.sub(input, i + 1, #input)
+							return "Unknown", string.sub(input, i + 1, #input), string.sub(input, 3, i - 1)
 						end
 					end
 				end
@@ -1473,7 +1473,7 @@ local success, errorcode = pcall(function()
 						CanvasSize = UDim2.fromOffset(0,0);
 					})
 					local canopenproperties = true
-					local function addFile(fileName, fileType, position, data)
+					local function addFile(fileName, fileType, position, data, trueType, trueData)
 						local cachedpath = path .. fileName
 						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 							Size = UDim2.fromOffset(498, 25);
@@ -1547,12 +1547,22 @@ local success, errorcode = pcall(function()
 								})
 								puter.AddWindowElement(window, "TextLabel", {
 									Size = UDim2.fromOffset(280, 25);
-									Position = UDim2.fromOffset(10, 10);
+									Position = UDim2.fromOffset(10, 45);
 									BorderSizePixel = 0;
 									BackgroundTransparency = 1;
 									TextColor3 = Color3.fromRGB(255,255,255);
 									TextScaled = true;
 									Text = "Path: " .. path;
+									TextXAlignment = Enum.TextXAlignment.Left
+								})
+								puter.AddWindowElement(window, "TextLabel", {
+									Size = UDim2.fromOffset(280, 25);
+									Position = UDim2.fromOffset(10, 80);
+									BorderSizePixel = 0;
+									BackgroundTransparency = 1;
+									TextColor3 = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = "Type: " .. fileTypeName .. " (" .. trueType .. ")";
 									TextXAlignment = Enum.TextXAlignment.Left
 								})
 							end
@@ -1581,9 +1591,9 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(folders) do
 							local folder = filesystem.read(path .. v .. "/", disk)
 							if folder ~= nil then
-								local fileType, data = typeParser(folder)
+								local fileType, data, trueType = typeParser(folder)
 								offset = offset + 1
-								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data)
+								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, filesystem.read(path .. v .. "/", disk))
 								print("i got a folder")
 							end
 						end
@@ -1596,9 +1606,9 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
-								local fileType, data = typeParser(file)
+								local fileType, data, trueType = typeParser(file)
 								offsetv2 = offsetv2 + 1
-								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data)
+								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, filesystem.read(path .. v, disk))
 								print("i got a file")
 							end
 						end
