@@ -1093,7 +1093,7 @@ local success, errorcode = pcall(function()
 								print("not skipping")
 								if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
 									parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
-									skip = 2
+									skip = 1
 									print("setting skip to 2")
 								elseif string.sub(raw, i, i) == "/" then
 									name = parsedData
