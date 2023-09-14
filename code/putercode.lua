@@ -592,7 +592,7 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 					ZIndex = 3;
 				})
-				local windowframeContainer = screen:CreateElement("Frame", {
+				local windowframeContainer = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x, y);
 					Position = UDim2.fromOffset(0, 25);
 					BorderSizePixel = 0;
@@ -600,6 +600,7 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 					BackgroundTransparency = 1;
+					TextTransparency = 1;
 				}) 
 				local windowframe = screen:CreateElement("Frame", {
 					Size = UDim2.fromOffset(x, y);
@@ -633,6 +634,7 @@ local success, errorcode = pcall(function()
 		}
 		local filesystem = {
 			createDirectory = function(path, disk)
+				print(path)
 				if string.sub(path, 1, 1) ~= "/" then
 					path = "/" .. path
 				end
@@ -640,6 +642,7 @@ local success, errorcode = pcall(function()
 					path = path .. "/"
 				end
 				disk:Write(path, "t:folder")
+				print(path)
 			end;
 			scanPath = function(path, disk)
 				local buffer1 = {}
@@ -735,7 +738,7 @@ local success, errorcode = pcall(function()
 			end
 		end
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout)
-			if plr ~= "roblox" then
+			if plr ~= "Hail12pink" then
 				if string.sub(text, 1, 7) == "lua run" then
 					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
 				elseif string.sub(text, 1, 8) == "lua stop" then
@@ -893,7 +896,7 @@ local success, errorcode = pcall(function()
 					return true, "no such command"
 				end
 			else
-				return true, "no robloxes are allowed to use the puter"
+				return true, "no perms for me, no perms for you, 12pink, no forgiveness."
 			end
 		end
 		local knownFileTypes = {
@@ -918,18 +921,24 @@ local success, errorcode = pcall(function()
 			["folder"] = "Folder"
 		}
 		local function typeParser(input)
-			if string.sub(input, 1, 2) == "t:" then
+			if input == "t:folder" then
+				return "folder", input, "t:folder"
+			elseif string.sub(input, 1, 2) == "t:" then
 				for i = 1, #input, 1 do
 					if string.sub(input, i, i) == "/" then
 						if knownFileTypes[string.sub(input, 3, i - 1)] ~= nil or string.sub(input, 3, i - 1) == "folder" then
-							return string.sub(input, 3, i - 1), string.sub(input, i + 1, #input)
+							print(string.sub(input, 1, i - 1))
+							return string.sub(input, 3, i - 1), string.sub(input, i + 1, #input), string.sub(input, 1, i - 1)
 						else
-							return "Unknown", string.sub(input, i + 1, #input)
+							print(string.sub(input, 1, i - 1))
+							print("i dont recognize this")
+							return "Unknown", string.sub(input, i + 1, #input), string.sub(input, 1, i - 1)
 						end
 					end
 				end
 			else
-				return "Unknown", input
+				print("theres no header")
+				return "Unknown", input, "unknown"
 			end
 		end
 		local function lagometer()
@@ -1078,22 +1087,37 @@ local success, errorcode = pcall(function()
 					local dataPos = 1
 					local readState = nil
 					local parsedData = ""
-					for i = 1, #raw, 1 do
-						if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
-							parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
-							i = i + 2
-						elseif string.sub(raw, i, i) == "/" then
-							name = parsedData
-							parsedData = ""
-							dataPos = i + 1
-						elseif string.sub(raw, i, i) == "," then
-							id = parsedData
-							parsedData = ""
-							dataPos = i + 1
-							musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
-						else
-							parsedData = parsedData .. string.sub(raw, i, i)
+					local skip = 0
+					local yes, no = pcall(function()
+						for i = 1, #raw, 1 do
+							if skip <= 0 then
+								print("not skipping")
+								if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
+									parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
+									skip = 1
+									print("setting skip to 1")
+								elseif string.sub(raw, i, i) == "/" then
+									name = parsedData
+									parsedData = ""
+									dataPos = i + 1
+								elseif string.sub(raw, i, i) == "," then
+									id = parsedData
+									parsedData = ""
+									dataPos = i + 1
+									musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
+								else
+									parsedData = parsedData .. string.sub(raw, i, i)
+								end
+							else
+								skip = skip - 1
+								print("skipped")
+								print(tostring(skip))
+							end
 						end
+					end)
+					if yes == false then
+						print(no)
+						print("WAAAAAAAAAAAAAAAAAA")
 					end
 					return musicList
 				end
@@ -1468,7 +1492,24 @@ local success, errorcode = pcall(function()
 						ScrollBarThickness = 2;
 						CanvasSize = UDim2.fromOffset(0,0);
 					})
-					local function addFile(fileName, fileType, position, data)
+					local canopenproperties = true
+					local function deleteFolder(path, disk)
+						if string.sub(path, #path, #path) ~= "/" then
+							path = path .. "/"
+						end
+						disk:Write(path, nil)
+						local childFiles = filesystem.scanPath(path, disk)
+						for i, v in pairs(childFiles) do
+							if filesystem.read(path .. v .. "/", disk) ~= nil then
+								deleteFolder(path .. v .. "/", disk)
+							elseif filesystem.read(path .. v, disk) ~= nil then
+								disk:Write(path .. v, nil)
+							end
+						end
+					end
+					local function addFile(fileName, fileType, position, data, trueType, trueData)
+						local cachedpath = path .. fileName
+						local cachedDisk = viewingDisk
 						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 							Size = UDim2.fromOffset(498, 25);
 							Position = position;
@@ -1491,7 +1532,7 @@ local success, errorcode = pcall(function()
 							fileTypeName = "Unknown"
 						end
 						puter.AddElement(parentFrame, "TextLabel", {
-							Size = UDim2.fromOffset(198, 25);
+							Size = UDim2.fromOffset(148, 25);
 							Position = UDim2.fromOffset(300,0);
 							BackgroundColor3 = Color3.fromRGB(100,100,100);
 							BorderSizePixel = 0;
@@ -1499,26 +1540,108 @@ local success, errorcode = pcall(function()
 							TextScaled = true;
 							Text = fileTypeName
 						})
+						local propertiesbutton = puter.AddElement(parentFrame, "TextButton", {
+							Size = UDim2.fromOffset(50, 25);
+							Position = UDim2.fromOffset(448,0);
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							BorderSizePixel = 0;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							Text = "Properties"
+						})
 						fileNameButton.MouseButton1Click:Connect(function()
 							local thingToDo = knownFileTypes[fileType]
+							print(fileType)
 							if thingToDo ~= nil then
 								thingToDo(data)
 							elseif fileType == "folder" then
-								if string.sub(path, #path, #path) ~= "/" then
-									path = path .. "/"
+								if filesystem.read(cachedpath .. "/", cachedDisk) == "t:folder" then
+									if string.sub(path, #path, #path) ~= "/" then
+										path = path .. "/"
+									end
+									path = cachedpath .. "/"
+									called = true
+								else
+									called = true
 								end
-								path = path .. fileName
-								called = true
 							else
 								errorPopup("Unknown file type")
 							end
 						end)
+						propertiesbutton.MouseButton1Click:Connect(function()
+							if canopenproperties == true then
+								local yes, bruh = pcall(function()
+									local window, closebutton, titlebar = puter.CreateWindow(300, 300, "Properties")
+									closebutton.MouseButton1Click:Connect(function()
+										canopenproperties = true
+									end)
+									canopenproperties = false
+									puter.AddWindowElement(window, "TextLabel", {
+										Size = UDim2.fromOffset(280, 25);
+										Position = UDim2.fromOffset(10, 10);
+										BorderSizePixel = 0;
+										BackgroundTransparency = 1;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										Text = "Filename: " .. fileName;
+									})
+									puter.AddWindowElement(window, "TextLabel", {
+										Size = UDim2.fromOffset(280, 25);
+										Position = UDim2.fromOffset(10, 45);
+										BorderSizePixel = 0;
+										BackgroundTransparency = 1;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										Text = "Path: " .. path;
+										TextXAlignment = Enum.TextXAlignment.Left;
+									})
+									puter.AddWindowElement(window, "TextLabel", {
+										Size = UDim2.fromOffset(280, 25);
+										Position = UDim2.fromOffset(10, 80);
+										BorderSizePixel = 0;
+										BackgroundTransparency = 1;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										Text = "Type: " .. fileTypeName .. " (" .. trueType .. ")";
+										TextXAlignment = Enum.TextXAlignment.Left
+									})
+									local deletebutton = puter.AddWindowElement(window, "TextButton", {
+										Size = UDim2.fromOffset(100, 25);
+										Position = UDim2.fromOffset(100, 250);
+										BorderSizePixel = 0;
+										BackgroundColor3 = Color3.fromRGB(255,0,0);
+										TextColor3 = Color3.fromRGB(0,0,0);
+										TextScaled = true;
+										Text = "Delete";
+									})
+									deletebutton.MouseButton1Click:Connect(function()
+										if trueType ~= "t:folder" then
+											cachedDisk:Write(cachedpath, nil)
+											called = true
+											titlebar:Destroy()
+											canopenproperties = true
+										else
+											deleteFolder(cachedpath .. "/", cachedDisk)
+											called = true
+											titlebar:Destroy()
+											canopenproperties = true
+										end
+									end)
+								end)
+								if yes == false then
+									print(bruh)
+								end
+							end
+						end)
 					end
 					local function getUp()
+						local set = false
 						if path ~= "/" then
-							for i = #path, 1, -1 do
-								if string.sub(path, i, i) == "/" then
-									path = string.sub(path, 1, i - 1)
+							for i = #path - 1, 1, -1 do
+								if string.sub(path, i, i) == "/" and set == false then
+									path = string.sub(path, 1, i)
+									print("i set the path to " .. path .. " because 'i' was " .. tostring(i))
+									set = true
 									called = true
 								end
 							end
@@ -1528,53 +1651,86 @@ local success, errorcode = pcall(function()
 							called = true
 						end
 					end
-					local function getPath(path, disk)
-						pathLabel:ChangeProperties({Text = path})
-						mainScrollFrame:Destroy()
-						mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
-							Size = UDim2.fromOffset(500, 225);
-							Position = UDim2.fromOffset(0, 75);
-							BorderSizePixel = 0;
-							BackgroundColor3 = Color3.fromRGB(60, 60, 60);
-							ScrollBarThickness = 2;
-							CanvasSize = UDim2.fromOffset(0,0);
-						})
-						if string.sub(path, #path, #path) ~= "/" then
-							path = path .. "/"
+					local function getFolders(path, disk)
+						local folders = filesystem.scanPath(path, disk)
+						local offset = 0
+						for i, v in pairs(folders) do
+							local folder = filesystem.read(path .. v .. "/", disk)
+							if folder ~= nil then
+								local fileType, data, trueType = typeParser(folder)
+								offset = offset + 1
+								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, filesystem.read(path .. v .. "/", disk))
+								print("i got a folder")
+							end
 						end
-						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
-							Size = UDim2.fromOffset(498, 25);
-							Position = UDim2.fromOffset(0, 0);
-							BorderSizePixel = 0;
-							BackgroundTransparency = 1;
-						})
-						local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
-							Size = UDim2.fromOffset(300, 25);
-							Position = UDim2.fromOffset(0,0);
-							BackgroundColor3 = Color3.fromRGB(100,100,100);
-							BorderSizePixel = 0;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							TextScaled = true;
-							Text = ".."
-						})
-						puter.AddElement(parentFrame, "TextLabel", {
-							Size = UDim2.fromOffset(198, 25);
-							Position = UDim2.fromOffset(300,0);
-							BackgroundColor3 = Color3.fromRGB(100,100,100);
-							BorderSizePixel = 0;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							TextScaled = true;
-							Text = "Folder"
-						})
-						fileNameButton.MouseButton1Click:Connect(function()
-							getUp()
-						end)
+						print(offset * 25)
+						return offset * 25
+					end
+					local function getFiles(path, disk, offset)
 						local files = filesystem.scanPath(path, disk)
+						local offsetv2 = 0
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
-							local fileType, data = typeParser(file)
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, (i + 1) * 25)})
-							addFile(v, fileType, UDim2.fromOffset(0, i * 25), data)
+							if file ~= nil then
+								local fileType, data, trueType = typeParser(file)
+								offsetv2 = offsetv2 + 1
+								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, filesystem.read(path .. v, disk))
+								print("i got a file")
+							end
+						end
+						print(offsetv2)
+						return offsetv2 * 25
+					end
+					local function getPath(path, disk)
+						local yay, noooo = pcall(function()
+							pathLabel:ChangeProperties({Text = path})
+							mainScrollFrame:Destroy()
+							mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+								Size = UDim2.fromOffset(500, 225);
+								Position = UDim2.fromOffset(0, 75);
+								BorderSizePixel = 0;
+								BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+								ScrollBarThickness = 2;
+								CanvasSize = UDim2.fromOffset(0,0);
+							})
+							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+								Size = UDim2.fromOffset(498, 25);
+								Position = UDim2.fromOffset(0, 0);
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+							})
+							local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+								Size = UDim2.fromOffset(300, 25);
+								Position = UDim2.fromOffset(0,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = ".."
+							})
+							puter.AddElement(parentFrame, "TextLabel", {
+								Size = UDim2.fromOffset(198, 25);
+								Position = UDim2.fromOffset(300,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Folder"
+							})
+							fileNameButton.MouseButton1Click:Connect(function()
+								getUp()
+							end)
+							local files = filesystem.scanPath(path, disk)
+							local offset = getFolders(path, disk)
+							local offsetv2 = getFiles(path, disk, offset)
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset + offsetv2)})
+						end)
+						if yay == false then
+							print(noooo)
+							print("DEBUG DATA: [KEY: DATA]")
+							for i, v in pairs(disk:ReadEntireDisk()) do
+								print(i .. ": " .. v)
+							end
 						end
 					end
 					local function displayDisks()
@@ -1742,6 +1898,7 @@ local success, errorcode = pcall(function()
 										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
 									end)
 									createButton.MouseButton1Click:Connect(function()
+										Beep()
 										local function throwError(text)
 											local err = puter.AddWindowElement(window, "TextLabel", {
 												Text = text;
@@ -1756,36 +1913,50 @@ local success, errorcode = pcall(function()
 											err:Destroy()
 											print("error is GONE :sob:")
 										end
-										if string.sub(path, #path, #path) ~= "/" then
-											path = path .. "/"
-											print("glued a / to the path")
-										end
-										print("time to check")
-										if mounteddisks[disk] ~= nil then
-											if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
-												local badName = false
-												for i = 1, #name, 1 do
-													if string.sub(name, i, i) == "/" then
-														badName = true
+										local goodjob, uhoh = pcall(function()
+											print("time to check")
+											if mounteddisks[disk] ~= nil then
+												if path ~= nil then
+													if string.sub(path, #path, #path) ~= "/" then
+														path = path .. "/"
+														print("glued a / to the path")
 													end
-												end
-												if badName == false then
-													print("writing the folder to " .. path .. name .. "at disk " .. tostring(disk))
-													filesystem.createDirectory(path .. name, mounteddisks[disk])
-													called = true
+													if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+														if name ~= nil then
+															local badName = false
+															for i = 1, #name, 1 do
+																if string.sub(name, i, i) == "/" then
+																	badName = true
+																end
+															end
+															if badName == false then
+																filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
+																called = true
+															else
+																print("you're an idiot")
+																throwError("dont put a / in the name you doofus")
+															end
+														else
+															print("me when the untitled")
+															throwError("please input a name")
+														end
+													else
+														print("dawg that aint a folder")
+														throwError("path specified is not a folder")
+													end
 												else
-													print("you're an idiot")
-													throwError("dont put a / in the name you doofus")
+													print("wheres da path")
+													throwError("please input a path")
 												end
 											else
-												print("dawg that aint a folder")
-												throwError("path specified is not a folder")
+												print("disk where?")
+												throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
 											end
-										else
-											print("disk where?")
-											throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
+											print("back to my 1 millisecond break")
+										end)
+										if goodjob == false then
+											throwError(uhoh)
 										end
-										print("back to my 1 millisecond break")
 									end)
 									keyboard:Connect("TextInputted", function(text, plr)
 										text = string.sub(text, 1, #text - 1)
@@ -1800,6 +1971,235 @@ local success, errorcode = pcall(function()
 											diskButton:ChangeProperties({Text = "Disk (number): " .. text})
 										end
 									end)
+								end
+							end)
+							createFile.MouseButton1Click:Connect(function()
+								local yay, nay = pcall(function()
+									if canopencfile == true then
+										local focusedOn = nil
+										local name
+										local path
+										local disk
+										local fileType
+										local data
+										local window, closebutton = puter.CreateWindow(400, 225, "File Creator")
+										closebutton.MouseButton1Click:Connect(function()
+											canopencfile = true
+										end)
+										canopencfile = false
+										local nameButton = puter.AddWindowElement(window, "TextButton", {
+											Text = "Name: ";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+											Size = UDim2.fromOffset(380, 20);
+											Position = UDim2.fromOffset(10, 5);
+										})
+										local pathButton = puter.AddWindowElement(window, "TextButton", {
+											Text = "Path: ";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+											Size = UDim2.fromOffset(380, 20);
+											Position = UDim2.fromOffset(10, 30);
+										})
+										local diskButton = puter.AddWindowElement(window, "TextButton", {
+											Text = "Disk (number): ";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+											Size = UDim2.fromOffset(380, 20);
+											Position = UDim2.fromOffset(10, 55);
+										})
+										local typeButton = puter.AddWindowElement(window, "TextButton", {
+											Text = "Type: ";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+											Size = UDim2.fromOffset(380, 20);
+											Position = UDim2.fromOffset(10, 80);
+										})
+										local dataButton = puter.AddWindowElement(window, "TextButton", {
+											Text = "Data: ";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+											Size = UDim2.fromOffset(380, 20);
+											Position = UDim2.fromOffset(10, 105);
+										})
+										puter.AddWindowElement(window, "TextLabel", {
+											Text = "Valid types: lua, image, audio, video";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundTransparency = 1;
+											Size = UDim2.fromOffset(380, 20);
+											Position = UDim2.fromOffset(10, 130);
+										})
+										local createButton = puter.AddWindowElement(window, "TextButton", {
+											Text = "Create";
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(0,0,0);
+											BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+											Size = UDim2.fromOffset(100, 25);
+											Position = UDim2.fromOffset(150, 195);
+										})
+										nameButton.MouseButton1Click:Connect(function()
+											focusedOn = "name"
+											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										end)
+										pathButton.MouseButton1Click:Connect(function()
+											focusedOn = "path"
+											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										end)
+										diskButton.MouseButton1Click:Connect(function()
+											focusedOn = "disk"
+											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										end)
+										typeButton.MouseButton1Click:Connect(function()
+											focusedOn = "type"
+											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
+											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										end)
+										dataButton.MouseButton1Click:Connect(function()
+											focusedOn = "data"
+											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
+										end)
+										createButton.MouseButton1Click:Connect(function()
+											Beep()
+											local function throwError(text)
+												local err = puter.AddWindowElement(window, "TextLabel", {
+													Text = text;
+													Size = UDim2.fromOffset(400, 25);
+													Position = UDim2.fromOffset(0, 150);
+													TextScaled = true;
+													TextColor3 = Color3.fromRGB(255,0,0);
+													BackgroundTransparency = 1;
+												})
+												print("threw error " .. text)
+												wait(1)
+												err:Destroy()
+												print("error is GONE :sob:")
+											end
+											local function note(text)
+												local note = puter.AddWindowElement(window, "TextLabel", {
+													Text = text;
+													Size = UDim2.fromOffset(400, 25);
+													Position = UDim2.fromOffset(0, 150);
+													TextScaled = true;
+													TextColor3 = Color3.fromRGB(0,255,0);
+													BackgroundTransparency = 1;
+												})
+												print("noted " .. text)
+												wait(1)
+												note:Destroy()
+												print("no note")
+											end
+											local goodjob, uhoh = pcall(function()
+												print("time to check")
+												if mounteddisks[disk] ~= nil then
+													if path ~= nil then
+														if string.sub(path, #path, #path) ~= "/" then
+															path = path .. "/"
+															print("glued a / to the path")
+														end
+														if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+															if name ~= nil then
+																local badName = false
+																for i = 1, #name, 1 do
+																	if string.sub(name, i, i) == "/" then
+																		badName = true
+																	end
+																end
+																if badName == false then
+																	if fileType ~= nil then
+																		if data ~= nil then
+																			if fileType ~= "folder" then
+																				filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
+																				note("written... i think")
+																				called = true
+																			else
+																				filesystem.createDirectory(path .. name, mounteddisks[disk])
+																				note("a folder was created, did you think you could break me?")
+																				called = true
+																			end
+																		else
+																			throwError("input some data")
+																			print("dont make a useless file")
+																		end
+																	else
+																		print("type in a type")
+																		throwError("please input a type")
+																	end
+																else
+																	print("you're an idiot")
+																	throwError("dont put a / in the name you doofus")
+																end
+															else
+																print("me when the untitled")
+																throwError("please input a name")
+															end
+														else
+															print("dawg that aint a folder")
+															throwError("path specified is not a folder")
+														end
+													else
+														print("wheres da path")
+														throwError("please input a path")
+													end
+												else
+													print("disk where?")
+													throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
+												end
+												print("back to my 1 millisecond break")
+											end)
+											if goodjob == false then
+												throwError(uhoh)
+											end
+										end)
+										keyboard:Connect("TextInputted", function(text, plr)
+											text = string.sub(text, 1, #text - 1)
+											if focusedOn == "name" then
+												name = text
+												nameButton:ChangeProperties({Text = "Name: " .. text})
+											elseif focusedOn == "path" then
+												path = text
+												pathButton:ChangeProperties({Text = "Path: " .. text})
+											elseif focusedOn == "disk" then
+												disk = tonumber(text)
+												diskButton:ChangeProperties({Text = "Disk (number): " .. text})
+											elseif focusedOn == "type" then
+												fileType = text
+												typeButton:ChangeProperties({Text = "Type: " .. text})
+											elseif focusedOn == "data" then
+												data = text
+												dataButton:ChangeProperties({Text = "Data: " .. text})
+											end
+										end)
+									else
+										print("😂😂😂")
+									end
+								end)
+								if yay == false then
+									print(nay)
 								end
 							end)
 						else
@@ -2424,7 +2824,7 @@ local success, errorcode = pcall(function()
 		end
 	end
 end)
-if success then
+if success == true then
 
 else
 	ReturnError(errorcode, "luaerr")
