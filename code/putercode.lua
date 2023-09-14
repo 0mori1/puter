@@ -1561,6 +1561,8 @@ local success, errorcode = pcall(function()
 									end
 									path = cachedpath .. "/"
 									called = true
+								else
+									called = true
 								end
 							else
 								errorPopup("Unknown file type")
