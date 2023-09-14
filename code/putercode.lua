@@ -1492,8 +1492,23 @@ local success, errorcode = pcall(function()
 						CanvasSize = UDim2.fromOffset(0,0);
 					})
 					local canopenproperties = true
+					local function deleteFolder(path, disk)
+						if string.sub(path, #path, #path) ~= "/" then
+							path = path .. "/"
+						end
+						disk:Write(path, nil)
+						local childFiles = filesystem.scanPath(path, disk)
+						for i, v in pairs(childFiles) do
+							if filesystem.read(path .. v .. "/", disk) ~= nil then
+								deleteFolder(path .. v .. "/", disk)
+							elseif filesystem.read(path .. v, disk) ~= nil then
+								disk:Write(path .. v, nil)
+							end
+						end
+					end
 					local function addFile(fileName, fileType, position, data, trueType, trueData)
 						local cachedpath = path .. fileName
+						local cachedDisk = viewingDisk
 						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 							Size = UDim2.fromOffset(498, 25);
 							Position = position;
@@ -1595,7 +1610,14 @@ local success, errorcode = pcall(function()
 										Text = "Delete";
 									})
 									deletebutton.MouseButton1Click:Connect(function()
-										errorPopup("Not yet implemented.")
+										if trueType ~= "t:folder" then
+											cachedDisk:Write(cachedpath, nil)
+											called = true
+											titlebar:Destroy()
+											canopenproperties = true
+										else
+											deleteFolder(cachedpath .. "/", cachedDisk)
+										end
 									end)
 								end)
 								if yes == false then
@@ -1780,17 +1802,6 @@ local success, errorcode = pcall(function()
 					actionRefresh.MouseButton1Click:Connect(function()
 						called = true
 					end)
-					local function deleteFolder(path, disk)
-						disk:Write(path, nil)
-						local childFiles = filesystem.scanPath(path, disk)
-						for i, v in pairs(childFiles) do
-							if filesystem.read(path .. v .. "/", disk) ~= nil then
-								deleteFolder(path .. v .. "/", disk)
-							elseif filesystem.read(path .. v, disk) ~= nil then
-								disk:Write(path .. v, nil)
-							end
-						end
-					end
 					actionFile.MouseButton1Click:Connect(function()
 						if fileFrame == nil then
 							fileFrame = puter.AddWindowElement(explorerwindow, "Frame", {
