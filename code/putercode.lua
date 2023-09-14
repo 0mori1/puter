@@ -592,7 +592,7 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 					ZIndex = 3;
 				})
-				local windowframeContainer = screen:CreateElement("Frame", {
+				local windowframeContainer = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x, y);
 					Position = UDim2.fromOffset(0, 25);
 					BorderSizePixel = 0;
@@ -600,6 +600,7 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 					BackgroundTransparency = 1;
+					TextTransparency = 1;
 				}) 
 				local windowframe = screen:CreateElement("Frame", {
 					Size = UDim2.fromOffset(x, y);
@@ -1554,11 +1555,13 @@ local success, errorcode = pcall(function()
 							if thingToDo ~= nil then
 								thingToDo(data)
 							elseif fileType == "folder" then
-								if string.sub(path, #path, #path) ~= "/" then
-									path = path .. "/"
+								if filesystem.read(cachedpath .. "/", cachedDisk) == "t:folder" then
+									if string.sub(path, #path, #path) ~= "/" then
+										path = path .. "/"
+									end
+									path = cachedpath .. "/"
+									called = true
 								end
-								path = cachedpath .. "/"
-								called = true
 							else
 								errorPopup("Unknown file type")
 							end
@@ -1617,6 +1620,9 @@ local success, errorcode = pcall(function()
 											canopenproperties = true
 										else
 											deleteFolder(cachedpath .. "/", cachedDisk)
+											called = true
+											titlebar:Destroy()
+											canopenproperties = true
 										end
 									end)
 								end)
