@@ -737,7 +737,7 @@ local success, errorcode = pcall(function()
 			end
 		end
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout)
-			if plr ~= "roblox" then
+			if plr ~= "Hail12pink" then
 				if string.sub(text, 1, 7) == "lua run" then
 					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
 				elseif string.sub(text, 1, 8) == "lua stop" then
@@ -895,7 +895,7 @@ local success, errorcode = pcall(function()
 					return true, "no such command"
 				end
 			else
-				return true, "no robloxes are allowed to use the puter"
+				return true, "no perms for me, no perms for you, 12pink, no forgiveness."
 			end
 		end
 		local knownFileTypes = {
@@ -2123,6 +2123,8 @@ local success, errorcode = pcall(function()
 														dataButton:ChangeProperties({Text = "Data: " .. text})
 													end
 												end)
+											else
+												print("😂😂😂")
 											end
 										end)
 										if yay == false then
