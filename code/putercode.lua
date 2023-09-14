@@ -1585,6 +1585,18 @@ local success, errorcode = pcall(function()
 										Text = "Type: " .. fileTypeName .. " (" .. trueType .. ")";
 										TextXAlignment = Enum.TextXAlignment.Left
 									})
+									local deletebutton = puter.AddWindowElement(window, "TextButton", {
+										Size = UDim2.fromOffset(100, 25);
+										Position = UDim2.fromOffset(100, 250);
+										BorderSizePixel = 0;
+										BackgroundColor3 = Color3.fromRGB(255,0,0);
+										TextColor3 = Color3.fromRGB(0,0,0);
+										TextScaled = true;
+										Text = "Delete";
+									})
+									deletebutton.MouseButton1Click:Connect(function()
+										errorPopup("Not yet implemented.")
+									end)
 								end)
 								if yes == false then
 									print(bruh)
@@ -1768,6 +1780,17 @@ local success, errorcode = pcall(function()
 					actionRefresh.MouseButton1Click:Connect(function()
 						called = true
 					end)
+					local function deleteFolder(path, disk)
+						disk:Write(path, nil)
+						local childFiles = filesystem.scanPath(path, disk)
+						for i, v in pairs(childFiles) do
+							if filesystem.read(path .. v .. "/", disk) ~= nil then
+								deleteFolder(path .. v .. "/", disk)
+							elseif filesystem.read(path .. v, disk) ~= nil then
+								disk:Write(path .. v, nil)
+							end
+						end
+					end
 					actionFile.MouseButton1Click:Connect(function()
 						if fileFrame == nil then
 							fileFrame = puter.AddWindowElement(explorerwindow, "Frame", {
@@ -2057,6 +2080,20 @@ local success, errorcode = pcall(function()
 												err:Destroy()
 												print("error is GONE :sob:")
 											end
+											local function note(text)
+												local note = puter.AddWindowElement(window, "TextLabel", {
+													Text = text;
+													Size = UDim2.fromOffset(400, 25);
+													Position = UDim2.fromOffset(0, 150);
+													TextScaled = true;
+													TextColor3 = Color3.fromRGB(0,255,0);
+													BackgroundTransparency = 1;
+												})
+												print("noted " .. text)
+												wait(1)
+												note:Destroy()
+												print("no note")
+											end
 											local goodjob, uhoh = pcall(function()
 												print("time to check")
 												if mounteddisks[disk] ~= nil then
@@ -2075,7 +2112,20 @@ local success, errorcode = pcall(function()
 																end
 																if badName == false then
 																	if fileType ~= nil then
-																		filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
+																		if data ~= nil then
+																			if fileType ~= "folder" then
+																				filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
+																				note("written... i think")
+																				called = true
+																			else
+																				filesystem.createDirectory(path .. name, mounteddisks[disk])
+																				note("a folder was created, did you think you could break me?")
+																				called = true
+																			end
+																		else
+																			throwError("input some data")
+																			print("dont make a useless file")
+																		end
 																	else
 																		print("type in a type")
 																		throwError("please input a type")
