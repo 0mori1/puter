@@ -17,7 +17,7 @@ local function ReturnError(errorcode, errortype)
 		screen:CreateElement("Frame", {
 			Size = UDim2.fromOffset(800, 450);
 			Position = UDim2.fromOffset(0,0);
-			BackgroundColor3 = Color3.fromRGB(0, 170, 255);
+			BackgroundColor3 = Color3.fromRGB(85, 170, 255);
 			BorderSizePixel = 0;
 		})
 		screen:CreateElement("TextLabel", {
@@ -36,9 +36,10 @@ local function ReturnError(errorcode, errortype)
 			TextColor3 = Color3.fromRGB(255,255,255);
 			TextScaled = true;
 			TextWrapped = true;
+			TextXAlignment = Enum.TextXAlignment.Left;
 		})
 		screen:CreateElement("TextLabel",{
-			Size = UDim2.fromOffset(800, 100);
+			Size = UDim2.fromOffset(800, 75);
 			Position = UDim2.fromOffset(50, 250);
 			Text = errorcode;
 			BackgroundTransparency = 1;
@@ -52,7 +53,7 @@ local function ReturnError(errorcode, errortype)
 			Text = "0% Complete";
 			BackgroundTransparency = 1;
 			TextColor3 = Color3.fromRGB(255, 255, 255);
-			Position = UDim2.fromOffset(0, 360);
+			Position = UDim2.fromOffset(50, 360);
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
 		})
