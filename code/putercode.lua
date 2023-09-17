@@ -14,34 +14,62 @@ local function ReturnError(errorcode, errortype)
 	print("An error has occured")
 	if screen ~= nil then
 		screen:ClearElements()
-		screen:CreateElement("TextLabel",{
-			Size = UDim2.fromOffset(800, 100);
-			Text = "An error has occured, The error code is below and is printed to the console.";
+		screen:CreateElement("Frame", {
+			Size = UDim2.fromOffset(800, 450);
+			Position = UDim2.fromOffset(0,0);
+			BackgroundColor3 = Color3.fromRGB(0, 170, 255);
+			BorderSizePixel = 0;
+		})
+		screen:CreateElement("TextLabel", {
+			Size = UDim2.fromOffset(25, 50);
+			Position = UDim2.fromOffset(50, 50);
 			BackgroundTransparency = 1;
-			TextColor3 = Color3.fromRGB(255, 255, 255);
+			Text = ":[";
+			TextColor3 = Color3.fromRGB(255,255,255);
 			TextScaled = true;
+		})
+		screen:CreateElement("TextLabel", {
+			Size = UDim2.fromOffset(700, 75);
+			Position = UDim2.fromOffset(50, 150);
+			BackgroundTransparency = 1;
+			Text = "Whoops, the creator messed up and will probably fix this in 5 minutes, I'll just make you wait a few seconds for no reason, then I'll shutdown for you.";
+			TextColor3 = Color3.fromRGB(255,255,255);
+			TextScaled = true;
+			TextWrapped = true;
 		})
 		screen:CreateElement("TextLabel",{
 			Size = UDim2.fromOffset(800, 100);
+			Position = UDim2.fromOffset(50, 250);
 			Text = errorcode;
 			BackgroundTransparency = 1;
 			TextColor3 = Color3.fromRGB(255, 255, 255);
-			Position = UDim2.fromOffset(0, 100);
+			TextScaled = true;
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextYAlignment = Enum.TextYAlignment.Top;
+		})
+		local complete = screen:CreateElement("TextLabel",{
+			Size = UDim2.fromOffset(200, 25);
+			Text = "0% Complete";
+			BackgroundTransparency = 1;
+			TextColor3 = Color3.fromRGB(255, 255, 255);
+			Position = UDim2.fromOffset(0, 360);
+			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
 		})
-		local shutdownbuttonbsod = screen:CreateElement("TextButton", {
-			Size = UDim2.fromOffset(200, 50);
-			Position = UDim2.fromOffset(300, 250);
-			Text = "Shutdown";
+		screen:CreateElement("TextLabel",{
+			Size = UDim2.fromOffset(700, 25);
+			Text = "Error code: " .. errortype;
+			BackgroundTransparency = 1;
+			TextColor3 = Color3.fromRGB(255, 255, 255);
+			Position = UDim2.fromOffset(50, 400);
+			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
-			TextColor3 = Color3.fromRGB(0,0,0);
-			BackgroundColor3 = Color3.fromRGB(100,100,100);
 		})
-		shutdownbuttonbsod.MouseButton1Click:Connect(function()
-			shutdown()
-		end)
+		for i = 0, 5, 1 do
+			complete:ChangeProperties({Text = tostring(i * 20) .. "% Complete"})
+			wait(1)
+		end
+		shutdown()
 	end
 	print(errorcode)
 end
@@ -1042,6 +1070,8 @@ local success, errorcode = pcall(function()
 					end
 				elseif text == "reset" then
 					storage:ClearDisk()
+				elseif text == "crash" then
+					error("Manual Crash")
 				else
 					return true, "no such command"
 				end
@@ -2896,7 +2926,7 @@ local success, errorcode = pcall(function()
 	end
 end)
 if success == true then
-
+	
 else
-	ReturnError(errorcode, "luaerr")
+	ReturnError(errorcode, "CREATOR_SKILL_ISSUE")
 end
