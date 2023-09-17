@@ -605,7 +605,7 @@ local success, errorcode = pcall(function()
 				}) 
 				local windowframeContainer = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 25);
+					Position = UDim2.fromOffset(0, 0);
 					BorderSizePixel = 0;
 					BackgroundColor3 = backgrndcolor;
 					ZIndex = 3;
