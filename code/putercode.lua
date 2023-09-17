@@ -1071,7 +1071,7 @@ local success, errorcode = pcall(function()
 				elseif text == "reset" then
 					storage:ClearDisk()
 				elseif text == "crash" then
-					error("Manual Crash")
+					ReturnError("Manual Crash", "MANUAL_CRASH")
 				else
 					return true, "no such command"
 				end
