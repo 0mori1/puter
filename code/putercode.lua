@@ -360,7 +360,8 @@ local success, errorcode = pcall(function()
 		-- Return all of these items
 		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp
 	end
-	local powerCheck = coroutine.create(function()
+	local powerCheck
+	powerCheck = coroutine.create(function()
 		if GetPartFromPort(1, "Instrument") ~= nil then
 			while true do
 				wait(0.25)
@@ -389,6 +390,7 @@ local success, errorcode = pcall(function()
 					CreateSelfTestOutput("Error: Insufficient power", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
 					CreateSelfTestOutput("Error: Shutting down...", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
 					wait(3)
+					coroutine.close(powerCheck)
 					screen:ClearElements()
 					shutdown()
 				end
@@ -592,6 +594,15 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 					ZIndex = 3;
 				})
+				local windowframeContainerContainer = screen:CreateElement("Frame", {
+					Size = UDim2.fromOffset(x, y);
+					Position = UDim2.fromOffset(0, 25);
+					BorderSizePixel = 0;
+					BackgroundColor3 = backgrndcolor;
+					ZIndex = 3;
+					ClipsDescendants = true;
+					BackgroundTransparency = 1;
+				}) 
 				local windowframeContainer = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x, y);
 					Position = UDim2.fromOffset(0, 25);
@@ -610,19 +621,20 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 				})
+				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
 				titlebar:AddChild(closebutton)
 				titlebar:AddChild(minimizeButton)
-				titlebar:AddChild(windowframeContainer)
+				titlebar:AddChild(windowframeContainerContainer)
 				local minimized = false
 				minimizeButton.MouseButton1Click:Connect(function()
 					if minimized == false then
 						minimizeButton:ChangeProperties({Text = "+"})
-						windowframe:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
 						minimized = true
 					else
 						minimizeButton:ChangeProperties({Text = "-"})
-						windowframe:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
 						minimized = false
 					end
 				end)
@@ -684,15 +696,57 @@ local success, errorcode = pcall(function()
 				if string.sub(path, #path, #path) ~= "/" then
 					path = path .. "/"
 				end
-				if disk:Read(path) == "t:folder" then
-					disk:Write(path .. filename, data)
-					return true, path .. filename
+				local badName = false
+				for i = 1, #filename, 1 do
+					if string.sub(filename, i, i) == "/" then
+						badName = true
+					end
+				end
+				if badName == false then
+					if disk:Read(path) == "t:folder" then
+						disk:Write(path .. filename, data)
+						return true, path .. filename
+					else
+						return false, "not a folder"
+					end
 				else
-					return false, "not a folder"
+					return false, "bad character in name"
 				end
 			end;
 			read = function(path, disk)
 				return disk:Read(path)
+			end;
+			getname = function(path)
+				for i = #path, 1, - 1 do
+					
+				end
+			end;
+		}
+		local fsTools = {
+			copy = function(path, disk, topath, todisk)
+				if string.sub(topath, #topath, #topath) ~= "/" then
+					topath = topath .. "/"
+				end
+				if todisk ~= nil then
+					if disk ~= nil then
+						if filesystem.read(topath, todisk) == "t:folder" then
+							if filesystem.read(path, disk) ~= nil then
+								local succeeded, misc = filesystem.write()
+								if succeeded == false then
+									return false, misc
+								end
+							else
+								return false, "you cant copy nothingness"
+							end
+						else
+							return false, "receiving path is not a folder"
+						end
+					else
+						return false, "source disk must not be nil"
+					end
+				else
+					return false, "receiving disk must not be nil"
+				end
 			end;
 		}
 		for i, v in pairs(mounteddisks) do
@@ -712,6 +766,19 @@ local success, errorcode = pcall(function()
 				TextScaled = true;
 				Text = errorMessage
 			})
+		end
+		local function popup(message)
+			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Info", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
+			puter.AddWindowElement(window, "TextLabel", {
+				Size = UDim2.fromOffset(250, 150);
+				Position = UDim2.fromOffset(0,0);
+				BorderSizePixel = 0;
+				BackgroundTransparency = 1;
+				TextColor3 = Color3.fromRGB(255,255,255);
+				TextScaled = true;
+				Text = message
+			})
+			return titlebar
 		end
 		local recorded = {}
 		local recordedtext = {}
@@ -734,11 +801,94 @@ local success, errorcode = pcall(function()
 				polysilicon:Configure({PolysiliconMode = 0})
 				wait(0.5)
 				TriggerPort(6)
+				popup:Destroy()
 				print(codetorun)
 			end
 		end
+		local specialCharactersIn = {
+			["%0"] = "/";
+			["%1"] = ",";
+			["%2"] = "%";
+		}
+		local specialCharactersOut = {
+			["/"] = "%0";
+			[","] = "%1";
+			["%"] = "%2";
+		}
+		local function decodeRawMusicList(raw)
+			local musicList = {}
+			--example of an output:
+			--{
+			--	[1] = {
+			--		["name"] = "example"
+			--		["id"] = "000000001"
+			--	}
+			--}
+			local name
+			local id
+			local dataPos = 1
+			local readState = nil
+			local parsedData = ""
+			local skip = 0
+			local yes, no = pcall(function()
+				for i = 1, #raw, 1 do
+					if skip <= 0 then
+						print("not skipping")
+						if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
+							parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
+							skip = 1
+							print("setting skip to 1")
+						elseif string.sub(raw, i, i) == "/" then
+							name = parsedData
+							parsedData = ""
+							dataPos = i + 1
+						elseif string.sub(raw, i, i) == "," then
+							id = parsedData
+							parsedData = ""
+							dataPos = i + 1
+							musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
+						else
+							parsedData = parsedData .. string.sub(raw, i, i)
+						end
+					else
+						skip = skip - 1
+						print("skipped")
+						print(tostring(skip))
+					end
+				end
+			end)
+			if yes == false then
+				print(no)
+				print("WAAAAAAAAAAAAAAAAAA")
+			end
+			return musicList
+		end
+		local function encodeMusicList(musicList)
+			local encoded = ""
+			for i, v in pairs(musicList) do
+				if v ~= nil then
+					for i2, v2 in pairs(v) do
+						for i = 1, #v2, 1 do
+							if specialCharactersOut[string.sub(v2, i, i)] ~= nil then
+								encoded = encoded .. specialCharactersOut[string.sub(v2, i, i)]
+							else
+								encoded = encoded .. string.sub(v2, i, i)
+							end
+						end
+						if i2 ~= "id" then
+							encoded = encoded .. "/"
+						end
+					end
+					encoded = encoded .. ","
+				end
+			end
+			return encoded
+		end
+		local checkBlacklist = {
+			["Hail12Pink"] = "no perms for me, no perms for you, 12pink, no forgiveness.";
+		}
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout)
-			if plr ~= "Hail12pink" then
+			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
 					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
 				elseif string.sub(text, 1, 8) == "lua stop" then
@@ -797,7 +947,7 @@ local success, errorcode = pcall(function()
 				elseif string.sub(text, 1, 13) == "display image" then
 					local image = string.sub(text, 15, #text)
 					if displayingimg == false then
-						local frame, closebutton = puter.CreateWindow(400, 275, "ImageViewer")
+						local frame, closebutton = puter.CreateWindow(400, 250, "ImageViewer")
 						closebutton.MouseButton1Click:Connect(function()
 							displayingimg = false
 						end)
@@ -807,7 +957,7 @@ local success, errorcode = pcall(function()
 							Size = UDim2.fromOffset(400, 225);
 						})
 						local setwallpaper = puter.AddWindowElement(frame, "TextButton", {
-							Size = UDim2.fromOffset(400, 50);
+							Size = UDim2.fromOffset(400, 25);
 							Position = UDim2.fromOffset(0, 225);
 							Text = "Set As Wallpaper";
 							TextColor3 = Color3.fromHex("#FFFFFF");
@@ -896,7 +1046,7 @@ local success, errorcode = pcall(function()
 					return true, "no such command"
 				end
 			else
-				return true, "no perms for me, no perms for you, 12pink, no forgiveness."
+				return true, checkBlacklist[plr]
 			end
 		end
 		local knownFileTypes = {
@@ -907,7 +1057,7 @@ local success, errorcode = pcall(function()
 				check("display image " .. imageID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
 			end;
 			["audio"] = function(audioID)
-				check("play audio " .. audioID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
+				puter.PlayAudio(audioID, speaker)
 			end;
 			["video"] = function(videoID)
 				check("play video " .. videoID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
@@ -1063,85 +1213,6 @@ local success, errorcode = pcall(function()
 					canopenmusic = true
 				end)
 				canopenmusic = false
-				local specialCharactersIn = {
-					["%0"] = "/";
-					["%1"] = ",";
-					["%2"] = "%";
-				}
-				local specialCharactersOut = {
-					["/"] = "%0";
-					[","] = "%1";
-					["%"] = "%2";
-				}
-				local function decodeRawMusicList(raw)
-					local musicList = {}
-					--example of an output:
-					--{
-					--	[1] = {
-					--		["name"] = "example"
-					--		["id"] = "000000001"
-					--	}
-					--}
-					local name
-					local id
-					local dataPos = 1
-					local readState = nil
-					local parsedData = ""
-					local skip = 0
-					local yes, no = pcall(function()
-						for i = 1, #raw, 1 do
-							if skip <= 0 then
-								print("not skipping")
-								if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
-									parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
-									skip = 1
-									print("setting skip to 1")
-								elseif string.sub(raw, i, i) == "/" then
-									name = parsedData
-									parsedData = ""
-									dataPos = i + 1
-								elseif string.sub(raw, i, i) == "," then
-									id = parsedData
-									parsedData = ""
-									dataPos = i + 1
-									musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
-								else
-									parsedData = parsedData .. string.sub(raw, i, i)
-								end
-							else
-								skip = skip - 1
-								print("skipped")
-								print(tostring(skip))
-							end
-						end
-					end)
-					if yes == false then
-						print(no)
-						print("WAAAAAAAAAAAAAAAAAA")
-					end
-					return musicList
-				end
-				local function encodeMusicList(musicList)
-					local encoded = ""
-					for i, v in pairs(musicList) do
-						if v ~= nil then
-							for i2, v2 in pairs(v) do
-								for i = 1, #v2, 1 do
-									if specialCharactersOut[string.sub(v2, i, i)] ~= nil then
-										encoded = encoded .. specialCharactersOut[string.sub(v2, i, i)]
-									else
-										encoded = encoded .. string.sub(v2, i, i)
-									end
-								end
-								if i2 ~= "id" then
-									encoded = encoded .. "/"
-								end
-							end
-							encoded = encoded .. ","
-						end
-					end
-					return encoded
-				end
 				if storage:Read("musicList") ~= nil then
 					musicList = decodeRawMusicList(storage:Read("musicList"))
 				else
@@ -2089,7 +2160,7 @@ local success, errorcode = pcall(function()
 												local err = puter.AddWindowElement(window, "TextLabel", {
 													Text = text;
 													Size = UDim2.fromOffset(400, 25);
-													Position = UDim2.fromOffset(0, 150);
+													Position = UDim2.fromOffset(0, 165);
 													TextScaled = true;
 													TextColor3 = Color3.fromRGB(255,0,0);
 													BackgroundTransparency = 1;
@@ -2137,7 +2208,7 @@ local success, errorcode = pcall(function()
 																				note("written... i think")
 																				called = true
 																			else
-																				filesystem.createDirectory(path .. name, mounteddisks[disk])
+																				filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
 																				note("a folder was created, did you think you could break me?")
 																				called = true
 																			end
