@@ -17,7 +17,7 @@ local function ReturnError(errorcode, errortype)
 		screen:CreateElement("Frame", {
 			Size = UDim2.fromOffset(800, 450);
 			Position = UDim2.fromOffset(0,0);
-			BackgroundColor3 = Color3.fromRGB(85, 170, 255);
+			BackgroundColor3 = Color3.fromRGB(115, 185, 255);
 			BorderSizePixel = 0;
 		})
 		screen:CreateElement("TextLabel", {
@@ -39,7 +39,7 @@ local function ReturnError(errorcode, errortype)
 			TextXAlignment = Enum.TextXAlignment.Left;
 		})
 		screen:CreateElement("TextLabel",{
-			Size = UDim2.fromOffset(800, 75);
+			Size = UDim2.fromOffset(800, 25);
 			Position = UDim2.fromOffset(50, 250);
 			Text = errorcode;
 			BackgroundTransparency = 1;
@@ -53,7 +53,7 @@ local function ReturnError(errorcode, errortype)
 			Text = "0% Complete";
 			BackgroundTransparency = 1;
 			TextColor3 = Color3.fromRGB(255, 255, 255);
-			Position = UDim2.fromOffset(50, 360);
+			Position = UDim2.fromOffset(50, 300);
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
 		})
@@ -62,7 +62,7 @@ local function ReturnError(errorcode, errortype)
 			Text = "Error code: " .. errortype;
 			BackgroundTransparency = 1;
 			TextColor3 = Color3.fromRGB(255, 255, 255);
-			Position = UDim2.fromOffset(50, 400);
+			Position = UDim2.fromOffset(50, 375);
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
 		})
@@ -2520,6 +2520,7 @@ local success, errorcode = pcall(function()
 									TextXAlignment = Enum.TextXAlignment.Left;
 									TextScaled = true;
 									Position = UDim2.fromOffset(0, (i - 1) * 25);
+									TextColor3 = Color3.fromRGB(85, 85, 255);
 								})
 								local actualMessage
 								for i = 1, #v, 1 do
