@@ -260,6 +260,8 @@ local success, errorcode = pcall(function()
 					offsetX = posx - x
 					offsetY = posy - y
 					dragging = true
+					titlebar:ChangeProperties({ZIndex = 4})
+					titlebar:ChangeProperties({ZIndex = 3})
 					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
 						print("buhhh?")
 						print(tostring(offsetX))
@@ -751,6 +753,8 @@ local success, errorcode = pcall(function()
 					offsetX = posx - x
 					offsetY = posy - y
 					dragging = true
+					titlebar:ChangeProperties({ZIndex = 4})
+					titlebar:ChangeProperties({ZIndex = 3})
 					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
 						print("buhhh?")
 						print(tostring(offsetX))
