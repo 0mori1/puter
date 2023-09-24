@@ -113,11 +113,6 @@ local success, errorcode = pcall(function()
 		end
 	end
 	local cursormoved = {}
-	screen:Connect("CursorMoved", function(cursor)
-		for i, v in pairs(cursormoved) do
-			v(cursor)
-		end
-	end)
 	local function screenCursorMoved(func)
 		cursormoved[#cursormoved + 1] = func
 	end
@@ -522,6 +517,11 @@ local success, errorcode = pcall(function()
 	if screen ~= nil then
 		-- We succeeded (hooray but not yet)
 		availableComponents["screen"] = screen
+		screen:Connect("CursorMoved", function(cursor)
+			for i, v in pairs(cursormoved) do
+				v(cursor)
+			end
+		end)
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
 			BorderSizePixel = 0;
