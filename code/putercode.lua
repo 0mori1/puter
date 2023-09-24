@@ -19,6 +19,7 @@ local function ReturnError(errorcode, errortype)
 			Position = UDim2.fromOffset(0,0);
 			BackgroundColor3 = Color3.fromRGB(115, 185, 255);
 			BorderSizePixel = 0;
+			ZIndex = 10;
 		})
 		screen:CreateElement("TextLabel", {
 			Size = UDim2.fromOffset(25, 50);
@@ -27,6 +28,7 @@ local function ReturnError(errorcode, errortype)
 			Text = ":[";
 			TextColor3 = Color3.fromRGB(255,255,255);
 			TextScaled = true;
+			ZIndex = 10;
 		})
 		screen:CreateElement("TextLabel", {
 			Size = UDim2.fromOffset(700, 75);
@@ -37,6 +39,7 @@ local function ReturnError(errorcode, errortype)
 			TextScaled = true;
 			TextWrapped = true;
 			TextXAlignment = Enum.TextXAlignment.Left;
+			ZIndex = 10;
 		})
 		screen:CreateElement("TextLabel",{
 			Size = UDim2.fromOffset(800, 25);
@@ -47,6 +50,7 @@ local function ReturnError(errorcode, errortype)
 			TextScaled = true;
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextYAlignment = Enum.TextYAlignment.Top;
+			ZIndex = 10;
 		})
 		local complete = screen:CreateElement("TextLabel",{
 			Size = UDim2.fromOffset(200, 25);
@@ -56,6 +60,7 @@ local function ReturnError(errorcode, errortype)
 			Position = UDim2.fromOffset(50, 300);
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
+			ZIndex = 10;
 		})
 		screen:CreateElement("TextLabel",{
 			Size = UDim2.fromOffset(700, 25);
@@ -65,6 +70,7 @@ local function ReturnError(errorcode, errortype)
 			Position = UDim2.fromOffset(50, 375);
 			TextXAlignment = Enum.TextXAlignment.Left;
 			TextScaled = true;
+			ZIndex = 10;
 		})
 		for i = 0, 5, 1 do
 			complete:ChangeProperties({Text = tostring(i * 20) .. "% Complete"})
@@ -177,7 +183,7 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 					ZIndex = 3;
 				})
-				local windowframeContainer = screen:CreateElement("Frame", {
+				local windowframeContainerContainer = screen:CreateElement("Frame", {
 					Size = UDim2.fromOffset(x, y);
 					Position = UDim2.fromOffset(0, 25);
 					BorderSizePixel = 0;
@@ -185,6 +191,16 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 					BackgroundTransparency = 1;
+				}) 
+				local windowframeContainer = screen:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(x, y);
+					Position = UDim2.fromOffset(0, 0);
+					BorderSizePixel = 0;
+					BackgroundColor3 = backgrndcolor;
+					ZIndex = 3;
+					ClipsDescendants = true;
+					BackgroundTransparency = 1;
+					TextTransparency = 1;
 				}) 
 				local windowframe = screen:CreateElement("Frame", {
 					Size = UDim2.fromOffset(x, y);
@@ -194,19 +210,20 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 				})
+				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
 				titlebar:AddChild(closebutton)
 				titlebar:AddChild(minimizeButton)
-				titlebar:AddChild(windowframeContainer)
+				titlebar:AddChild(windowframeContainerContainer)
 				local minimized = false
 				minimizeButton.MouseButton1Click:Connect(function()
 					if minimized == false then
 						minimizeButton:ChangeProperties({Text = "+"})
-						windowframe:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
 						minimized = true
 					else
 						minimizeButton:ChangeProperties({Text = "-"})
-						windowframe:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
 						minimized = false
 					end
 				end)
@@ -561,6 +578,25 @@ local success, errorcode = pcall(function()
 				mounteddisks[i] = disk
 			end
 		end
+		local connections = {}
+		local function xConnect(part, eventname, func, ID)
+			if availableComponents[part] ~= nil then
+				if connections[part] == nil then
+					connections[part] = {}
+				end
+				if connections[part][eventname] == nil then
+					connections[part][eventname] = {}
+					availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
+						for i, v in pairs(connections[part][eventname]) do
+							v(a, b, c, d, e, f)
+						end
+					end)
+				end
+				connections[part][eventname][ID] = func
+			else	
+				error("attempted to connect to event " .. eventname .. " of nil component " .. part)
+			end
+		end
 		CreateSelfTestOutput("Disks detected: " .. tostring(diskamount), UDim2.fromOffset(10, outAmount * 25 + 10))
 		wait(1)
 		outAmount = 0
@@ -744,38 +780,6 @@ local success, errorcode = pcall(function()
 			end;
 			read = function(path, disk)
 				return disk:Read(path)
-			end;
-			getname = function(path)
-				for i = #path, 1, - 1 do
-					
-				end
-			end;
-		}
-		local fsTools = {
-			copy = function(path, disk, topath, todisk)
-				if string.sub(topath, #topath, #topath) ~= "/" then
-					topath = topath .. "/"
-				end
-				if todisk ~= nil then
-					if disk ~= nil then
-						if filesystem.read(topath, todisk) == "t:folder" then
-							if filesystem.read(path, disk) ~= nil then
-								local succeeded, misc = filesystem.write()
-								if succeeded == false then
-									return false, misc
-								end
-							else
-								return false, "you cant copy nothingness"
-							end
-						else
-							return false, "receiving path is not a folder"
-						end
-					else
-						return false, "source disk must not be nil"
-					end
-				else
-					return false, "receiving disk must not be nil"
-				end
 			end;
 		}
 		for i, v in pairs(mounteddisks) do
@@ -1494,7 +1498,7 @@ local success, errorcode = pcall(function()
 								err:Destroy()
 							end
 						end)
-						keyboard:Connect("TextInputted", function(text, plr)
+						xConnect("keyboard", "TextInputted", function(text, plr)
 							text = string.sub(text, 1, #text - 1)
 							if focusedon == "name" then
 								name = text
@@ -1503,7 +1507,7 @@ local success, errorcode = pcall(function()
 								id = text
 								musicId:ChangeProperties({Text = "Music ID: " .. text})
 							end
-						end)
+						end, "addMusic")
 					end
 				end)
 			end
@@ -2060,7 +2064,7 @@ local success, errorcode = pcall(function()
 											throwError(uhoh)
 										end
 									end)
-									keyboard:Connect("TextInputted", function(text, plr)
+									xConnect("keyboard", "TextInputted", function(text, plr)
 										text = string.sub(text, 1, #text - 1)
 										if focusedOn == "name" then
 											name = text
@@ -2072,7 +2076,7 @@ local success, errorcode = pcall(function()
 											disk = tonumber(text)
 											diskButton:ChangeProperties({Text = "Disk (number): " .. text})
 										end
-									end)
+									end, "folderCreator")
 								end
 							end)
 							createFile.MouseButton1Click:Connect(function()
@@ -2277,7 +2281,7 @@ local success, errorcode = pcall(function()
 												throwError(uhoh)
 											end
 										end)
-										keyboard:Connect("TextInputted", function(text, plr)
+										xConnect("keyboard", "TextInputted", function(text, plr)
 											text = string.sub(text, 1, #text - 1)
 											if focusedOn == "name" then
 												name = text
@@ -2295,7 +2299,7 @@ local success, errorcode = pcall(function()
 												data = text
 												dataButton:ChangeProperties({Text = "Data: " .. text})
 											end
-										end)
+										end, "fileCreator")
 									else
 										print("😂😂😂")
 									end
@@ -2388,7 +2392,7 @@ local success, errorcode = pcall(function()
 					keybutton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(70, 70, 70)})
 					databutton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
 				end)
-				keyboard:Connect("TextInputted", function(text, plr)
+				xConnect("keyboard", "TextInputted", function(text, plr)
 					if canopendiskutil == false then
 						text = string.sub(text, 1, #text - 1)
 						if focusedon == "key" then
@@ -2399,7 +2403,7 @@ local success, errorcode = pcall(function()
 							databutton:ChangeProperties({Text = "DATA: " .. data})
 						end
 					end
-				end)
+				end, "diskUtil")
 				write.MouseButton1Click:Connect(function()
 					if key ~= nil then
 						if data ~= nil then
@@ -2570,7 +2574,7 @@ local success, errorcode = pcall(function()
 						Beep()
 						chatModem:SendMessage(messageToSend, idconnected)
 					end
-					keyboard:Connect("TextInputted", function(text, plr)
+					xConnect("keyboard", "TextInputted", function(text, plr)
 						text = string.sub(text, 1, #text - 1)
 						if canopenchat == false then
 							if string.sub(text, 1, 1) ~= "!" and string.sub(text, 1, 2) ~= "?c" then
@@ -2600,7 +2604,7 @@ local success, errorcode = pcall(function()
 								end
 							end
 						end
-					end)
+					end, "chat")
 					chatModem:Connect("MessageSent", function(message)
 						if canopenchat == false then
 							addMessage(message)
@@ -2626,13 +2630,13 @@ local success, errorcode = pcall(function()
 						TextScaled = true;
 						BackgroundColor3 = Color3.fromRGB(121, 121, 121);
 					})
-					keyboard:Connect("TextInputted", function(text, plr)
+					xConnect("keyboard", "TextInputted", function(text, plr)
 						if idconnected == nil then
 							idconnected = tonumber(text)
 							chatModem:Configure({NetworkID = idconnected})
 							showChat()
 						end
-					end)
+					end, "chat")
 				end)
 			end
 		end
@@ -2735,7 +2739,7 @@ local success, errorcode = pcall(function()
 				end
 				requireNewInputBar()
 				Beep()
-				keyboard:Connect("TextInputted", function(text, plr)
+				xConnect("keyboard", "TextInputted", function(text, plr)
 					if canopenterminal == false then
 						text = string.sub(text, 1, #text - 1)
 						if inputbar ~= nil then
@@ -2755,7 +2759,7 @@ local success, errorcode = pcall(function()
 							recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
 						end
 					end
-				end)
+				end, "terminal")
 			end
 		end)
 		local canopennetworking = true
@@ -2928,7 +2932,7 @@ local success, errorcode = pcall(function()
 	end
 end)
 if success == true then
-	
+
 else
 	ReturnError(errorcode, "CREATOR_SKILL_ISSUE")
 end
