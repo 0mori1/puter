@@ -744,6 +744,34 @@ local success, errorcode = pcall(function()
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
 				end)
+				local offsetX
+				local offsetY
+				local dragging
+				titlebar.MouseButton1Down:Connect(function(x, y)
+					offsetX = posx - x
+					offsetY = posy - y
+					dragging = true
+					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+						print("buhhh?")
+						print(tostring(offsetX))
+					end
+					if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+						print("buhhh???")
+						print(tostring(offsetY))
+					end
+				end)
+				titlebar.MouseButton1Up:Connect(function()
+					dragging = false
+					offsetX = nil
+					offsetY = nil
+				end)
+				screenCursorMoved(function(cursor)
+					if dragging == true then
+						posx = cursor.X + offsetX
+						posy = cursor.Y + offsetY
+						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					end
+				end)
 				return windowframe, closebutton, titlebar
 			end;
 		}
