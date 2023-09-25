@@ -93,6 +93,29 @@ local success, errorcode = pcall(function()
 	local mounteddisks = {}
 	local outAmount = 0
 	local voicecommands = true
+	local connections = {}
+	local function xConnect(part, eventname, func, ID)
+		if availableComponents[part] ~= nil then
+			if connections[part] == nil then
+				connections[part] = {}
+			end
+			if connections[part][eventname] == nil then
+				connections[part][eventname] = {}
+				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
+					for i, v in pairs(connections[part][eventname]) do
+						v(a, b, c, d, e, f)
+					end
+				end)
+			end
+			connections[part][eventname][ID] = func
+		else	
+			error("attempted to connect to event " .. eventname .. " of nil component " .. part)
+		end
+	end
+	local cursormoved = {}
+	local function screenCursorMoved(func)
+		cursormoved[#cursormoved + 1] = func
+	end
 	local function CreateSelfTestOutput(text, position, color)
 		if color == nil then
 			color = Color3.fromRGB(255,255,255)
@@ -229,6 +252,36 @@ local success, errorcode = pcall(function()
 				end)
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
+				end)
+				local offsetX
+				local offsetY
+				local dragging
+				titlebar.MouseButton1Down:Connect(function(x, y)
+					offsetX = posx - x
+					offsetY = posy - y
+					dragging = true
+					titlebar:ChangeProperties({ZIndex = 4})
+					titlebar:ChangeProperties({ZIndex = 3})
+					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+						print("buhhh?")
+						print(tostring(offsetX))
+					end
+					if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+						print("buhhh???")
+						print(tostring(offsetY))
+					end
+				end)
+				titlebar.MouseButton1Up:Connect(function()
+					dragging = false
+					offsetX = nil
+					offsetY = nil
+				end)
+				screenCursorMoved(function(cursor)
+					if dragging == true then
+						posx = cursor.X + offsetX
+						posy = cursor.Y + offsetY
+						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					end
 				end)
 				return windowframe, closebutton, titlebar
 			end;
@@ -465,6 +518,12 @@ local success, errorcode = pcall(function()
 	-- Check if the screen is actually existing
 	if screen ~= nil then
 		-- We succeeded (hooray but not yet)
+		availableComponents["screen"] = screen
+		screen:Connect("CursorMoved", function(cursor)
+			for i, v in pairs(cursormoved) do
+				v(cursor)
+			end
+		end)
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
 			BorderSizePixel = 0;
@@ -578,25 +637,6 @@ local success, errorcode = pcall(function()
 				mounteddisks[i] = disk
 			end
 		end
-		local connections = {}
-		local function xConnect(part, eventname, func, ID)
-			if availableComponents[part] ~= nil then
-				if connections[part] == nil then
-					connections[part] = {}
-				end
-				if connections[part][eventname] == nil then
-					connections[part][eventname] = {}
-					availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
-						for i, v in pairs(connections[part][eventname]) do
-							v(a, b, c, d, e, f)
-						end
-					end)
-				end
-				connections[part][eventname][ID] = func
-			else	
-				error("attempted to connect to event " .. eventname .. " of nil component " .. part)
-			end
-		end
 		CreateSelfTestOutput("Disks detected: " .. tostring(diskamount), UDim2.fromOffset(10, outAmount * 25 + 10))
 		wait(1)
 		outAmount = 0
@@ -705,6 +745,36 @@ local success, errorcode = pcall(function()
 				end)
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
+				end)
+				local offsetX
+				local offsetY
+				local dragging
+				titlebar.MouseButton1Down:Connect(function(x, y)
+					offsetX = posx - x
+					offsetY = posy - y
+					dragging = true
+					titlebar:ChangeProperties({ZIndex = 4})
+					titlebar:ChangeProperties({ZIndex = 3})
+					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+						print("buhhh?")
+						print(tostring(offsetX))
+					end
+					if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+						print("buhhh???")
+						print(tostring(offsetY))
+					end
+				end)
+				titlebar.MouseButton1Up:Connect(function()
+					dragging = false
+					offsetX = nil
+					offsetY = nil
+				end)
+				screenCursorMoved(function(cursor)
+					if dragging == true then
+						posx = cursor.X + offsetX
+						posy = cursor.Y + offsetY
+						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					end
 				end)
 				return windowframe, closebutton, titlebar
 			end;
@@ -2319,7 +2389,7 @@ local success, errorcode = pcall(function()
 		end)
 		local cursors = {}
 		local cursorPositions = {}
-		screen:Connect("CursorMoved", function(cursor)
+		screenCursorMoved(function(cursor)
 			if cursors[cursor.Player] ~= nil then
 				cursorPositions[cursor.Player] = tostring(cursor.X - 50) .. ", " .. tostring(cursor.Y - 50)
 				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
