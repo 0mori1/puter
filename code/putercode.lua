@@ -756,8 +756,9 @@ local success, errorcode = pcall(function()
 					offsetX = posx - x
 					offsetY = posy - y
 					for i, v in pairs(cursorPositions) do
-						if v == UDim2.fromOffset(x, y) then
+						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
 							whodrags = i
+							print(whodrags .. " is gonna be dragging")
 						end
 					end
 					if whodrags ~= nil then
@@ -770,6 +771,7 @@ local success, errorcode = pcall(function()
 						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
 							dragging = false
 						end
+						print("someone's draggin")
 					end
 				end)
 				titlebar.MouseButton1Up:Connect(function()
@@ -779,6 +781,7 @@ local success, errorcode = pcall(function()
 					offsetY = nil
 				end)
 				screenCursorMoved(function(cursor)
+					print(whodrags)
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
 							posx = cursor.X + offsetX
