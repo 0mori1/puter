@@ -2849,7 +2849,6 @@ local success, errorcode = pcall(function()
 							BorderSizePixel = 0;
 							TextXAlignment = Enum.TextXAlignment.Left;
 							TextScaled = true;
-							FontFace = Enum.Font.RobotoMono;
 						})
 						terminalFrame:AddChild(textlabel)
 					end
