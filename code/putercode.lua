@@ -1067,7 +1067,8 @@ local success, errorcode = pcall(function()
 			return encoded
 		end
 		local checkBlacklist = {
-			["Hail12Pink"] = "dang bro you are 1984";
+			["Hail12Pink"] = "No.";
+			["progg7004"] = "no crashing allowed in the halls";
 		}
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
@@ -1305,6 +1306,11 @@ local success, errorcode = pcall(function()
 				cursors[cursor.Player] = newCursor
 			end
 		end)
+		local canuseicons = {}
+		local function addIcon(iconName, functionality, canopenicon)
+			local yOffset = math.floor(iconAmount / 3)
+			local xOffset
+		end
 		local function lagometer()
 			if canopenlagometer == true then
 				canopenlagometer = false
