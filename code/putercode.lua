@@ -12,6 +12,7 @@ local function shutdown()
 end
 local function ReturnError(errorcode, errortype)
 	print("An error has occured")
+	print(errorcode)
 	if screen ~= nil then
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
@@ -78,10 +79,9 @@ local function ReturnError(errorcode, errortype)
 		end
 		shutdown()
 	end
-	print(errorcode)
 end
 local success, errorcode = pcall(function()
-	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk"}
+	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
 	local iconAmount = 0
 	local rom
@@ -116,6 +116,8 @@ local success, errorcode = pcall(function()
 	local function screenCursorMoved(func)
 		cursormoved[#cursormoved + 1] = func
 	end
+	local cursors = {}
+	local cursorPositions = {}
 	local function CreateSelfTestOutput(text, position, color)
 		if color == nil then
 			color = Color3.fromRGB(255,255,255)
@@ -163,8 +165,10 @@ local success, errorcode = pcall(function()
 				return element
 			end;
 			PlayAudio = function(audioInputted, Speaker)
-				Speaker:Configure({Audio = audioInputted})
-				Speaker:Trigger()
+				if Speaker ~= nil then
+					Speaker:Configure({Audio = audioInputted})
+					Speaker:Trigger()
+				end
 			end;
 			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
 				local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
@@ -579,6 +583,11 @@ local success, errorcode = pcall(function()
 			createwOSboot()
 			CreateSelfTestOutput("Error: Bad screen (Must be a TouchScreen)", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
 			CreateSelfTestOutput("Error: Can't boot!", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
+		else
+			Beep()
+			wait(1)
+			Beep()
+			shutdown()
 		end
 	end
 	-- Detect the rom and check if it exists
@@ -749,31 +758,53 @@ local success, errorcode = pcall(function()
 				local offsetX
 				local offsetY
 				local dragging
+				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
-					offsetX = posx - x
-					offsetY = posy - y
-					dragging = true
-					titlebar:ChangeProperties({ZIndex = 4})
-					titlebar:ChangeProperties({ZIndex = 3})
-					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-						print("buhhh?")
-						print(tostring(offsetX))
-					end
-					if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-						print("buhhh???")
-						print(tostring(offsetY))
+					local succ, fail = pcall(function()
+						offsetX = posx - x
+						offsetY = posy - y
+						for i, v in pairs(cursorPositions) do
+							print(i)
+							print(v.X .. ", " ..  v.Y)
+							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+								whodrags = i
+								print(whodrags .. " is gonna be dragging")
+							end
+						end
+						if whodrags ~= nil then
+							dragging = true
+							titlebar:ChangeProperties({ZIndex = 4})
+							titlebar:ChangeProperties({ZIndex = 3})
+							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+								dragging = false
+							end
+							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+								dragging = false
+							end
+							print("someone's draggin")
+						else
+							print("how the hell")
+						end
+					end)
+					if succ == false then
+						print(fail)
 					end
 				end)
 				titlebar.MouseButton1Up:Connect(function()
 					dragging = false
+					whodrags = nil
 					offsetX = nil
 					offsetY = nil
 				end)
 				screenCursorMoved(function(cursor)
-					if dragging == true then
-						posx = cursor.X + offsetX
-						posy = cursor.Y + offsetY
-						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					if dragging == true and whodrags ~= nil then
+						if cursor.Player == whodrags then
+							posx = cursor.X + offsetX
+							posy = cursor.Y + offsetY
+							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+						end
+					elseif dragging == true then
+						print(whodrags)
 					end
 				end)
 				return windowframe, closebutton, titlebar
@@ -883,6 +914,32 @@ local success, errorcode = pcall(function()
 			})
 			return titlebar
 		end
+		if availableComponents["lifesensor"] ~= nil then
+			local hail12pinkdetector = coroutine.create(function()
+				local found = false
+				while true do
+					wait(0.5)
+					local readings = availableComponents["lifesensor"]:GetReading()
+					if readings["Hail12Pink"] ~= nil and found == false then
+						found = true
+						errorPopup("12PINK ALERT! 12PINK IS HERE!")
+						for i = 1, 2, 1 do
+							for i = 1, 2, 1 do
+								Beep()
+								wait(0.5)
+							end
+							wait(1)
+						end
+					elseif readings["Hail12Pink"] == nil then
+						found = false
+					end
+				end
+			end)
+			coroutines[#coroutines + 1] = hail12pinkdetector
+			coroutine.resume(hail12pinkdetector)
+		else
+			print("raaaa no lifesensor")
+		end
 		local recorded = {}
 		local recordedtext = {}
 		local recording = false
@@ -988,9 +1045,9 @@ local success, errorcode = pcall(function()
 			return encoded
 		end
 		local checkBlacklist = {
-			["Hail12Pink"] = "no perms for me, no perms for you, 12pink, no forgiveness.";
+			["Hail12Pink"] = "dang bro you are 1984";
 		}
-		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout)
+		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
 					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
@@ -1147,6 +1204,8 @@ local success, errorcode = pcall(function()
 					storage:ClearDisk()
 				elseif text == "crash" then
 					ReturnError("Manual Crash", "MANUAL_CRASH")
+				elseif text == "clear" and clrfnc ~= nil or "cls" and clrfnc ~= nil then
+					clrfnc()
 				else
 					return true, "no such command"
 				end
@@ -1196,6 +1255,34 @@ local success, errorcode = pcall(function()
 				return "Unknown", input, "unknown"
 			end
 		end
+		screenCursorMoved(function(cursor)
+			if cursors[cursor.Player] ~= nil then
+				cursorPositions[cursor.Player] = {X = cursor.X, Y = cursor.Y}
+				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
+			else
+				cursorPositions[cursor.Player] = tostring(cursor.X - 50) .. ", " .. tostring(cursor.Y - 50)
+				local newCursor = screen:CreateElement("ImageLabel", {
+					BackgroundTransparency = 1;
+					Image = "rbxassetid://12582149183";
+					Size = UDim2.fromOffset(100, 100);
+					Position = UDim2.fromOffset(0, 0);
+					ZIndex = 9;
+				})
+				local playerName = screen:CreateElement("TextLabel", {
+					Text = cursor.Player;
+					Size = UDim2.fromOffset(200, 25);
+					Position = UDim2.fromOffset(-50, 25);
+					TextStrokeTransparency = 0;
+					TextColor3 = Color3.fromRGB(255,255,255);
+					TextScaled = true;
+					BackgroundTransparency = 1;
+					BorderSizePixel = 0;
+					ZIndex = 9;
+				})
+				newCursor:AddChild(playerName)
+				cursors[cursor.Player] = newCursor
+			end
+		end)
 		local function lagometer()
 			if canopenlagometer == true then
 				canopenlagometer = false
@@ -2387,36 +2474,6 @@ local success, errorcode = pcall(function()
 				openMainExplorer()
 			end
 		end)
-		local cursors = {}
-		local cursorPositions = {}
-		screenCursorMoved(function(cursor)
-			if cursors[cursor.Player] ~= nil then
-				cursorPositions[cursor.Player] = tostring(cursor.X - 50) .. ", " .. tostring(cursor.Y - 50)
-				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
-			else
-				cursorPositions[cursor.Player] = tostring(cursor.X - 50) .. ", " .. tostring(cursor.Y - 50)
-				local newCursor = screen:CreateElement("ImageLabel", {
-					BackgroundTransparency = 1;
-					Image = "rbxassetid://12582149183";
-					Size = UDim2.fromOffset(100, 100);
-					Position = UDim2.fromOffset(0, 0);
-					ZIndex = 9;
-				})
-				local playerName = screen:CreateElement("TextLabel", {
-					Text = cursor.Player;
-					Size = UDim2.fromOffset(200, 25);
-					Position = UDim2.fromOffset(-50, 25);
-					TextStrokeTransparency = 0;
-					TextColor3 = Color3.fromRGB(255,255,255);
-					TextScaled = true;
-					BackgroundTransparency = 1;
-					BorderSizePixel = 0;
-					ZIndex = 9;
-				})
-				newCursor:AddChild(playerName)
-				cursors[cursor.Player] = newCursor
-			end
-		end)
 		local canopenterminal = true
 		local canopenchat = true
 		local canopendiskutil = true
@@ -2792,6 +2849,7 @@ local success, errorcode = pcall(function()
 							BorderSizePixel = 0;
 							TextXAlignment = Enum.TextXAlignment.Left;
 							TextScaled = true;
+							FontFace = Enum.Font.RobotoMono;
 						})
 						terminalFrame:AddChild(textlabel)
 					end
@@ -2801,11 +2859,15 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 8 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 9 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
 					updateOutput()
+				end
+				local function clear()
+					terminalOutput = {}
+					requireNewInputBar()
 				end
 				requireNewInputBar()
 				Beep()
@@ -2820,7 +2882,7 @@ local success, errorcode = pcall(function()
 							terminalOutput[inputbar] = "wOS > " .. text
 							updateOutput()
 						end
-						local failed, reason = check(text, plr, polysilicon, terminalmicrocontroller, terminalout)
+						local failed, reason = check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clear)
 						if failed == true then
 							terminalout(reason)
 						end
