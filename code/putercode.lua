@@ -1204,7 +1204,7 @@ local success, errorcode = pcall(function()
 					storage:ClearDisk()
 				elseif text == "crash" then
 					ReturnError("Manual Crash", "MANUAL_CRASH")
-				elseif text == "clear" and clrfnc ~= nil or "cls" and clrfnc ~= nil then
+				elseif text == "clear" and clrfnc ~= nil or text == "cls" and clrfnc ~= nil then
 					clrfnc()
 				else
 					return true, "no such command"
