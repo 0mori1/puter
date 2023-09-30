@@ -165,8 +165,10 @@ local success, errorcode = pcall(function()
 				return element
 			end;
 			PlayAudio = function(audioInputted, Speaker)
-				Speaker:Configure({Audio = audioInputted})
-				Speaker:Trigger()
+				if Speaker ~= nil then
+					Speaker:Configure({Audio = audioInputted})
+					Speaker:Trigger()
+				end
 			end;
 			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
 				local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
@@ -758,25 +760,34 @@ local success, errorcode = pcall(function()
 				local dragging
 				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
-					offsetX = posx - x
-					offsetY = posy - y
-					for i, v in pairs(cursorPositions) do
-						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
-							whodrags = i
-							print(whodrags .. " is gonna be dragging")
+					local succ, fail = pcall(function()
+						offsetX = posx - x
+						offsetY = posy - y
+						for i, v in pairs(cursorPositions) do
+							print(i)
+							print(i.X .. ", " ..  i.Y)
+							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+								whodrags = i
+								print(whodrags .. " is gonna be dragging")
+							end
 						end
-					end
-					if whodrags ~= nil then
-						dragging = true
-						titlebar:ChangeProperties({ZIndex = 4})
-						titlebar:ChangeProperties({ZIndex = 3})
-						if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-							dragging = false
+						if whodrags ~= nil then
+							dragging = true
+							titlebar:ChangeProperties({ZIndex = 4})
+							titlebar:ChangeProperties({ZIndex = 3})
+							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+								dragging = false
+							end
+							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+								dragging = false
+							end
+							print("someone's draggin")
+						else
+							print("how the hell")
 						end
-						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-							dragging = false
-						end
-						print("someone's draggin")
+					end)
+					if succ == false then
+						print(fail)
 					end
 				end)
 				titlebar.MouseButton1Up:Connect(function()
@@ -786,13 +797,14 @@ local success, errorcode = pcall(function()
 					offsetY = nil
 				end)
 				screenCursorMoved(function(cursor)
-					print(whodrags)
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
 							posx = cursor.X + offsetX
 							posy = cursor.Y + offsetY
 							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
 						end
+					elseif dragging == true then
+						print(whodrags)
 					end
 				end)
 				return windowframe, closebutton, titlebar
@@ -2837,6 +2849,7 @@ local success, errorcode = pcall(function()
 							BorderSizePixel = 0;
 							TextXAlignment = Enum.TextXAlignment.Left;
 							TextScaled = true;
+							Font = Enum.Font.RobotoMono;
 						})
 						terminalFrame:AddChild(textlabel)
 					end
