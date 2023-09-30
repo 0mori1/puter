@@ -260,31 +260,53 @@ local success, errorcode = pcall(function()
 				local offsetX
 				local offsetY
 				local dragging
+				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
-					offsetX = posx - x
-					offsetY = posy - y
-					dragging = true
-					titlebar:ChangeProperties({ZIndex = 4})
-					titlebar:ChangeProperties({ZIndex = 3})
-					if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-						print("buhhh?")
-						print(tostring(offsetX))
-					end
-					if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-						print("buhhh???")
-						print(tostring(offsetY))
+					local succ, fail = pcall(function()
+						offsetX = posx - x
+						offsetY = posy - y
+						for i, v in pairs(cursorPositions) do
+							print(i)
+							print(v.X .. ", " ..  v.Y)
+							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+								whodrags = i
+								print(whodrags .. " is gonna be dragging")
+							end
+						end
+						if whodrags ~= nil then
+							dragging = true
+							titlebar:ChangeProperties({ZIndex = 4})
+							titlebar:ChangeProperties({ZIndex = 3})
+							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+								dragging = false
+							end
+							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+								dragging = false
+							end
+							print("someone's draggin")
+						else
+							print("how the hell")
+						end
+					end)
+					if succ == false then
+						print(fail)
 					end
 				end)
 				titlebar.MouseButton1Up:Connect(function()
 					dragging = false
+					whodrags = nil
 					offsetX = nil
 					offsetY = nil
 				end)
 				screenCursorMoved(function(cursor)
-					if dragging == true then
-						posx = cursor.X + offsetX
-						posy = cursor.Y + offsetY
-						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					if dragging == true and whodrags ~= nil then
+						if cursor.Player == whodrags then
+							posx = cursor.X + offsetX
+							posy = cursor.Y + offsetY
+							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+						end
+					elseif dragging == true then
+						print(whodrags)
 					end
 				end)
 				return windowframe, closebutton, titlebar
@@ -2867,7 +2889,6 @@ local success, errorcode = pcall(function()
 				end
 				local function clear()
 					terminalOutput = {}
-					requireNewInputBar()
 				end
 				requireNewInputBar()
 				Beep()
