@@ -81,7 +81,7 @@ local function ReturnError(errorcode, errortype)
 	end
 end
 local success, errorcode = pcall(function()
-	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk"}
+	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
 	local iconAmount = 0
 	local rom
@@ -581,6 +581,11 @@ local success, errorcode = pcall(function()
 			createwOSboot()
 			CreateSelfTestOutput("Error: Bad screen (Must be a TouchScreen)", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
 			CreateSelfTestOutput("Error: Can't boot!", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
+		else
+			Beep()
+			wait(1)
+			Beep()
+			shutdown()
 		end
 	end
 	-- Detect the rom and check if it exists
@@ -896,6 +901,32 @@ local success, errorcode = pcall(function()
 				Text = message
 			})
 			return titlebar
+		end
+		if availableComponents["lifesensor"] ~= nil then
+			local hail12pinkdetector = coroutine.create(function()
+				local found = false
+				while true do
+					wait(0.5)
+					local readings = availableComponents["lifesensor"]:GetReading()
+					if readings["Hail12Pink"] ~= nil and found == false then
+						found = true
+						errorPopup("12PINK ALERT! 12PINK IS HERE!")
+						for i = 1, 2, 1 do
+							for i = 1, 2, 1 do
+								Beep()
+								wait(0.5)
+							end
+							wait(1)
+						end
+					elseif readings["Hail12Pink"] == nil then
+						found = false
+					end
+				end
+			end)
+			coroutines[#coroutines + 1] = hail12pinkdetector
+			coroutine.resume(hail12pinkdetector)
+		else
+			print("raaaa no lifesensor")
 		end
 		local recorded = {}
 		local recordedtext = {}
