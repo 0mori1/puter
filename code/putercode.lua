@@ -765,7 +765,7 @@ local success, errorcode = pcall(function()
 						offsetY = posy - y
 						for i, v in pairs(cursorPositions) do
 							print(i)
-							print(i.X .. ", " ..  i.Y)
+							print(v.X .. ", " ..  v.Y)
 							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
 								whodrags = i
 								print(whodrags .. " is gonna be dragging")
@@ -1257,7 +1257,7 @@ local success, errorcode = pcall(function()
 		end
 		screenCursorMoved(function(cursor)
 			if cursors[cursor.Player] ~= nil then
-				cursorPositions[cursor.Player] = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)
+				cursorPositions[cursor.Player] = {X = cursor.X, Y = cursor.Y}
 				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
 			else
 				cursorPositions[cursor.Player] = tostring(cursor.X - 50) .. ", " .. tostring(cursor.Y - 50)
