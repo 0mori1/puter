@@ -787,6 +787,9 @@ local success, errorcode = pcall(function()
 				local dragging
 				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
+					for i, v in pairs(windows) do
+						v.active = false
+					end
 					windows[windowID].active = true
 					local succ, fail = pcall(function()
 						offsetX = posx - x
