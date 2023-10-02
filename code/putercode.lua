@@ -154,19 +154,22 @@ local success, errorcode = pcall(function()
 	end
 	local windows = {}
 	local windowManager = coroutine.create(function()
-		for i, v in pairs(windows) do
-			if v.active == false then
-				v.titlebar:ChangeProperties({
-					ZIndex = 3;
-					BackgroundColor3 = Color3.fromRGB(255,255,255);
-					TextColor3 = Color3.fromRGB(0,0,0)
-				})
-			elseif v.active == true then
-				v.titlebar:ChangeProperties({
-					ZIndex = 4;
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					TextColor3 = v.textcolor
-				})
+		while true do
+			wait()
+			for i, v in pairs(windows) do
+				if v.active == false then
+					v.titlebar:ChangeProperties({
+						ZIndex = 3;
+						BackgroundColor3 = Color3.fromRGB(255,255,255);
+						TextColor3 = Color3.fromRGB(0,0,0)
+					})
+				elseif v.active == true then
+					v.titlebar:ChangeProperties({
+						ZIndex = 4;
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						TextColor3 = v.textcolor
+					})
+				end
 			end
 		end
 	end)
@@ -1319,7 +1322,7 @@ local success, errorcode = pcall(function()
 				ZIndex = 3;
 			})
 			canuseicons[canopenicon] = true
-			
+
 		end
 		local function lagometer()
 			if canopenlagometer == true then
