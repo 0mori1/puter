@@ -167,7 +167,7 @@ local success, errorcode = pcall(function()
 					v.titlebar:ChangeProperties({
 						ZIndex = 4;
 						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						TextColor3 = v.textcolor
+						TextColor3 = v.textcolor;
 					})
 				end
 			end
@@ -776,7 +776,7 @@ local success, errorcode = pcall(function()
 				windows[windowID] = {
 					["active"] = true;
 					["titlebar"] = titlebar;
-					["textcolor"] = temptextcolor;
+					["textcolor"] = textcolor;
 				}
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
