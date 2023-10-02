@@ -277,14 +277,28 @@ local success, errorcode = pcall(function()
 						minimized = false
 					end
 				end)
+				local windowID = #windows + 1
+				for i, v in pairs(windows) do
+					v.active = false
+				end
+				windows[windowID] = {
+					["active"] = true;
+					["titlebar"] = titlebar;
+					["textcolor"] = textcolor;
+				}
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
+					windows[windowID] = nil
 				end)
 				local offsetX
 				local offsetY
 				local dragging
 				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
+					for i, v in pairs(windows) do
+						v.active = false
+					end
+					windows[windowID].active = true
 					local succ, fail = pcall(function()
 						offsetX = posx - x
 						offsetY = posy - y
@@ -2904,7 +2918,7 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 9 Revision 2")
+				terminalout("wOS Codename BasicSystem, Version 10 Revision 2")
 				local inputbar
 				local function requireNewInputBar()
 					inputbar = addTextToOutput("wOS > ")
