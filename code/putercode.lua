@@ -152,6 +152,26 @@ local success, errorcode = pcall(function()
 		end
 		return found, keyIn
 	end
+	local windows = {}
+	local windowManager = coroutine.create(function()
+		for i, v in pairs(windows) do
+			if v.active == false then
+				v.titlebar:ChangeProperties({
+					ZIndex = 3;
+					BackgroundColor3 = Color3.fromRGB(255,255,255);
+					TextColor3 = Color3.fromRGB(0,0,0)
+				})
+			elseif v.active == true then
+				v.titlebar:ChangeProperties({
+					ZIndex = 4;
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					TextColor3 = v.textcolor
+				})
+			end
+		end
+	end)
+	coroutines[#coroutines + 1] = windowManager
+	coroutine.resume(windowManager)
 	local function InitializeROM()
 		rom:Write("PuterLibrary", {
 			AddWindowElement = function(Window, Element, ElementProperties)
@@ -460,7 +480,6 @@ local success, errorcode = pcall(function()
 			ZIndex = 5
 		})
 		-- Add all of these items to their specific locations
-		background:AddChild(taskbar)
 		background:AddChild(explorerApp)
 		background:AddChild(chatApp)
 		background:AddChild(diskUtilApp)
@@ -491,33 +510,7 @@ local success, errorcode = pcall(function()
 			while true do
 				wait(0.25)
 				if tonumber(GetPartFromPort(1, "Instrument"):GetReading(4)) <= 500 then
-					screen:ClearElements()
-					screen:CreateElement("Frame", {
-						BorderSizePixel = 0;
-						Size = UDim2.fromOffset(800, 450);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-					})
-					screen:CreateElement("TextLabel", {
-						Position = UDim2.fromOffset(350, 225);
-						Size = UDim2.fromOffset(100, 50);
-						Text = "wOS";
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(130, 204, 158);
-						BackgroundTransparency = 1
-					})
-					for i = 0, 1, 1 do
-						screen:CreateElement("Frame", {
-							Position = UDim2.fromOffset(350, 220 + i * 60);
-							Size = UDim2.fromOffset(100, 5);
-							BackgroundColor3 = Color3.fromRGB(130, 204, 158);
-						})
-					end
-					CreateSelfTestOutput("Error: Insufficient power", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
-					CreateSelfTestOutput("Error: Shutting down...", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
-					wait(3)
-					coroutine.close(powerCheck)
-					screen:ClearElements()
-					shutdown()
+					error("Insufficient Power")
 				end
 			end
 		else
@@ -534,7 +527,6 @@ local success, errorcode = pcall(function()
 		return newTable
 	end
 	-- Continue the init process
-
 	-- Set some variables (for self testing)
 	local importantselftest1passed = false
 	local importantselftest2passed = false
@@ -774,8 +766,18 @@ local success, errorcode = pcall(function()
 						minimized = false
 					end
 				end)
+				local windowID = #windows + 1
+				for i, v in pairs(windows) do
+					v.active = false
+				end
+				windows[windowID] = {
+					["active"] = true;
+					["titlebar"] = titlebar;
+					["textcolor"] = temptextcolor;
+				}
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
+					windows[windowID] = nil
 				end)
 				local offsetX
 				local offsetY
@@ -1068,13 +1070,12 @@ local success, errorcode = pcall(function()
 		end
 		local checkBlacklist = {
 			["Hail12Pink"] = "No.";
-			["progg7004"] = "no crashing allowed in the halls";
 		}
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
 					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
-				elseif string.sub(text, 1, 8) == "lua stop" then
+				elseif text == "lua stop" then
 					luastop(polysilicon)
 				elseif text == "shutdown" or text == "die" then
 					shutdown()
@@ -1308,8 +1309,17 @@ local success, errorcode = pcall(function()
 		end)
 		local canuseicons = {}
 		local function addIcon(iconName, functionality, canopenicon)
-			local yOffset = math.floor(iconAmount / 3)
-			local xOffset
+			local xOffset = math.floor(iconAmount / 3)
+			local yOffset = iconAmount - xOffset * 3
+			local icon = puter.AddElement(background, "TextButton", {
+				Position = UDim2.fromOffset(15 + (xOffset - 1) * 115, 15 + (yOffset - 1) * 115);
+				Size = UDim2.fromOffset(100, 100);
+				Text = iconName;
+				TextScaled = true;
+				ZIndex = 3;
+			})
+			canuseicons[canopenicon] = true
+			
 		end
 		local function lagometer()
 			if canopenlagometer == true then
@@ -3093,5 +3103,9 @@ end)
 if success == true then
 
 else
-	ReturnError(errorcode, "CREATOR_SKILL_ISSUE")
+	if errorcode ~= "Insufficient Power" then
+		ReturnError(errorcode, "CREATOR_SKILL_ISSUE")
+	else
+		ReturnError(errorcode, "INSUFFICIENT_POWER")
+	end
 end
