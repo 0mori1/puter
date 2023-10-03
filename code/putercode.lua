@@ -166,7 +166,7 @@ local success, errorcode = pcall(function()
 				elseif v.active == true then
 					v.titlebar:ChangeProperties({
 						ZIndex = 4;
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BackgroundColor3 = v.titlebarcolor;
 						TextColor3 = v.textcolor;
 					})
 				end
@@ -346,7 +346,10 @@ local success, errorcode = pcall(function()
 						print(whodrags)
 					end
 				end)
-				return windowframe, closebutton, titlebar
+				local function isActive()
+					return windows[windowID].active
+				end
+				return windowframe, closebutton, titlebar, isActive
 			end;
 		})
 	end
@@ -791,6 +794,7 @@ local success, errorcode = pcall(function()
 					["active"] = true;
 					["titlebar"] = titlebar;
 					["textcolor"] = textcolor;
+					["titlebarcolor"] = titlebarcolor
 				}
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
@@ -852,7 +856,21 @@ local success, errorcode = pcall(function()
 						print(whodrags)
 					end
 				end)
-				return windowframe, closebutton, titlebar
+				local windowframemet = {}
+				function windowframemet:CreateElement(className, properties)
+					local element = screen:CreateElement(className, properties)
+					windowframe:AddChild(element)
+				end
+				function windowframemet:AddChild(element)
+					windowframe:AddChild(element)
+				end
+				function windowframemet:IsActive()
+					return windows[windowID].active
+				end
+				function windowframemet:GetCursors()
+					return screen:GetCursors()
+				end
+				return windowframemet, closebutton, titlebar
 			end;
 		}
 		local filesystem = {
@@ -1132,8 +1150,8 @@ local success, errorcode = pcall(function()
 						})
 						for i, message in pairs(recorded) do
 							local textlabel = puter.AddWindowElement(frame, "TextLabel", {
-								Size = UDim2.fromOffset(494, 50);
-								Position = UDim2.fromOffset(0, (i - 1) * 50);
+								Size = UDim2.fromOffset(494, 25);
+								Position = UDim2.fromOffset(0, (i - 1) * 25);
 								Text = message;
 								TextScaled = true;
 							})
@@ -1203,8 +1221,8 @@ local success, errorcode = pcall(function()
 						})
 						for i, message in pairs(recordedtext) do
 							local textlabel = puter.AddWindowElement(frame, "TextLabel", {
-								Size = UDim2.fromOffset(494, 50);
-								Position = UDim2.fromOffset(0, (i - 1) * 50);
+								Size = UDim2.fromOffset(494, 25);
+								Position = UDim2.fromOffset(0, (i - 1) * 25);
 								Text = message;
 								TextScaled = true;
 							})
@@ -1531,7 +1549,7 @@ local success, errorcode = pcall(function()
 						Size = UDim2.fromOffset(400, 250);
 						Position = UDim2.fromOffset(0, 50);
 						BackgroundColor3 = Color3.fromRGB(86, 86, 86);
-						ScrollBarThickness = 2;
+						ScrollBarThickness = 1;
 						ScrollingDirection = Enum.ScrollingDirection.Y;
 						CanvasSize = UDim2.fromOffset(0, 0);
 					})
@@ -1562,16 +1580,30 @@ local success, errorcode = pcall(function()
 									BackgroundTransparency = 1;
 								})
 								local playButton = puter.AddElement(parentFrame, "TextButton", {
-									Text = "Play";
+									Text = ">";
 									TextScaled = true;
 									TextColor3 = Color3.fromRGB(0,0,0);
 									BackgroundColor3 = Color3.fromRGB(0,255,0);
 									BorderSizePixel = 0;
-									Size = UDim2.fromOffset(49, 25);
+									Size = UDim2.fromOffset(25, 25);
 									Position = UDim2.fromOffset(300, 0);
+								})
+								local pauseButton = puter.AddElement(parentFrame, "TextButton", {
+									Text = "x";
+									TextScaled = true;
+									TextColor3 = Color3.fromRGB(0,0,0);
+									BackgroundColor3 = Color3.fromRGB(255,255,0);
+									BorderSizePixel = 0;
+									Size = UDim2.fromOffset(25, 25);
+									Position = UDim2.fromOffset(325, 0);
 								})
 								playButton.MouseButton1Click:Connect(function()
 									puter.PlayAudio(v2, speaker)
+								end)
+								pauseButton.MouseButton1Click:Connect(function()
+									if speaker ~= nil then
+										speaker:ClearSounds()
+									end
 								end)
 								local clickedDelete = false
 								local deleteButton = puter.AddElement(parentFrame, "TextButton", {
@@ -1581,7 +1613,7 @@ local success, errorcode = pcall(function()
 									BackgroundColor3 = Color3.fromRGB(255,0,0);
 									BorderSizePixel = 0;
 									Size = UDim2.fromOffset(49, 25);
-									Position = UDim2.fromOffset(349, 0);
+									Position = UDim2.fromOffset(350, 0);
 								})
 								deleteButton.MouseButton1Click:Connect(function()
 									if clickedDelete == true then
@@ -1662,24 +1694,37 @@ local success, errorcode = pcall(function()
 						end)
 						okbutton.MouseButton1Click:Connect(function()
 							if name ~= nil then
-								if id ~= nil then
-									if #musicList <= 69 then
-										musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
-										storage:Write("musicList", encodeMusicList(musicList))
-										refresh()
-										local success = puter.AddWindowElement(window, "TextLabel", {
-											Text = "saved";
-											Size = UDim2.fromOffset(400, 25);
-											Position = UDim2.fromOffset(0, 225);
-											TextScaled = true;
-											TextColor3 = Color3.fromRGB(0,255,0);
-											BackgroundTransparency = 1;
-										})
-										wait(1)
-										success:Destroy()
+								if #name <= 50 then
+									if id ~= nil then
+										if #musicList <= 69 then
+											musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
+											storage:Write("musicList", encodeMusicList(musicList))
+											refresh()
+											local success = puter.AddWindowElement(window, "TextLabel", {
+												Text = "saved";
+												Size = UDim2.fromOffset(400, 25);
+												Position = UDim2.fromOffset(0, 225);
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(0,255,0);
+												BackgroundTransparency = 1;
+											})
+											wait(1)
+											success:Destroy()
+										else
+											local err = puter.AddWindowElement(window, "TextLabel", {
+												Text = "out of space";
+												Size = UDim2.fromOffset(400, 25);
+												Position = UDim2.fromOffset(0, 225);
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(255,0,0);
+												BackgroundTransparency = 1;
+											})
+											wait(1)
+											err:Destroy()
+										end
 									else
 										local err = puter.AddWindowElement(window, "TextLabel", {
-											Text = "out of space";
+											Text = "please input an ID";
 											Size = UDim2.fromOffset(400, 25);
 											Position = UDim2.fromOffset(0, 225);
 											TextScaled = true;
@@ -1691,7 +1736,7 @@ local success, errorcode = pcall(function()
 									end
 								else
 									local err = puter.AddWindowElement(window, "TextLabel", {
-										Text = "please input an ID";
+										Text = "name is too long";
 										Size = UDim2.fromOffset(400, 25);
 										Position = UDim2.fromOffset(0, 225);
 										TextScaled = true;
@@ -2762,7 +2807,7 @@ local success, errorcode = pcall(function()
 					end
 					xConnect("keyboard", "TextInputted", function(text, plr)
 						text = string.sub(text, 1, #text - 1)
-						if canopenchat == false then
+						if canopenchat == false and window:IsActive() == true then
 							if string.sub(text, 1, 1) ~= "!" and string.sub(text, 1, 2) ~= "?c" then
 								sendMessage(plr, text, idconnected, plr, legacymode, false)
 							elseif string.sub(text, 1, 2) == "?c" then
@@ -2866,7 +2911,7 @@ local success, errorcode = pcall(function()
 				local polysilicon = GetPartFromPort(6, "Polysilicon")
 				local terminalmicrocontroller = GetPartFromPort(6, "Microcontroller")
 				canopenterminal = false
-				local test, terminalclose = puter.CreateWindow(450, 275, "Terminal", Color3.fromRGB(0,0,0))
+				local test, terminalclose, titlebar, isactive = puter.CreateWindow(450, 275, "Terminal", Color3.fromRGB(0,0,0))
 				terminalclose.MouseButton1Click:Connect(function()
 					canopenterminal = true
 				end)
@@ -2930,7 +2975,7 @@ local success, errorcode = pcall(function()
 				requireNewInputBar()
 				Beep()
 				xConnect("keyboard", "TextInputted", function(text, plr)
-					if canopenterminal == false then
+					if canopenterminal == false and test:IsActive() == true then
 						text = string.sub(text, 1, #text - 1)
 						if inputbar ~= nil then
 							terminalOutput[inputbar] = "wOS > " .. text
