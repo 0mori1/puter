@@ -428,6 +428,7 @@ local success, errorcode = pcall(function()
 						updateOutput()
 					end
 					oninput(text, plr, output, clear)
+					requireNewInputBar()
 				end)
 			end;
 		})
