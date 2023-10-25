@@ -430,6 +430,7 @@ local success, errorcode = pcall(function()
 					oninput(text, plr, output, clear)
 					requireNewInputBar()
 				end)
+				return output
 			end;
 		})
 	end
@@ -1032,6 +1033,7 @@ local success, errorcode = pcall(function()
 					oninput(text, plr, output, clear)
 					requireNewInputBar()
 				end)
+				return output
 			end;
 		}
 		local filesystem = {
