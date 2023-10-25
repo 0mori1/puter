@@ -1017,14 +1017,15 @@ local success, errorcode = pcall(function()
 				requireNewInputBar()
 				xConnect("keyboard", "TextInputted", function(text, plr)
 					if inputbar ~= nil then
-						cliOutput[inputbar] = "> " .. text
+						cliOutput[inputbar] = prefix or "" .. "> " .. text
 						updateOutput()
 					else
 						requireNewInputBar()
-						cliOutput[inputbar] = "> " .. text
+						cliOutput[inputbar] = prefix or "" .. "> " .. text
 						updateOutput()
 					end
 					oninput(text, plr, output, clear)
+					requireNewInputBar()
 				end)
 			end;
 		}
