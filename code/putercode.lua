@@ -1015,7 +1015,6 @@ local success, errorcode = pcall(function()
 				end
 				local function clear()
 					cliOutput = {}
-					requireNewInputBar()
 				end
 				output(outOnStart)
 				requireNewInputBar()
