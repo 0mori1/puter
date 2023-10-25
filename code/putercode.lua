@@ -1005,8 +1005,13 @@ local success, errorcode = pcall(function()
 					updateOutput()
 				end
 				local inputbar
+				if prefix ~= nil then
+					
+				else
+					prefix = ""
+				end
 				local function requireNewInputBar()
-					inputbar = addTextToOutput(prefix or "" .. "> ")
+					inputbar = addTextToOutput(prefix .. "> ")
 					updateOutput()
 				end
 				local function clear()
@@ -1018,11 +1023,11 @@ local success, errorcode = pcall(function()
 				xConnect("keyboard", "TextInputted", function(text, plr)
 					text = string.sub(text, 1, #text - 1)
 					if inputbar ~= nil then
-						cliOutput[inputbar] = prefix or "" .. "> " .. text
+						cliOutput[inputbar] = prefix .. "> " .. text
 						updateOutput()
 					else
 						requireNewInputBar()
-						cliOutput[inputbar] = prefix or "" .. "> " .. text
+						cliOutput[inputbar] = prefix .. "> " .. text
 						updateOutput()
 					end
 					oninput(text, plr, output, clear)
