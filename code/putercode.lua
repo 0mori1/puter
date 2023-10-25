@@ -1016,6 +1016,7 @@ local success, errorcode = pcall(function()
 				output(outOnStart)
 				requireNewInputBar()
 				xConnect("keyboard", "TextInputted", function(text, plr)
+					text = string.sub(text, 1, #text - 1)
 					if inputbar ~= nil then
 						cliOutput[inputbar] = prefix or "" .. "> " .. text
 						updateOutput()
