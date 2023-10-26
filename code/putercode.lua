@@ -107,7 +107,7 @@ local success, errorcode = pcall(function()
 					end
 				end)
 			end
-			connections[part][eventname][ID] = func
+			connections[part][eventname][ID or #connections[part][eventname] + 1] = func
 		else	
 			error("attempted to connect to event " .. eventname .. " of nil component " .. part)
 		end
@@ -347,9 +347,90 @@ local success, errorcode = pcall(function()
 					end
 				end)
 				local function isActive()
-					return windows[windowID].active
+					if windows[windowID] ~= nil then
+						return windows[windowID].active
+					else
+						return false
+					end
 				end
 				return windowframe, closebutton, titlebar, isActive
+			end;
+		})
+		rom:Write("puterutils", {
+			cliengine = function(oninput, name, outOnStart, onClose, prefix)
+				local puter = rom:Read("PuterLibrary")
+				local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
+				local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
+					Size = UDim2.fromOffset(450, 275);
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				closebutton.MouseButton1Click:Connect(onClose)
+				local cliOutput = {}
+				local function addTextToOutput(Out)
+					if #cliOutput <= 10 then
+						cliOutput[#cliOutput + 1] = Out
+						return #cliOutput
+					else
+						cliOutput[1] = nil
+						for i, v in pairs(cliOutput) do
+							if i >= 2 and i <= 11 then
+								cliOutput[i - 1] = cliOutput[i]
+							end
+						end
+						cliOutput[11] = Out
+						return 11
+					end
+				end
+				local function updateOutput()
+					frame:Destroy()
+					frame = puter.AddWindowElement(cliwindow, "Frame", {
+						Size = UDim2.fromOffset(450, 275);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+					})
+					for i, v in pairs(cliOutput) do
+						local textlabel = puter.AddWindowElement(cliwindow, "TextLabel", {
+							Size = UDim2.fromOffset(444, 25);
+							Position = UDim2.fromOffset(0, (i - 1) * 25);
+							Text = v;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							BackgroundColor3 = Color3.fromRGB(0,0,0);
+							BorderSizePixel = 0;
+							TextXAlignment = Enum.TextXAlignment.Left;
+							TextScaled = true;
+							Font = Enum.Font.RobotoMono
+						})
+						frame:AddChild(textlabel)
+					end
+				end
+				local function output(Out)
+					addTextToOutput(Out)
+					updateOutput()
+				end
+				local inputbar
+				local function requireNewInputBar()
+					inputbar = addTextToOutput(prefix or "" .. "> ")
+					updateOutput()
+				end
+				local function clear()
+					cliOutput = {}
+				end
+				output(outOnStart)
+				requireNewInputBar()
+				xConnect("keyboard", "TextInputted", function(text, plr)
+					if inputbar ~= nil then
+						cliOutput[inputbar] = "> " .. text
+						updateOutput()
+					else
+						requireNewInputBar()
+						cliOutput[inputbar] = "> " .. text
+						updateOutput()
+					end
+					oninput(text, plr, output, clear)
+					requireNewInputBar()
+				end)
+				return output
 			end;
 		})
 	end
@@ -871,6 +952,88 @@ local success, errorcode = pcall(function()
 					return screen:GetCursors()
 				end
 				return windowframemet, closebutton, titlebar
+			end;
+		}
+		local puterutils = {
+			cliengine = function(oninput, name, outOnStart, onClose, prefix)
+				local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
+				local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
+					Size = UDim2.fromOffset(450, 275);
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				closebutton.MouseButton1Click:Connect(onClose)
+				local cliOutput = {}
+				local function addTextToOutput(Out)
+					if #cliOutput <= 10 then
+						cliOutput[#cliOutput + 1] = Out
+						return #cliOutput
+					else
+						cliOutput[1] = nil
+						for i, v in pairs(cliOutput) do
+							if i >= 2 and i <= 11 then
+								cliOutput[i - 1] = cliOutput[i]
+							end
+						end
+						cliOutput[11] = Out
+						return 11
+					end
+				end
+				local function updateOutput()
+					frame:Destroy()
+					frame = puter.AddWindowElement(cliwindow, "Frame", {
+						Size = UDim2.fromOffset(450, 275);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+					})
+					for i, v in pairs(cliOutput) do
+						local textlabel = puter.AddWindowElement(cliwindow, "TextLabel", {
+							Size = UDim2.fromOffset(444, 25);
+							Position = UDim2.fromOffset(0, (i - 1) * 25);
+							Text = v;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							BackgroundColor3 = Color3.fromRGB(0,0,0);
+							BorderSizePixel = 0;
+							TextXAlignment = Enum.TextXAlignment.Left;
+							TextScaled = true;
+							Font = Enum.Font.RobotoMono
+						})
+						frame:AddChild(textlabel)
+					end
+				end
+				local function output(Out)
+					addTextToOutput(Out)
+					updateOutput()
+				end
+				local inputbar
+				if prefix ~= nil then
+					
+				else
+					prefix = ""
+				end
+				local function requireNewInputBar()
+					inputbar = addTextToOutput(prefix .. "> ")
+					updateOutput()
+				end
+				local function clear()
+					cliOutput = {}
+				end
+				output(outOnStart)
+				requireNewInputBar()
+				xConnect("keyboard", "TextInputted", function(text, plr)
+					text = string.sub(text, 1, #text - 1)
+					if inputbar ~= nil then
+						cliOutput[inputbar] = prefix .. "> " .. text
+						updateOutput()
+					else
+						requireNewInputBar()
+						cliOutput[inputbar] = prefix .. "> " .. text
+						updateOutput()
+					end
+					oninput(text, plr, output, clear)
+					requireNewInputBar()
+				end)
+				return output
 			end;
 		}
 		local filesystem = {
@@ -2911,90 +3074,19 @@ local success, errorcode = pcall(function()
 				local polysilicon = GetPartFromPort(6, "Polysilicon")
 				local terminalmicrocontroller = GetPartFromPort(6, "Microcontroller")
 				canopenterminal = false
-				local test, terminalclose, titlebar, isactive = puter.CreateWindow(450, 275, "Terminal", Color3.fromRGB(0,0,0))
-				terminalclose.MouseButton1Click:Connect(function()
-					canopenterminal = true
-				end)
-				local terminalFrame = puter.AddWindowElement(test, "ScrollingFrame", {
-					Size = UDim2.fromOffset(450, 275);
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					BorderSizePixel = 0;
-				})
-				local terminalOutput = {}
-				local function addTextToOutput(Out)
-					if #terminalOutput <= 10 then
-						terminalOutput[#terminalOutput + 1] = Out
-						return #terminalOutput
-					else
-						terminalOutput[1] = nil
-						for i, v in pairs(terminalOutput) do
-							if i >= 2 and i <= 11 then
-								terminalOutput[i - 1] = terminalOutput[i]
-							end
-						end
-						terminalOutput[11] = Out
-						return 11
-					end
-				end
-				local function updateOutput()
-					terminalFrame:Destroy()
-					terminalFrame = puter.AddWindowElement(test, "Frame", {
-						Size = UDim2.fromOffset(450, 275);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						BorderSizePixel = 0;
-					})
-					for i, v in pairs(terminalOutput) do
-						local textlabel = puter.AddWindowElement(test, "TextLabel", {
-							Size = UDim2.fromOffset(444, 25);
-							Position = UDim2.fromOffset(0, (i - 1) * 25);
-							Text = v;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							BackgroundColor3 = Color3.fromRGB(0,0,0);
-							BorderSizePixel = 0;
-							TextXAlignment = Enum.TextXAlignment.Left;
-							TextScaled = true;
-							Font = Enum.Font.RobotoMono
-						})
-						terminalFrame:AddChild(textlabel)
-					end
-				end
-				local function terminalout(Out)
-					addTextToOutput(Out)
-					updateOutput()
-				end
 				--increment the version each major change
-				terminalout("wOS Codename BasicSystem, Version 10 Revision 2")
-				local inputbar
-				local function requireNewInputBar()
-					inputbar = addTextToOutput("wOS > ")
-					updateOutput()
-				end
-				local function clear()
-					terminalOutput = {}
-				end
-				requireNewInputBar()
-				Beep()
-				xConnect("keyboard", "TextInputted", function(text, plr)
-					if canopenterminal == false and test:IsActive() == true then
-						text = string.sub(text, 1, #text - 1)
-						if inputbar ~= nil then
-							terminalOutput[inputbar] = "wOS > " .. text
-							updateOutput()
-						else
-							requireNewInputBar()
-							terminalOutput[inputbar] = "wOS > " .. text
-							updateOutput()
-						end
-						local failed, reason = check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clear)
-						if failed == true then
-							terminalout(reason)
-						end
-						requireNewInputBar()
-						if recordingtext == true then
-							recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
-						end
+				local ver = "wOS Codename BasicSystem, Version 11 Revision 2"
+				puterutils.cliengine(function(text, plr, terminalout, clear)
+					local failed, reason = check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clear)
+					if failed == true then
+						terminalout(reason)
 					end
-				end, "terminal")
+					if recordingtext == true then
+						recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
+					end
+				end, "Terminal", ver, function()
+					canopenterminal = true
+				end, "wOS ")
 			end
 		end)
 		local canopennetworking = true
