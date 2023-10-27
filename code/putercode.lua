@@ -1063,7 +1063,7 @@ local success, errorcode = pcall(function()
 		CreateSelfTestOutput("Disks detected: " .. tostring(diskamount), UDim2.fromOffset(10, outAmount * 25 + 10))
 		wait(1)
 		outAmount = 0
-		coroutine.close(loadBarRoutine)
+		closeCoroutine(loadBarRoutine)
 		Beep()
 		-- this funny thing does funny defining with the InitializeDesktop() function
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp = InitializeDesktop()
@@ -1313,7 +1313,7 @@ local success, errorcode = pcall(function()
 				elseif text == "restart" then
 					screen:ClearElements()
 					for i, v in pairs(coroutines) do
-						coroutine.close(v)
+						closeCoroutine(i)
 					end
 					TriggerPort(3)
 				elseif text == "record" then
@@ -1974,7 +1974,7 @@ local success, errorcode = pcall(function()
 		restartbutton.MouseButton1Click:Connect(function()
 			screen:ClearElements()
 			for i, v in pairs(coroutines) do
-				coroutine.close(v)
+				closeCoroutine(i)
 			end
 			Beep()
 			TriggerPort(3)
