@@ -1668,8 +1668,6 @@ local success, errorcode = pcall(function()
 						end
 					end
 				end, "Lag History")
-				coroutines[#coroutines + 1] = lagMeasurer
-				coroutine.resume(lagMeasurer)
 				closebutton.MouseButton1Click:Connect(function()
 					closeCoroutine(lagMeasurer)
 					closeCoroutine(lagHistory)
