@@ -26,19 +26,19 @@ local function closeCoroutine(ID)
 	end
 end
 local function closeByName(name)
+	local amountKilled = 0
 	local success, err = pcall(function()
-		local amountKilled = 0
 		for i, v in pairs(coroutines) do
 			if v["name"] == name and coroutine.status(v["coroutine"]) ~= "dead" then
 				closeCoroutine(i)
 				amountKilled += 1
 			end
 		end
-		return amountKilled
 	end)
 	if success == false then
-		print(err)
+		return err
 	end
+	return amountKilled
 end
 local function shutdown()
 	Beep()
@@ -1226,7 +1226,6 @@ local success, errorcode = pcall(function()
 				polysilicon:Configure({PolysiliconMode = 0})
 				wait(0.5)
 				TriggerPort(6)
-				popup:Destroy()
 				print(codetorun)
 			end
 		end
