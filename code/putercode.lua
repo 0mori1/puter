@@ -134,7 +134,7 @@ local success, errorcode = pcall(function()
 	local outAmount = 0
 	local voicecommands = true
 	local connections = {}
-	
+
 	local function xConnect(part, eventname, func, ID)
 		if availableComponents[part] ~= nil then
 			if connections[part] == nil then
@@ -1312,177 +1312,172 @@ local success, errorcode = pcall(function()
 			["Hail12Pink"] = "No.";
 		}
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
-			local suc, fa = pcall(function()
-				if checkBlacklist[plr] == nil then
-					if string.sub(text, 1, 7) == "lua run" then
-						luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
-					elseif text == "lua stop" then
-						luastop(polysilicon)
-					elseif text == "shutdown" or text == "die" then
-						shutdown()
-					elseif text == "restart" then
-						screen:ClearElements()
-						for i, v in pairs(coroutines) do
-							closeCoroutine(i)
-						end
-						TriggerPort(3)
-					elseif text == "record" then
-						recording = true
-					elseif text == "stop recording" then
-						recording = false
-					elseif string.sub(text, 1, 12) == "setwallpaper" then
-						local image = tostring(string.sub(text, 14, #text))
-						if storage ~= nil then
-							storage:Write("Wallpaper", image)
-						end
-						background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
-					elseif string.sub(text, 1, 21) == "play recorded message" then
-						local message = recorded[tonumber(string.sub(text, 23, #text))]
-						terminalout(tostring(message))
-					elseif text == "play all messages" then
-						if displayingallmsgs == false then
-							local frame, closebutton = puter.CreateWindow(500, 225, "All Messages")
-							displayingallmsgs = true
-							closebutton.MouseButton1Click:Connect(function()
-								displayingallmsgs = false
-							end)
-							local scrollingframe = puter.AddWindowElement(frame, "ScrollingFrame", {
-								ScrollBarThickness = 6;
-								Size = UDim2.fromOffset(500, 225);
-							})
-							for i, message in pairs(recorded) do
-								local textlabel = puter.AddWindowElement(frame, "TextLabel", {
-									Size = UDim2.fromOffset(494, 25);
-									Position = UDim2.fromOffset(0, (i - 1) * 25);
-									Text = message;
-									TextScaled = true;
-								})
-								scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
-								scrollingframe:AddChild(textlabel)
-								print(message)
-							end
-						end
-					elseif text == "clear recorded" then
-						recorded = {}
-					elseif string.sub(text, 1, 10) == "play audio" then
-						if speaker ~= nil then
-							speaker:Configure({Pitch = 1})
-							puter.PlayAudio(string.sub(text, 12, #text), speaker)
-						end
-					elseif string.sub(text, 1, 13) == "display image" then
-						local image = string.sub(text, 15, #text)
-						if displayingimg == false then
-							local frame, closebutton = puter.CreateWindow(400, 250, "ImageViewer")
-							closebutton.MouseButton1Click:Connect(function()
-								displayingimg = false
-							end)
-							displayingimg = true
-							puter.AddWindowElement(frame , "ImageLabel", {
-								Image = "http://www.roblox.com/asset/?id=" .. image;
-								Size = UDim2.fromOffset(400, 225);
-							})
-							local setwallpaper = puter.AddWindowElement(frame, "TextButton", {
-								Size = UDim2.fromOffset(400, 25);
-								Position = UDim2.fromOffset(0, 225);
-								Text = "Set As Wallpaper";
-								TextColor3 = Color3.fromHex("#FFFFFF");
-								BackgroundColor3 = Color3.fromHex("#000000");
+			if checkBlacklist[plr] == nil then
+				if string.sub(text, 1, 7) == "lua run" then
+					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
+				elseif text == "lua stop" then
+					luastop(polysilicon)
+				elseif text == "shutdown" or text == "die" then
+					shutdown()
+				elseif text == "restart" then
+					screen:ClearElements()
+					for i, v in pairs(coroutines) do
+						closeCoroutine(i)
+					end
+					TriggerPort(3)
+				elseif text == "record" then
+					recording = true
+				elseif text == "stop recording" then
+					recording = false
+				elseif string.sub(text, 1, 12) == "setwallpaper" then
+					local image = tostring(string.sub(text, 14, #text))
+					if storage ~= nil then
+						storage:Write("Wallpaper", image)
+					end
+					background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
+				elseif string.sub(text, 1, 21) == "play recorded message" then
+					local message = recorded[tonumber(string.sub(text, 23, #text))]
+					terminalout(tostring(message))
+				elseif text == "play all messages" then
+					if displayingallmsgs == false then
+						local frame, closebutton = puter.CreateWindow(500, 225, "All Messages")
+						displayingallmsgs = true
+						closebutton.MouseButton1Click:Connect(function()
+							displayingallmsgs = false
+						end)
+						local scrollingframe = puter.AddWindowElement(frame, "ScrollingFrame", {
+							ScrollBarThickness = 6;
+							Size = UDim2.fromOffset(500, 225);
+						})
+						for i, message in pairs(recorded) do
+							local textlabel = puter.AddWindowElement(frame, "TextLabel", {
+								Size = UDim2.fromOffset(494, 25);
+								Position = UDim2.fromOffset(0, (i - 1) * 25);
+								Text = message;
 								TextScaled = true;
 							})
-							setwallpaper.MouseButton1Click:Connect(function()
-								if storage ~= nil then
-									storage:Write("Wallpaper", image)
-								end
-								background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
-							end)
+							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
+							scrollingframe:AddChild(textlabel)
+							print(message)
 						end
-					elseif string.sub(text, 1, 10) == "setmodemid" then
-						if storage ~= nil then
-							storage:Write("ModemID", string.sub(text, 12, #text))
-						end
-						if modem ~= nil then
-							modem:Configure({NetworkID = string.sub(text, 12, #text)})
-						end
-					elseif text == "record text" then
-						recordingtext = true
-					elseif text == "stop recording text" then
-						recordingtext = false
-					elseif text == "play recorded text message" then
-						local message = recordedtext[tonumber(string.sub(text, 28, #text))]
-						terminalout(tostring(message))
-					elseif string.sub(text, 1, 22) == "play all text messages" then
-						if displayingallmsgs == false then
-							local frame, closebutton = puter.CreateWindow(500, 225, "All Text Messages")
-							displayingallmsgs = true
-							closebutton.MouseButton1Click:Connect(function()
-								displayingallmsgs = false
-							end)
-							local scrollingframe = puter.AddWindowElement(frame, "ScrollingFrame", {
-								ScrollBarThickness = 6;
-								Size = UDim2.fromOffset(500, 225);
-							})
-							for i, message in pairs(recordedtext) do
-								local textlabel = puter.AddWindowElement(frame, "TextLabel", {
-									Size = UDim2.fromOffset(494, 25);
-									Position = UDim2.fromOffset(0, (i - 1) * 25);
-									Text = message;
-									TextScaled = true;
-								})
-								scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
-								scrollingframe:AddChild(textlabel)
-								print(message)
-							end
-						end
-					elseif text == "clear recorded text" then
-						recordedtext = {}
-					elseif string.sub(text, 1, 9) == "set pitch" then
-						if speaker ~= nil then
-							local pitch = string.sub(text, 11, #text)
-							speaker:Configure({Pitch = pitch})
-							speaker:Trigger()
-						end
-					elseif string.sub(text, 1, 8) == "disk run" then
-						if GetPartFromPort(4, "Disk") ~= nil then
-							if GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)) ~= nil then
-								luastop(polysilicon)
-								luarun(GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)), terminalmicrocontroller, polysilicon)
-							else
-								return true, "could not find data on specified key"
-							end
-						else
-							return true, "please insert a disk"
-						end
-					elseif string.sub(text, 1, 10) == "play video" then
-						local image = string.sub(text, 12, #text)
-						local playing = false
-						if playingvideo == false then
-							local frame, closebutton = puter.CreateWindow(400, 225, "Video Player")
-							local video = puter.AddWindowElement(frame, "VideoFrame", {
-								Video = "http://www.roblox.com/asset/?id=" .. image;
-								Size = UDim2.fromOffset(400, 225);
-								Playing = true;
-								Looped = true;
-								Volume = 100
-							})
-						end
-					elseif text == "reset" then
-						storage:ClearDisk()
-					elseif text == "crash" then
-						ReturnError("Manual Crash", "MANUAL_CRASH")
-					elseif text == "clear" and clrfnc ~= nil or text == "cls" and clrfnc ~= nil then
-						clrfnc()
-					elseif string.sub(text, 1, 4) == "kill" then
-						local killed = closeByName(string.sub(text, 6, #text))
-						terminalout("Killed " .. tostring(killed) .. " coroutines.")
-					else
-						return true, "no such command"
 					end
+				elseif text == "clear recorded" then
+					recorded = {}
+				elseif string.sub(text, 1, 10) == "play audio" then
+					if speaker ~= nil then
+						speaker:Configure({Pitch = 1})
+						puter.PlayAudio(string.sub(text, 12, #text), speaker)
+					end
+				elseif string.sub(text, 1, 13) == "display image" then
+					local image = string.sub(text, 15, #text)
+					if displayingimg == false then
+						local frame, closebutton = puter.CreateWindow(400, 250, "ImageViewer")
+						closebutton.MouseButton1Click:Connect(function()
+							displayingimg = false
+						end)
+						displayingimg = true
+						puter.AddWindowElement(frame , "ImageLabel", {
+							Image = "http://www.roblox.com/asset/?id=" .. image;
+							Size = UDim2.fromOffset(400, 225);
+						})
+						local setwallpaper = puter.AddWindowElement(frame, "TextButton", {
+							Size = UDim2.fromOffset(400, 25);
+							Position = UDim2.fromOffset(0, 225);
+							Text = "Set As Wallpaper";
+							TextColor3 = Color3.fromHex("#FFFFFF");
+							BackgroundColor3 = Color3.fromHex("#000000");
+							TextScaled = true;
+						})
+						setwallpaper.MouseButton1Click:Connect(function()
+							if storage ~= nil then
+								storage:Write("Wallpaper", image)
+							end
+							background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
+						end)
+					end
+				elseif string.sub(text, 1, 10) == "setmodemid" then
+					if storage ~= nil then
+						storage:Write("ModemID", string.sub(text, 12, #text))
+					end
+					if modem ~= nil then
+						modem:Configure({NetworkID = string.sub(text, 12, #text)})
+					end
+				elseif text == "record text" then
+					recordingtext = true
+				elseif text == "stop recording text" then
+					recordingtext = false
+				elseif text == "play recorded text message" then
+					local message = recordedtext[tonumber(string.sub(text, 28, #text))]
+					terminalout(tostring(message))
+				elseif string.sub(text, 1, 22) == "play all text messages" then
+					if displayingallmsgs == false then
+						local frame, closebutton = puter.CreateWindow(500, 225, "All Text Messages")
+						displayingallmsgs = true
+						closebutton.MouseButton1Click:Connect(function()
+							displayingallmsgs = false
+						end)
+						local scrollingframe = puter.AddWindowElement(frame, "ScrollingFrame", {
+							ScrollBarThickness = 6;
+							Size = UDim2.fromOffset(500, 225);
+						})
+						for i, message in pairs(recordedtext) do
+							local textlabel = puter.AddWindowElement(frame, "TextLabel", {
+								Size = UDim2.fromOffset(494, 25);
+								Position = UDim2.fromOffset(0, (i - 1) * 25);
+								Text = message;
+								TextScaled = true;
+							})
+							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
+							scrollingframe:AddChild(textlabel)
+							print(message)
+						end
+					end
+				elseif text == "clear recorded text" then
+					recordedtext = {}
+				elseif string.sub(text, 1, 9) == "set pitch" then
+					if speaker ~= nil then
+						local pitch = string.sub(text, 11, #text)
+						speaker:Configure({Pitch = pitch})
+						speaker:Trigger()
+					end
+				elseif string.sub(text, 1, 8) == "disk run" then
+					if GetPartFromPort(4, "Disk") ~= nil then
+						if GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)) ~= nil then
+							luastop(polysilicon)
+							luarun(GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)), terminalmicrocontroller, polysilicon)
+						else
+							return true, "could not find data on specified key"
+						end
+					else
+						return true, "please insert a disk"
+					end
+				elseif string.sub(text, 1, 10) == "play video" then
+					local image = string.sub(text, 12, #text)
+					local playing = false
+					if playingvideo == false then
+						local frame, closebutton = puter.CreateWindow(400, 225, "Video Player")
+						local video = puter.AddWindowElement(frame, "VideoFrame", {
+							Video = "http://www.roblox.com/asset/?id=" .. image;
+							Size = UDim2.fromOffset(400, 225);
+							Playing = true;
+							Looped = true;
+							Volume = 100
+						})
+					end
+				elseif text == "reset" then
+					storage:ClearDisk()
+				elseif text == "crash" then
+					ReturnError("Manual Crash", "MANUAL_CRASH")
+				elseif text == "clear" and clrfnc ~= nil or text == "cls" and clrfnc ~= nil then
+					clrfnc()
+				elseif string.sub(text, 1, 4) == "kill" then
+					local killed = closeByName(string.sub(text, 6, #text))
+					terminalout("Killed " .. tostring(killed) .. " coroutines.")
 				else
-					return true, checkBlacklist[plr]
+					return true, "no such command"
 				end
-			end)
-			if suc == false then
-				print(fa)
+			else
+				return true, checkBlacklist[plr]
 			end
 		end
 		local knownFileTypes = {
