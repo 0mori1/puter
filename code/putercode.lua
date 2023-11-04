@@ -663,9 +663,9 @@ local success, errorcode = pcall(function()
 				return windowframe, closebutton, titlebar, isActive
 			end;
 			new = function(app, name, windowProperties)
-				local window, closebutton, titlebar = puter.CreateWindow()
+				local window, closebutton, titlebar = puter.CreateWindow(windowProperties.xSize, windowProperties.ySize, name, windowProperties.backgroundColor, windowProperties.titlebarColor, windowProperties.textColor, windowProperties, windowProperties.xPos, windowProperties.yPos)
 				newCoroutine(function()
-					app(puter, puterutils)
+					app(puter, puterutils, {["window"] = window, ["closebutton"] = closebutton, ["titlebar"] = titlebar})
 				end, name)
 			end;
 		})
