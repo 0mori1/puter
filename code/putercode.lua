@@ -1,9 +1,49 @@
 local screen
 local coroutines = {}
+local function newCoroutine(func, name)
+	if name == nil then
+		name = "Undefined"
+	end
+	local newcoroutine = coroutine.create(func)
+	local processID = #coroutines + 1
+	coroutines[processID] = {
+		["name"] = name;
+		["coroutine"] = newcoroutine
+	}
+	coroutine.resume(newcoroutine)
+	return processID
+end
+local function closeCoroutine(ID)
+	local suces, fai = pcall(function()
+		if coroutines[ID] ~= nil then
+			coroutine.close(coroutines[ID]["coroutine"])
+		else
+			return false, "no such coroutine"
+		end
+	end)
+	if suces == false then
+		print(fai)
+	end
+end
+local function closeByName(name)
+	local amountKilled = 0
+	local success, err = pcall(function()
+		for i, v in pairs(coroutines) do
+			if v["name"] == name and coroutine.status(v["coroutine"]) ~= "dead" then
+				closeCoroutine(i)
+				amountKilled += 1
+			end
+		end
+	end)
+	if success == false then
+		return err
+	end
+	return amountKilled
+end
 local function shutdown()
 	Beep()
 	for i, v in pairs(coroutines) do
-		coroutine.close(v)
+		closeCoroutine(i)
 	end
 	if screen ~= nil then
 		screen:ClearElements()
@@ -94,6 +134,7 @@ local success, errorcode = pcall(function()
 	local outAmount = 0
 	local voicecommands = true
 	local connections = {}
+
 	local function xConnect(part, eventname, func, ID)
 		if availableComponents[part] ~= nil then
 			if connections[part] == nil then
@@ -153,7 +194,7 @@ local success, errorcode = pcall(function()
 		return found, keyIn
 	end
 	local windows = {}
-	local windowManager = coroutine.create(function()
+	local windowManager = newCoroutine(function()
 		while true do
 			wait()
 			for i, v in pairs(windows) do
@@ -172,9 +213,275 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
-	end)
-	coroutines[#coroutines + 1] = windowManager
-	coroutine.resume(windowManager)
+	end, "Window Manager")
+	local puter = {
+		AddWindowElement = function(Window, Element, ElementProperties)
+			local element = screen:CreateElement(Element, ElementProperties)
+			Window:AddChild(element)
+			return element
+		end;
+		AddElement = function(Parent, Element, Properties)
+			local element = screen:CreateElement(Element, Properties)
+			Parent:AddChild(element)
+			return element
+		end;
+		PlayAudio = function(audioInputted, Speaker)
+			Speaker:Configure({Audio = audioInputted})
+			Speaker:Trigger()
+		end;
+		CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
+			local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
+			local title = ifNotNilThenSetToThatElseDont(temptitle, "App")
+			local titlebarcolor = ifNotNilThenSetToThatElseDont(temptitlebarcolor, Color3.fromHex("#000000"))
+			local textcolor = ifNotNilThenSetToThatElseDont(temptextcolor, Color3.fromHex("#FFFFFF"))
+			--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
+			--centers the window if the override positions are nil
+			local posx = ifNotNilThenSetToThatElseDont(overrideX, (800 - x) / 2)
+			local posy = ifNotNilThenSetToThatElseDont(overrideY, (450 - y) / 2 - 36)
+			local titlebar = screen:CreateElement("TextButton", {
+				Size = UDim2.fromOffset(x - 50, 25);
+				Position = UDim2.fromOffset(posx, posy);
+				Text = title;
+				TextColor3 = textcolor;
+				BackgroundColor3 = titlebarcolor;
+				BorderSizePixel = 0;
+				TextScaled = true;
+				AutoButtonColor = false;
+				ZIndex = 3;
+			})
+			local closebutton = screen:CreateElement("TextButton", {
+				Position = UDim2.fromOffset(x - 25, 0);
+				Size = UDim2.fromOffset(25, 25);
+				Text = "X";
+				TextColor3 = Color3.fromRGB(0,0,0);
+				BackgroundColor3 = Color3.fromRGB(255,0,0);
+				TextScaled = true;
+				BorderSizePixel = 0;
+				ZIndex = 3;
+			})
+			local minimizeButton = screen:CreateElement("TextButton", {
+				Position = UDim2.fromOffset(x - 50, 0);
+				Size = UDim2.fromOffset(25, 25);
+				Text = "-";
+				TextColor3 = Color3.fromRGB(0,0,0);
+				BackgroundColor3 = Color3.fromRGB(99, 99, 99);
+				TextScaled = true;
+				BorderSizePixel = 0;
+				ZIndex = 3;
+			})
+			local windowframeContainerContainer = screen:CreateElement("Frame", {
+				Size = UDim2.fromOffset(x, y);
+				Position = UDim2.fromOffset(0, 25);
+				BorderSizePixel = 0;
+				BackgroundColor3 = backgrndcolor;
+				ZIndex = 3;
+				ClipsDescendants = true;
+				BackgroundTransparency = 1;
+			}) 
+			local windowframeContainer = screen:CreateElement("TextButton", {
+				Size = UDim2.fromOffset(x, y);
+				Position = UDim2.fromOffset(0, 0);
+				BorderSizePixel = 0;
+				BackgroundColor3 = backgrndcolor;
+				ZIndex = 3;
+				ClipsDescendants = true;
+				BackgroundTransparency = 1;
+				TextTransparency = 1;
+			}) 
+			local windowframe = screen:CreateElement("Frame", {
+				Size = UDim2.fromOffset(x, y);
+				Position = UDim2.fromOffset(0, 0);
+				BorderSizePixel = 0;
+				BackgroundColor3 = backgrndcolor;
+				ZIndex = 3;
+				ClipsDescendants = true;
+			})
+			windowframeContainerContainer:AddChild(windowframeContainer)
+			windowframeContainer:AddChild(windowframe)
+			titlebar:AddChild(closebutton)
+			titlebar:AddChild(minimizeButton)
+			titlebar:AddChild(windowframeContainerContainer)
+			local minimized = false
+			minimizeButton.MouseButton1Click:Connect(function()
+				if minimized == false then
+					minimizeButton:ChangeProperties({Text = "+"})
+					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+					minimized = true
+				else
+					minimizeButton:ChangeProperties({Text = "-"})
+					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+					minimized = false
+				end
+			end)
+			local windowID = #windows + 1
+			for i, v in pairs(windows) do
+				v.active = false
+			end
+			windows[windowID] = {
+				["active"] = true;
+				["titlebar"] = titlebar;
+				["textcolor"] = textcolor;
+				["titlebarcolor"] = titlebarcolor
+			}
+			closebutton.MouseButton1Click:Connect(function()
+				titlebar:Destroy()
+				windows[windowID] = nil
+			end)
+			local offsetX
+			local offsetY
+			local dragging
+			local whodrags
+			titlebar.MouseButton1Down:Connect(function(x, y)
+				for i, v in pairs(windows) do
+					v.active = false
+				end
+				windows[windowID].active = true
+				local succ, fail = pcall(function()
+					offsetX = posx - x
+					offsetY = posy - y
+					for i, v in pairs(cursorPositions) do
+						print(i)
+						print(v.X .. ", " ..  v.Y)
+						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+							whodrags = i
+							print(whodrags .. " is gonna be dragging")
+						end
+					end
+					if whodrags ~= nil then
+						dragging = true
+						titlebar:ChangeProperties({ZIndex = 4})
+						titlebar:ChangeProperties({ZIndex = 3})
+						if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+							dragging = false
+						end
+						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+							dragging = false
+						end
+						print("someone's draggin")
+					else
+						print("how the hell")
+					end
+				end)
+				if succ == false then
+					print(fail)
+				end
+			end)
+			titlebar.MouseButton1Up:Connect(function()
+				dragging = false
+				whodrags = nil
+				offsetX = nil
+				offsetY = nil
+			end)
+			screenCursorMoved(function(cursor)
+				if dragging == true and whodrags ~= nil then
+					if cursor.Player == whodrags then
+						posx = cursor.X + offsetX
+						posy = cursor.Y + offsetY
+						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					end
+				elseif dragging == true then
+					print(whodrags)
+				end
+			end)
+			local windowframemet = {}
+			function windowframemet:CreateElement(className, properties)
+				local element = screen:CreateElement(className, properties)
+				windowframe:AddChild(element)
+			end
+			function windowframemet:AddChild(element)
+				windowframe:AddChild(element)
+			end
+			function windowframemet:IsActive()
+				return windows[windowID].active
+			end
+			function windowframemet:GetCursors()
+				return screen:GetCursors()
+			end
+			return windowframemet, closebutton, titlebar
+		end;
+	}
+	local puterutils = {
+		cliengine = function(oninput, name, outOnStart, onClose, prefix)
+			local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
+			local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
+				Size = UDim2.fromOffset(450, 275);
+				BackgroundColor3 = Color3.fromRGB(0,0,0);
+				BorderSizePixel = 0;
+			})
+			closebutton.MouseButton1Click:Connect(onClose)
+			local cliOutput = {}
+			local function addTextToOutput(Out)
+				if #cliOutput <= 10 then
+					cliOutput[#cliOutput + 1] = Out
+					return #cliOutput
+				else
+					cliOutput[1] = nil
+					for i, v in pairs(cliOutput) do
+						if i >= 2 and i <= 11 then
+							cliOutput[i - 1] = cliOutput[i]
+						end
+					end
+					cliOutput[11] = Out
+					return 11
+				end
+			end
+			local function updateOutput()
+				frame:Destroy()
+				frame = puter.AddWindowElement(cliwindow, "Frame", {
+					Size = UDim2.fromOffset(450, 275);
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				for i, v in pairs(cliOutput) do
+					local textlabel = puter.AddWindowElement(cliwindow, "TextLabel", {
+						Size = UDim2.fromOffset(444, 25);
+						Position = UDim2.fromOffset(0, (i - 1) * 25);
+						Text = v;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+						TextXAlignment = Enum.TextXAlignment.Left;
+						TextScaled = true;
+						Font = Enum.Font.RobotoMono
+					})
+					frame:AddChild(textlabel)
+				end
+			end
+			local function output(Out)
+				addTextToOutput(Out)
+				updateOutput()
+			end
+			local inputbar
+			if prefix ~= nil then
+
+			else
+				prefix = ""
+			end
+			local function requireNewInputBar()
+				inputbar = addTextToOutput(prefix .. "> ")
+				updateOutput()
+			end
+			local function clear()
+				cliOutput = {}
+			end
+			output(outOnStart)
+			requireNewInputBar()
+			xConnect("keyboard", "TextInputted", function(text, plr)
+				text = string.sub(text, 1, #text - 1)
+				if inputbar ~= nil then
+					cliOutput[inputbar] = prefix .. "> " .. text
+					updateOutput()
+				else
+					requireNewInputBar()
+					cliOutput[inputbar] = prefix .. "> " .. text
+					updateOutput()
+				end
+				oninput(text, plr, output, clear)
+				requireNewInputBar()
+			end)
+			return output
+		end;
+	}
 	local function InitializeROM()
 		rom:Write("PuterLibrary", {
 			AddWindowElement = function(Window, Element, ElementProperties)
@@ -354,6 +661,12 @@ local success, errorcode = pcall(function()
 					end
 				end
 				return windowframe, closebutton, titlebar, isActive
+			end;
+			new = function(app, name, windowProperties)
+				local window, closebutton, titlebar = puter.CreateWindow()
+				newCoroutine(function()
+					app(puter, puterutils)
+				end, name)
 			end;
 		})
 		rom:Write("puterutils", {
@@ -606,7 +919,7 @@ local success, errorcode = pcall(function()
 		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp
 	end
 	local powerCheck
-	powerCheck = coroutine.create(function()
+	powerCheck = newCoroutine(function()
 		if GetPartFromPort(1, "Instrument") ~= nil then
 			while true do
 				wait(0.25)
@@ -617,9 +930,7 @@ local success, errorcode = pcall(function()
 		else
 			CreateSelfTestOutput("Warning: Can't detect power stored", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,255,0))
 		end
-	end)
-	coroutines[#coroutines + 1] = powerCheck
-	coroutine.resume(powerCheck)
+	end, "Power Check")
 	local function tableRepilicate(tableToCopy)
 		local newTable = {}
 		for i, v in pairs(tableToCopy) do
@@ -650,7 +961,7 @@ local success, errorcode = pcall(function()
 			BackgroundColor3 = Color3.fromRGB(0,0,0);
 		})
 		createwOSboot()
-		loadBarRoutine = coroutine.create(function()
+		loadBarRoutine = newCoroutine(function()
 			local loadingbar = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(75, 15);
 				Position = UDim2.fromOffset(0, 5);
@@ -681,9 +992,7 @@ local success, errorcode = pcall(function()
 					wait(0.25)
 				end
 			end
-		end)
-		coroutines[#coroutines + 1] = loadBarRoutine
-		coroutine.resume(loadBarRoutine)
+		end, "Loading Bar")
 		-- set the variable that the screen check is fine
 		importantselftest1passed = true
 	else
@@ -764,278 +1073,10 @@ local success, errorcode = pcall(function()
 		CreateSelfTestOutput("Disks detected: " .. tostring(diskamount), UDim2.fromOffset(10, outAmount * 25 + 10))
 		wait(1)
 		outAmount = 0
-		coroutine.close(loadBarRoutine)
+		closeCoroutine(loadBarRoutine)
 		Beep()
 		-- this funny thing does funny defining with the InitializeDesktop() function
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp = InitializeDesktop()
-		local puter = {
-			AddWindowElement = function(Window, Element, ElementProperties)
-				local element = screen:CreateElement(Element, ElementProperties)
-				Window:AddChild(element)
-				return element
-			end;
-			AddElement = function(Parent, Element, Properties)
-				local element = screen:CreateElement(Element, Properties)
-				Parent:AddChild(element)
-				return element
-			end;
-			PlayAudio = function(audioInputted, Speaker)
-				Speaker:Configure({Audio = audioInputted})
-				Speaker:Trigger()
-			end;
-			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
-				local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
-				local title = ifNotNilThenSetToThatElseDont(temptitle, "App")
-				local titlebarcolor = ifNotNilThenSetToThatElseDont(temptitlebarcolor, Color3.fromHex("#000000"))
-				local textcolor = ifNotNilThenSetToThatElseDont(temptextcolor, Color3.fromHex("#FFFFFF"))
-				--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
-				--centers the window if the override positions are nil
-				local posx = ifNotNilThenSetToThatElseDont(overrideX, (800 - x) / 2)
-				local posy = ifNotNilThenSetToThatElseDont(overrideY, (450 - y) / 2 - 36)
-				local titlebar = screen:CreateElement("TextButton", {
-					Size = UDim2.fromOffset(x - 50, 25);
-					Position = UDim2.fromOffset(posx, posy);
-					Text = title;
-					TextColor3 = textcolor;
-					BackgroundColor3 = titlebarcolor;
-					BorderSizePixel = 0;
-					TextScaled = true;
-					AutoButtonColor = false;
-					ZIndex = 3;
-				})
-				local closebutton = screen:CreateElement("TextButton", {
-					Position = UDim2.fromOffset(x - 25, 0);
-					Size = UDim2.fromOffset(25, 25);
-					Text = "X";
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BackgroundColor3 = Color3.fromRGB(255,0,0);
-					TextScaled = true;
-					BorderSizePixel = 0;
-					ZIndex = 3;
-				})
-				local minimizeButton = screen:CreateElement("TextButton", {
-					Position = UDim2.fromOffset(x - 50, 0);
-					Size = UDim2.fromOffset(25, 25);
-					Text = "-";
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BackgroundColor3 = Color3.fromRGB(99, 99, 99);
-					TextScaled = true;
-					BorderSizePixel = 0;
-					ZIndex = 3;
-				})
-				local windowframeContainerContainer = screen:CreateElement("Frame", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 25);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 3;
-					ClipsDescendants = true;
-					BackgroundTransparency = 1;
-				}) 
-				local windowframeContainer = screen:CreateElement("TextButton", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 0);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 3;
-					ClipsDescendants = true;
-					BackgroundTransparency = 1;
-					TextTransparency = 1;
-				}) 
-				local windowframe = screen:CreateElement("Frame", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 0);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 3;
-					ClipsDescendants = true;
-				})
-				windowframeContainerContainer:AddChild(windowframeContainer)
-				windowframeContainer:AddChild(windowframe)
-				titlebar:AddChild(closebutton)
-				titlebar:AddChild(minimizeButton)
-				titlebar:AddChild(windowframeContainerContainer)
-				local minimized = false
-				minimizeButton.MouseButton1Click:Connect(function()
-					if minimized == false then
-						minimizeButton:ChangeProperties({Text = "+"})
-						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-						minimized = true
-					else
-						minimizeButton:ChangeProperties({Text = "-"})
-						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-						minimized = false
-					end
-				end)
-				local windowID = #windows + 1
-				for i, v in pairs(windows) do
-					v.active = false
-				end
-				windows[windowID] = {
-					["active"] = true;
-					["titlebar"] = titlebar;
-					["textcolor"] = textcolor;
-					["titlebarcolor"] = titlebarcolor
-				}
-				closebutton.MouseButton1Click:Connect(function()
-					titlebar:Destroy()
-					windows[windowID] = nil
-				end)
-				local offsetX
-				local offsetY
-				local dragging
-				local whodrags
-				titlebar.MouseButton1Down:Connect(function(x, y)
-					for i, v in pairs(windows) do
-						v.active = false
-					end
-					windows[windowID].active = true
-					local succ, fail = pcall(function()
-						offsetX = posx - x
-						offsetY = posy - y
-						for i, v in pairs(cursorPositions) do
-							print(i)
-							print(v.X .. ", " ..  v.Y)
-							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
-								whodrags = i
-								print(whodrags .. " is gonna be dragging")
-							end
-						end
-						if whodrags ~= nil then
-							dragging = true
-							titlebar:ChangeProperties({ZIndex = 4})
-							titlebar:ChangeProperties({ZIndex = 3})
-							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-								dragging = false
-							end
-							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-								dragging = false
-							end
-							print("someone's draggin")
-						else
-							print("how the hell")
-						end
-					end)
-					if succ == false then
-						print(fail)
-					end
-				end)
-				titlebar.MouseButton1Up:Connect(function()
-					dragging = false
-					whodrags = nil
-					offsetX = nil
-					offsetY = nil
-				end)
-				screenCursorMoved(function(cursor)
-					if dragging == true and whodrags ~= nil then
-						if cursor.Player == whodrags then
-							posx = cursor.X + offsetX
-							posy = cursor.Y + offsetY
-							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
-						end
-					elseif dragging == true then
-						print(whodrags)
-					end
-				end)
-				local windowframemet = {}
-				function windowframemet:CreateElement(className, properties)
-					local element = screen:CreateElement(className, properties)
-					windowframe:AddChild(element)
-				end
-				function windowframemet:AddChild(element)
-					windowframe:AddChild(element)
-				end
-				function windowframemet:IsActive()
-					return windows[windowID].active
-				end
-				function windowframemet:GetCursors()
-					return screen:GetCursors()
-				end
-				return windowframemet, closebutton, titlebar
-			end;
-		}
-		local puterutils = {
-			cliengine = function(oninput, name, outOnStart, onClose, prefix)
-				local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
-				local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
-					Size = UDim2.fromOffset(450, 275);
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					BorderSizePixel = 0;
-				})
-				closebutton.MouseButton1Click:Connect(onClose)
-				local cliOutput = {}
-				local function addTextToOutput(Out)
-					if #cliOutput <= 10 then
-						cliOutput[#cliOutput + 1] = Out
-						return #cliOutput
-					else
-						cliOutput[1] = nil
-						for i, v in pairs(cliOutput) do
-							if i >= 2 and i <= 11 then
-								cliOutput[i - 1] = cliOutput[i]
-							end
-						end
-						cliOutput[11] = Out
-						return 11
-					end
-				end
-				local function updateOutput()
-					frame:Destroy()
-					frame = puter.AddWindowElement(cliwindow, "Frame", {
-						Size = UDim2.fromOffset(450, 275);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						BorderSizePixel = 0;
-					})
-					for i, v in pairs(cliOutput) do
-						local textlabel = puter.AddWindowElement(cliwindow, "TextLabel", {
-							Size = UDim2.fromOffset(444, 25);
-							Position = UDim2.fromOffset(0, (i - 1) * 25);
-							Text = v;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							BackgroundColor3 = Color3.fromRGB(0,0,0);
-							BorderSizePixel = 0;
-							TextXAlignment = Enum.TextXAlignment.Left;
-							TextScaled = true;
-							Font = Enum.Font.RobotoMono
-						})
-						frame:AddChild(textlabel)
-					end
-				end
-				local function output(Out)
-					addTextToOutput(Out)
-					updateOutput()
-				end
-				local inputbar
-				if prefix ~= nil then
-					
-				else
-					prefix = ""
-				end
-				local function requireNewInputBar()
-					inputbar = addTextToOutput(prefix .. "> ")
-					updateOutput()
-				end
-				local function clear()
-					cliOutput = {}
-				end
-				output(outOnStart)
-				requireNewInputBar()
-				xConnect("keyboard", "TextInputted", function(text, plr)
-					text = string.sub(text, 1, #text - 1)
-					if inputbar ~= nil then
-						cliOutput[inputbar] = prefix .. "> " .. text
-						updateOutput()
-					else
-						requireNewInputBar()
-						cliOutput[inputbar] = prefix .. "> " .. text
-						updateOutput()
-					end
-					oninput(text, plr, output, clear)
-					requireNewInputBar()
-				end)
-				return output
-			end;
-		}
 		local filesystem = {
 			createDirectory = function(path, disk)
 				print(path)
@@ -1141,7 +1182,7 @@ local success, errorcode = pcall(function()
 			return titlebar
 		end
 		if availableComponents["lifesensor"] ~= nil then
-			local hail12pinkdetector = coroutine.create(function()
+			newCoroutine(function()
 				local found = false
 				while true do
 					wait(0.5)
@@ -1160,9 +1201,7 @@ local success, errorcode = pcall(function()
 						found = false
 					end
 				end
-			end)
-			coroutines[#coroutines + 1] = hail12pinkdetector
-			coroutine.resume(hail12pinkdetector)
+			end, "12pink Detector")
 		else
 			print("raaaa no lifesensor")
 		end
@@ -1187,7 +1226,6 @@ local success, errorcode = pcall(function()
 				polysilicon:Configure({PolysiliconMode = 0})
 				wait(0.5)
 				TriggerPort(6)
-				popup:Destroy()
 				print(codetorun)
 			end
 		end
@@ -1284,7 +1322,7 @@ local success, errorcode = pcall(function()
 				elseif text == "restart" then
 					screen:ClearElements()
 					for i, v in pairs(coroutines) do
-						coroutine.close(v)
+						closeCoroutine(i)
 					end
 					TriggerPort(3)
 				elseif text == "record" then
@@ -1300,7 +1338,7 @@ local success, errorcode = pcall(function()
 				elseif string.sub(text, 1, 21) == "play recorded message" then
 					local message = recorded[tonumber(string.sub(text, 23, #text))]
 					terminalout(tostring(message))
-				elseif string.sub(text, 1, 17) == "play all messages" then
+				elseif text == "play all messages" then
 					if displayingallmsgs == false then
 						local frame, closebutton = puter.CreateWindow(500, 225, "All Messages")
 						displayingallmsgs = true
@@ -1318,7 +1356,7 @@ local success, errorcode = pcall(function()
 								Text = message;
 								TextScaled = true;
 							})
-							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 50)})
+							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
 							scrollingframe:AddChild(textlabel)
 							print(message)
 						end
@@ -1368,7 +1406,7 @@ local success, errorcode = pcall(function()
 					recordingtext = true
 				elseif text == "stop recording text" then
 					recordingtext = false
-				elseif string.sub(text, 1, 26) == "play recorded text message" then
+				elseif text == "play recorded text message" then
 					local message = recordedtext[tonumber(string.sub(text, 28, #text))]
 					terminalout(tostring(message))
 				elseif string.sub(text, 1, 22) == "play all text messages" then
@@ -1389,7 +1427,7 @@ local success, errorcode = pcall(function()
 								Text = message;
 								TextScaled = true;
 							})
-							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 50)})
+							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
 							scrollingframe:AddChild(textlabel)
 							print(message)
 						end
@@ -1432,6 +1470,9 @@ local success, errorcode = pcall(function()
 					ReturnError("Manual Crash", "MANUAL_CRASH")
 				elseif text == "clear" and clrfnc ~= nil or text == "cls" and clrfnc ~= nil then
 					clrfnc()
+				elseif string.sub(text, 1, 4) == "kill" then
+					local killed = closeByName(string.sub(text, 6, #text))
+					terminalout("Killed " .. tostring(killed) .. " coroutines.")
 				else
 					return true, "no such command"
 				end
@@ -1509,19 +1550,18 @@ local success, errorcode = pcall(function()
 				cursors[cursor.Player] = newCursor
 			end
 		end)
-		local canuseicons = {}
-		local function addIcon(iconName, functionality, canopenicon)
+		local canuseapp = {}
+		local function addIcon(iconName)
 			local xOffset = math.floor(iconAmount / 3)
 			local yOffset = iconAmount - xOffset * 3
 			local icon = puter.AddElement(background, "TextButton", {
-				Position = UDim2.fromOffset(15 + (xOffset - 1) * 115, 15 + (yOffset - 1) * 115);
+				Position = UDim2.fromOffset(15 + xOffset * 115, 15 + (yOffset - 1) * 115);
 				Size = UDim2.fromOffset(100, 100);
 				Text = iconName;
 				TextScaled = true;
 				ZIndex = 3;
 			})
-			canuseicons[canopenicon] = true
-
+			return icon
 		end
 		local function lagometer()
 			if canopenlagometer == true then
@@ -1554,7 +1594,7 @@ local success, errorcode = pcall(function()
 						lag[14] = framerate
 					end
 				end
-				local lagMeasurer = coroutine.create(function()
+				local lagMeasurer = newCoroutine(function()
 					while true do
 						local curTime = tick()
 						wait(1)
@@ -1575,8 +1615,8 @@ local success, errorcode = pcall(function()
 						end
 						currentFPS:ChangeProperties({Text = tostring(framerate); TextColor3 = color;})
 					end
-				end)
-				local lagHistory = coroutine.create(function()
+				end, "Lag Measurer")
+				local lagHistory = newCoroutine(function()
 					while true do 
 						wait(0.5)
 						lagHistoryFrame:Destroy()
@@ -1621,14 +1661,10 @@ local success, errorcode = pcall(function()
 							})
 						end
 					end
-				end)
-				coroutines[#coroutines + 1] = lagMeasurer
-				coroutine.resume(lagMeasurer)
-				coroutines[#coroutines + 1] = lagHistory
-				coroutine.resume(lagHistory)
+				end, "Lag History")
 				closebutton.MouseButton1Click:Connect(function()
-					coroutine.close(lagMeasurer)
-					coroutine.close(lagHistory)
+					closeCoroutine(lagMeasurer)
+					closeCoroutine(lagHistory)
 					canopenlagometer = true
 				end)
 			end
@@ -1945,7 +1981,7 @@ local success, errorcode = pcall(function()
 		restartbutton.MouseButton1Click:Connect(function()
 			screen:ClearElements()
 			for i, v in pairs(coroutines) do
-				coroutine.close(v)
+				closeCoroutine(i)
 			end
 			Beep()
 			TriggerPort(3)
@@ -2307,7 +2343,7 @@ local success, errorcode = pcall(function()
 							end)
 						end
 					end
-					local director = coroutine.create(function()
+					local director = newCoroutine(function()
 						while true do
 							wait(0.1)
 							if called == true then
@@ -2330,12 +2366,10 @@ local success, errorcode = pcall(function()
 								print("ending call")
 							end
 						end
-					end)
-					coroutines[#coroutines + 1] = director
-					coroutine.resume(director)
+					end, "Explorer Director")
 					closeexplorer.MouseButton1Click:Connect(function()
 						canopenexplorer = true
-						coroutine.close(director)
+						closeCoroutine(director)
 					end)
 					actionRefresh.MouseButton1Click:Connect(function()
 						called = true
