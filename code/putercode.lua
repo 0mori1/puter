@@ -1313,6 +1313,7 @@ local success, errorcode = pcall(function()
 		end
 		local checkBlacklist = {
 			["Hail12Pink"] = "No.";
+			["Syroos"] = "nah"
 		}
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
