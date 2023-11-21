@@ -623,20 +623,8 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 				})
-				local windowactivator = screen:CreateElement("TextButton", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 0);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 10;
-					ClipsDescendants = true;
-					BackgroundTransparency = 1;
-					TextTransparency = 1;
-					Active = false;
-				})
 				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
-				windowframe:AddChild(windowactivator)
 				titlebar:AddChild(closebutton)
 				titlebar:AddChild(collapseButton)
 				titlebar:AddChild(windowframeContainerContainer)
