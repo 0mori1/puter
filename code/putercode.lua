@@ -134,7 +134,6 @@ local success, errorcode = pcall(function()
 	local outAmount = 0
 	local voicecommands = true
 	local connections = {}
-
 	local function xConnect(part, eventname, func, ID)
 		if availableComponents[part] ~= nil then
 			if connections[part] == nil then
@@ -175,13 +174,6 @@ local success, errorcode = pcall(function()
 		})
 		outAmount = outAmount + 1
 	end
-	local function ifNotNilThenSetToThatElseDont(checkWhat, setIfNil)
-		if checkWhat ~= nil then
-			return checkWhat
-		else
-			return setIfNil
-		end
-	end
 	local function find(tableToSearch, dataToFind)
 		local found = false
 		local keyIn
@@ -204,7 +196,7 @@ local success, errorcode = pcall(function()
 						BackgroundColor3 = Color3.fromRGB(255,255,255);
 						TextColor3 = Color3.fromRGB(0,0,0)
 					})
-				elseif v.active == true then
+				elseif v.active == true or v.forced == true then
 					v.titlebar:ChangeProperties({
 						ZIndex = 4;
 						BackgroundColor3 = v.titlebarcolor;
@@ -229,47 +221,59 @@ local success, errorcode = pcall(function()
 			Speaker:Configure({Audio = audioInputted})
 			Speaker:Trigger()
 		end;
-		CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
-			local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
-			local title = ifNotNilThenSetToThatElseDont(temptitle, "App")
-			local titlebarcolor = ifNotNilThenSetToThatElseDont(temptitlebarcolor, Color3.fromHex("#000000"))
-			local textcolor = ifNotNilThenSetToThatElseDont(temptextcolor, Color3.fromHex("#FFFFFF"))
+		CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY, forced, featuresonoff)
+			local backgrndcolor = tempbackgrndcolor or Color3.fromHex("#646464")
+			local title = temptitle or "App"
+			local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
+			local textcolor = temptextcolor or Color3.fromHex("#FFFFFF")
 			--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
 			--centers the window if the override positions are nil
-			local posx = ifNotNilThenSetToThatElseDont(overrideX, (800 - x) / 2)
-			local posy = ifNotNilThenSetToThatElseDont(overrideY, (450 - y) / 2 - 36)
-			local titlebar = screen:CreateElement("TextButton", {
-				Size = UDim2.fromOffset(x - 50, 25);
-				Position = UDim2.fromOffset(posx, posy);
-				Text = title;
-				TextColor3 = textcolor;
-				BackgroundColor3 = titlebarcolor;
-				BorderSizePixel = 0;
-				TextScaled = true;
-				AutoButtonColor = false;
-				ZIndex = 3;
-			})
-			local closebutton = screen:CreateElement("TextButton", {
-				Position = UDim2.fromOffset(x - 25, 0);
-				Size = UDim2.fromOffset(25, 25);
-				Text = "X";
-				TextColor3 = Color3.fromRGB(0,0,0);
-				BackgroundColor3 = Color3.fromRGB(255,0,0);
-				TextScaled = true;
-				BorderSizePixel = 0;
-				ZIndex = 3;
-			})
-			local minimizeButton = screen:CreateElement("TextButton", {
-				Position = UDim2.fromOffset(x - 50, 0);
-				Size = UDim2.fromOffset(25, 25);
-				Text = "-";
-				TextColor3 = Color3.fromRGB(0,0,0);
-				BackgroundColor3 = Color3.fromRGB(99, 99, 99);
-				TextScaled = true;
-				BorderSizePixel = 0;
-				ZIndex = 3;
-			})
-			local windowframeContainerContainer = screen:CreateElement("Frame", {
+			local posy = overrideY or (450 - y) / 2 - 36
+			local posx = overrideX or (800 - x) / 2
+			local titlebar
+			local closebutton
+			local collapseButton
+			if featuresonoff == nil then
+				featuresonoff = {}
+			end
+			if featuresonoff.titlebar ~= false then
+				titlebar = screen:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(x - 50, 25);
+					Position = UDim2.fromOffset(posx, posy);
+					Text = title;
+					TextColor3 = textcolor;
+					BackgroundColor3 = titlebarcolor;
+					BorderSizePixel = 0;
+					TextScaled = true;
+					AutoButtonColor = false;
+					ZIndex = 3;
+				})
+			end
+			if featuresonoff.closebutton ~= false then
+				closebutton = screen:CreateElement("TextButton", {
+					Position = UDim2.fromOffset(x - 25, 0);
+					Size = UDim2.fromOffset(25, 25);
+					Text = "X";
+					TextColor3 = Color3.fromRGB(0,0,0);
+					BackgroundColor3 = Color3.fromRGB(255,0,0);
+					TextScaled = true;
+					BorderSizePixel = 0;
+					ZIndex = 3;
+				})
+			end
+			if featuresonoff.collapse ~= false then
+				collapseButton = screen:CreateElement("TextButton", {
+					Position = UDim2.fromOffset(x - 50, 0);
+					Size = UDim2.fromOffset(25, 25);
+					Text = "-";
+					TextColor3 = Color3.fromRGB(0,0,0);
+					BackgroundColor3 = Color3.fromRGB(99, 99, 99);
+					TextScaled = true;
+					BorderSizePixel = 0;
+					ZIndex = 3;
+				})
+			end
+			local windowframeContainerContainer = screen:CreateElement("TextButton", {
 				Size = UDim2.fromOffset(x, y);
 				Position = UDim2.fromOffset(0, 25);
 				BorderSizePixel = 0;
@@ -296,33 +300,55 @@ local success, errorcode = pcall(function()
 				ZIndex = 3;
 				ClipsDescendants = true;
 			})
+			local windowactivator = screen:CreateElement("TextButton", {
+				Size = UDim2.fromOffset(x, y);
+				Position = UDim2.fromOffset(0, 0);
+				BorderSizePixel = 0;
+				BackgroundColor3 = backgrndcolor;
+				ZIndex = 10;
+				ClipsDescendants = true;
+				BackgroundTransparency = 1;
+				TextTransparency = 1;
+				Active = true;
+			})
 			windowframeContainerContainer:AddChild(windowframeContainer)
 			windowframeContainer:AddChild(windowframe)
 			titlebar:AddChild(closebutton)
-			titlebar:AddChild(minimizeButton)
+			titlebar:AddChild(collapseButton)
 			titlebar:AddChild(windowframeContainerContainer)
-			local minimized = false
-			minimizeButton.MouseButton1Click:Connect(function()
-				if minimized == false then
-					minimizeButton:ChangeProperties({Text = "+"})
+			local collapsed = false
+			collapseButton.MouseButton1Click:Connect(function()
+				if collapsed == false then
+					collapseButton:ChangeProperties({Text = "+"})
 					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-					minimized = true
+					collapsed = true
 				else
-					minimizeButton:ChangeProperties({Text = "-"})
+					collapseButton:ChangeProperties({Text = "-"})
 					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-					minimized = false
+					collapsed = false
 				end
 			end)
 			local windowID = #windows + 1
 			for i, v in pairs(windows) do
-				v.active = false
+				if v.forced == false then
+					v.active = false
+				end
 			end
 			windows[windowID] = {
 				["active"] = true;
 				["titlebar"] = titlebar;
 				["textcolor"] = textcolor;
-				["titlebarcolor"] = titlebarcolor
+				["titlebarcolor"] = titlebarcolor;
+				["forced"] = forced;
 			}
+			windowactivator.MouseButton1Click:Connect(function()
+				for i, v in pairs(windows) do
+					if v.forced == false then
+						v.active = false
+					end
+				end
+				windows[windowID].active = true
+			end)
 			closebutton.MouseButton1Click:Connect(function()
 				titlebar:Destroy()
 				windows[windowID] = nil
@@ -333,7 +359,9 @@ local success, errorcode = pcall(function()
 			local whodrags
 			titlebar.MouseButton1Down:Connect(function(x, y)
 				for i, v in pairs(windows) do
-					v.active = false
+					if v.forced == false then
+						v.active = false
+					end
 				end
 				windows[windowID].active = true
 				local succ, fail = pcall(function()
@@ -396,6 +424,21 @@ local success, errorcode = pcall(function()
 			end
 			function windowframemet:GetCursors()
 				return screen:GetCursors()
+			end
+			function windowframemet:Close()
+				if titlebar ~= nil then
+					titlebar:Destroy()
+				else
+					windowframeContainerContainer:Destroy()
+				end
+			end
+			function windowframemet:Restore()
+				windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+				collapsed = false
+			end
+			function windowframemet:Collapse()
+				windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+				collapsed = true
 			end
 			return windowframemet, closebutton, titlebar
 		end;
@@ -500,47 +543,59 @@ local success, errorcode = pcall(function()
 					Speaker:Trigger()
 				end
 			end;
-			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY)
-				local backgrndcolor = ifNotNilThenSetToThatElseDont(tempbackgrndcolor, Color3.fromHex("#646464"))
-				local title = ifNotNilThenSetToThatElseDont(temptitle, "App")
-				local titlebarcolor = ifNotNilThenSetToThatElseDont(temptitlebarcolor, Color3.fromHex("#000000"))
-				local textcolor = ifNotNilThenSetToThatElseDont(temptextcolor, Color3.fromHex("#FFFFFF"))
+			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY, forced, featuresonoff)
+				local backgrndcolor = tempbackgrndcolor or Color3.fromHex("#646464")
+				local title = temptitle or "App"
+				local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
+				local textcolor = temptextcolor or Color3.fromHex("#FFFFFF")
 				--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
 				--centers the window if the override positions are nil
-				local posx = ifNotNilThenSetToThatElseDont(overrideX, (800 - x) / 2)
-				local posy = ifNotNilThenSetToThatElseDont(overrideY, (450 - y) / 2 - 36)
-				local titlebar = screen:CreateElement("TextButton", {
-					Size = UDim2.fromOffset(x - 50, 25);
-					Position = UDim2.fromOffset(posx, posy);
-					Text = title;
-					TextColor3 = textcolor;
-					BackgroundColor3 = titlebarcolor;
-					BorderSizePixel = 0;
-					TextScaled = true;
-					AutoButtonColor = false;
-					ZIndex = 3;
-				})
-				local closebutton = screen:CreateElement("TextButton", {
-					Position = UDim2.fromOffset(x - 25, 0);
-					Size = UDim2.fromOffset(25, 25);
-					Text = "X";
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BackgroundColor3 = Color3.fromRGB(255,0,0);
-					TextScaled = true;
-					BorderSizePixel = 0;
-					ZIndex = 3;
-				})
-				local minimizeButton = screen:CreateElement("TextButton", {
-					Position = UDim2.fromOffset(x - 50, 0);
-					Size = UDim2.fromOffset(25, 25);
-					Text = "-";
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BackgroundColor3 = Color3.fromRGB(99, 99, 99);
-					TextScaled = true;
-					BorderSizePixel = 0;
-					ZIndex = 3;
-				})
-				local windowframeContainerContainer = screen:CreateElement("Frame", {
+				local posy = overrideY or (450 - y) / 2 - 36
+				local posx = overrideX or (800 - x) / 2
+				local titlebar
+				local closebutton
+				local collapseButton
+				if featuresonoff == nil then
+					featuresonoff = {}
+				end
+				if featuresonoff.titlebar ~= false then
+					titlebar = screen:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(x - 50, 25);
+						Position = UDim2.fromOffset(posx, posy);
+						Text = title;
+						TextColor3 = textcolor;
+						BackgroundColor3 = titlebarcolor;
+						BorderSizePixel = 0;
+						TextScaled = true;
+						AutoButtonColor = false;
+						ZIndex = 3;
+					})
+				end
+				if featuresonoff.closebutton ~= false then
+					closebutton = screen:CreateElement("TextButton", {
+						Position = UDim2.fromOffset(x - 25, 0);
+						Size = UDim2.fromOffset(25, 25);
+						Text = "X";
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundColor3 = Color3.fromRGB(255,0,0);
+						TextScaled = true;
+						BorderSizePixel = 0;
+						ZIndex = 3;
+					})
+				end
+				if featuresonoff.collapse ~= false then
+					collapseButton = screen:CreateElement("TextButton", {
+						Position = UDim2.fromOffset(x - 50, 0);
+						Size = UDim2.fromOffset(25, 25);
+						Text = "-";
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundColor3 = Color3.fromRGB(99, 99, 99);
+						TextScaled = true;
+						BorderSizePixel = 0;
+						ZIndex = 3;
+					})
+				end
+				local windowframeContainerContainer = screen:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(x, y);
 					Position = UDim2.fromOffset(0, 25);
 					BorderSizePixel = 0;
@@ -567,32 +622,55 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 				})
+				local windowactivator = screen:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(x, y);
+					Position = UDim2.fromOffset(0, 0);
+					BorderSizePixel = 0;
+					BackgroundColor3 = backgrndcolor;
+					ZIndex = 10;
+					ClipsDescendants = true;
+					BackgroundTransparency = 1;
+					TextTransparency = 1;
+					Active = true;
+				})
 				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
 				titlebar:AddChild(closebutton)
-				titlebar:AddChild(minimizeButton)
+				titlebar:AddChild(collapseButton)
 				titlebar:AddChild(windowframeContainerContainer)
-				local minimized = false
-				minimizeButton.MouseButton1Click:Connect(function()
-					if minimized == false then
-						minimizeButton:ChangeProperties({Text = "+"})
+				local collapsed = false
+				collapseButton.MouseButton1Click:Connect(function()
+					if collapsed == false then
+						collapseButton:ChangeProperties({Text = "+"})
 						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-						minimized = true
+						collapsed = true
 					else
-						minimizeButton:ChangeProperties({Text = "-"})
+						collapseButton:ChangeProperties({Text = "-"})
 						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-						minimized = false
+						collapsed = false
 					end
 				end)
 				local windowID = #windows + 1
 				for i, v in pairs(windows) do
-					v.active = false
+					if v.forced == false then
+						v.active = false
+					end
 				end
 				windows[windowID] = {
 					["active"] = true;
 					["titlebar"] = titlebar;
 					["textcolor"] = textcolor;
+					["titlebarcolor"] = titlebarcolor;
+					["forced"] = forced;
 				}
+				windowactivator.MouseButton1Click:Connect(function()
+					for i, v in pairs(windows) do
+						if v.forced == false then
+							v.active = false
+						end
+					end
+					windows[windowID].active = true
+				end)
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
 					windows[windowID] = nil
@@ -603,7 +681,9 @@ local success, errorcode = pcall(function()
 				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
 					for i, v in pairs(windows) do
-						v.active = false
+						if v.forced == false then
+							v.active = false
+						end
 					end
 					windows[windowID].active = true
 					local succ, fail = pcall(function()
@@ -653,14 +733,36 @@ local success, errorcode = pcall(function()
 						print(whodrags)
 					end
 				end)
-				local function isActive()
-					if windows[windowID] ~= nil then
-						return windows[windowID].active
+				local windowframemet = {}
+				function windowframemet:CreateElement(className, properties)
+					local element = screen:CreateElement(className, properties)
+					windowframe:AddChild(element)
+				end
+				function windowframemet:AddChild(element)
+					windowframe:AddChild(element)
+				end
+				function windowframemet:IsActive()
+					return windows[windowID].active
+				end
+				function windowframemet:GetCursors()
+					return screen:GetCursors()
+				end
+				function windowframemet:Close()
+					if titlebar ~= nil then
+						titlebar:Destroy()
 					else
-						return false
+						windowframeContainerContainer:Destroy()
 					end
 				end
-				return windowframe, closebutton, titlebar, isActive
+				function windowframemet:Restore()
+					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+					collapsed = false
+				end
+				function windowframemet:Collapse()
+					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+					collapsed = true
+				end
+				return windowframemet, closebutton, titlebar
 			end;
 			new = function(app, name, windowProperties)
 				local window, closebutton, titlebar = puter.CreateWindow(windowProperties.xSize, windowProperties.ySize, name, windowProperties.backgroundColor, windowProperties.titlebarColor, windowProperties.textColor, windowProperties.xPos, windowProperties.yPos)
