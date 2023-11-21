@@ -632,7 +632,7 @@ local success, errorcode = pcall(function()
 					ClipsDescendants = true;
 					BackgroundTransparency = 1;
 					TextTransparency = 1;
-					Active = true;
+					Active = false;
 				})
 				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
