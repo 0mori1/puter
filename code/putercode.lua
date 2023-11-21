@@ -313,6 +313,7 @@ local success, errorcode = pcall(function()
 			})
 			windowframeContainerContainer:AddChild(windowframeContainer)
 			windowframeContainer:AddChild(windowframe)
+			windowframe:AddChild(windowactivator)
 			titlebar:AddChild(closebutton)
 			titlebar:AddChild(collapseButton)
 			titlebar:AddChild(windowframeContainerContainer)
@@ -330,7 +331,7 @@ local success, errorcode = pcall(function()
 			end)
 			local windowID = #windows + 1
 			for i, v in pairs(windows) do
-				if v.forced == false then
+				if v.forced ~= true then
 					v.active = false
 				end
 			end
@@ -343,7 +344,7 @@ local success, errorcode = pcall(function()
 			}
 			windowactivator.MouseButton1Click:Connect(function()
 				for i, v in pairs(windows) do
-					if v.forced == false then
+					if v.forced ~= true then
 						v.active = false
 					end
 				end
@@ -635,6 +636,7 @@ local success, errorcode = pcall(function()
 				})
 				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
+				windowframe:AddChild(windowactivator)
 				titlebar:AddChild(closebutton)
 				titlebar:AddChild(collapseButton)
 				titlebar:AddChild(windowframeContainerContainer)
@@ -652,7 +654,7 @@ local success, errorcode = pcall(function()
 				end)
 				local windowID = #windows + 1
 				for i, v in pairs(windows) do
-					if v.forced == false then
+					if v.forced ~= true then
 						v.active = false
 					end
 				end
@@ -665,7 +667,7 @@ local success, errorcode = pcall(function()
 				}
 				windowactivator.MouseButton1Click:Connect(function()
 					for i, v in pairs(windows) do
-						if v.forced == false then
+						if v.forced ~= true then
 							v.active = false
 						end
 					end
@@ -763,18 +765,6 @@ local success, errorcode = pcall(function()
 					collapsed = true
 				end
 				return windowframemet, closebutton, titlebar
-			end;
-			new = function(app, name, windowProperties)
-				local window, closebutton, titlebar = puter.CreateWindow(windowProperties.xSize, windowProperties.ySize, name, windowProperties.backgroundColor, windowProperties.titlebarColor, windowProperties.textColor, windowProperties.xPos, windowProperties.yPos)
-				local PID = newCoroutine(function()
-					app(puter, puterutils, {["window"] = window, ["closebutton"] = closebutton, ["titlebar"] = titlebar})
-					print("heartbeat")
-				end, name)
-				print("running new coroutine " .. PID)
-				closebutton.MouseButton1Click:Connect(function()
-					closeCoroutine(PID)
-					print("closing coroutine " .. PID)
-				end)
 			end;
 		})
 		rom:Write("puterutils", {
