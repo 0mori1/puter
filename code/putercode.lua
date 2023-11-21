@@ -340,7 +340,7 @@ local success, errorcode = pcall(function()
 			local whodrags
 			titlebar.MouseButton1Down:Connect(function(x, y)
 				for i, v in pairs(windows) do
-					if v.forced == false then
+					if v.forced ~= true then
 						v.active = false
 					end
 				end
@@ -643,7 +643,7 @@ local success, errorcode = pcall(function()
 				local whodrags
 				titlebar.MouseButton1Down:Connect(function(x, y)
 					for i, v in pairs(windows) do
-						if v.forced == false then
+						if v.forced ~= true then
 							v.active = false
 						end
 					end
