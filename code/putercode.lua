@@ -330,14 +330,6 @@ local success, errorcode = pcall(function()
 				["titlebarcolor"] = titlebarcolor;
 				["forced"] = forced;
 			}
-			windowactivator.MouseButton1Click:Connect(function()
-				for i, v in pairs(windows) do
-					if v.forced ~= true then
-						v.active = false
-					end
-				end
-				windows[windowID].active = true
-			end)
 			closebutton.MouseButton1Click:Connect(function()
 				titlebar:Destroy()
 				windows[windowID] = nil
@@ -641,14 +633,6 @@ local success, errorcode = pcall(function()
 					["titlebarcolor"] = titlebarcolor;
 					["forced"] = forced;
 				}
-				windowactivator.MouseButton1Click:Connect(function()
-					for i, v in pairs(windows) do
-						if v.forced ~= true then
-							v.active = false
-						end
-					end
-					windows[windowID].active = true
-				end)
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
 					windows[windowID] = nil
