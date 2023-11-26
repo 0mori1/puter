@@ -226,15 +226,34 @@ local success, errorcode = pcall(function()
 			local title = temptitle or "App"
 			local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
 			local textcolor = temptextcolor or Color3.fromHex("#FFFFFF")
-			--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
 			--centers the window if the override positions are nil
 			local posy = overrideY or (450 - y) / 2 - 36
 			local posx = overrideX or (800 - x) / 2
 			local titlebar
 			local closebutton
 			local collapseButton
+			local zindex
+			if forced == true then
+				zindex = 4
+			else
+				zindex = 3
+			end
 			if featuresonoff == nil then
 				featuresonoff = {}
+			end
+			local titlebarsize
+			local closebuttonoffset
+			local collapseoffset
+			if featuresonoff.collapse ~= false and featuresonoff.closebutton ~= false then
+				titlebarsize = UDim2.fromOffset(x - 50, 25)
+				closebuttonoffset = UDim2.fromOffset(x - 25, 0)
+				collapseoffset = UDim2.fromOffset(x - 50, 0)
+			elseif featuresonoff.collapse ~= false then
+				titlebarsize = UDim2.fromOffset(x - 25, 25)
+				collapseoffset = UDim2.fromOffset(x - 50, 0)
+			elseif featuresonoff.closebutton ~= false then
+				titlebarsize = UDim2.fromOffset(x - 25, 25)
+				closebuttonoffset = UDim2.fromOffset(x - 50, 0)
 			end
 			if featuresonoff.titlebar ~= false then
 				titlebar = screen:CreateElement("TextButton", {
@@ -246,7 +265,7 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 					TextScaled = true;
 					AutoButtonColor = false;
-					ZIndex = 3;
+					ZIndex = zindex;
 				})
 			end
 			if featuresonoff.closebutton ~= false then
@@ -302,21 +321,33 @@ local success, errorcode = pcall(function()
 			})
 			windowframeContainerContainer:AddChild(windowframeContainer)
 			windowframeContainer:AddChild(windowframe)
-			titlebar:AddChild(closebutton)
-			titlebar:AddChild(collapseButton)
-			titlebar:AddChild(windowframeContainerContainer)
-			local collapsed = false
-			collapseButton.MouseButton1Click:Connect(function()
-				if collapsed == false then
-					collapseButton:ChangeProperties({Text = "+"})
-					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-					collapsed = true
-				else
-					collapseButton:ChangeProperties({Text = "-"})
-					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-					collapsed = false
+			if titlebar ~= nil then
+				if closebutton ~= nil then
+					titlebar:AddChild(closebutton)
 				end
-			end)
+				if collapseButton ~= nil then
+					titlebar:AddChild(collapseButton)
+				end
+				titlebar:AddChild(windowframeContainerContainer)
+			else
+				local posy = overrideY or (450 - y) / 2 - 24
+				local posx = overrideX or (800 - x) / 2
+				windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+			end
+			local collapsed = false
+			if collapseButton ~= nil then
+				collapseButton.MouseButton1Click:Connect(function()
+					if collapsed == false then
+						collapseButton:ChangeProperties({Text = "+"})
+						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+						collapsed = true
+					else
+						collapseButton:ChangeProperties({Text = "-"})
+						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+						collapsed = false
+					end
+				end)
+			end
 			local windowID = #windows + 1
 			for i, v in pairs(windows) do
 				if v.forced ~= true then
@@ -330,10 +361,12 @@ local success, errorcode = pcall(function()
 				["titlebarcolor"] = titlebarcolor;
 				["forced"] = forced;
 			}
-			closebutton.MouseButton1Click:Connect(function()
-				titlebar:Destroy()
-				windows[windowID] = nil
-			end)
+			if closebutton ~= nil then
+				closebutton.MouseButton1Click:Connect(function()
+					titlebar:Destroy()
+					windows[windowID] = nil
+				end)
+			end
 			local offsetX
 			local offsetY
 			local dragging
@@ -409,8 +442,10 @@ local success, errorcode = pcall(function()
 			function windowframemet:Close()
 				if titlebar ~= nil then
 					titlebar:Destroy()
+					windows[windowID] = nil
 				else
 					windowframeContainerContainer:Destroy()
+					windows[windowID] = nil
 				end
 			end
 			function windowframemet:Restore()
@@ -529,15 +564,34 @@ local success, errorcode = pcall(function()
 				local title = temptitle or "App"
 				local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
 				local textcolor = temptextcolor or Color3.fromHex("#FFFFFF")
-				--basically sets the backgroundcolor of the window, if nil then it leaves the variable alone
 				--centers the window if the override positions are nil
 				local posy = overrideY or (450 - y) / 2 - 36
 				local posx = overrideX or (800 - x) / 2
 				local titlebar
 				local closebutton
 				local collapseButton
+				local zindex
+				if forced == true then
+					zindex = 4
+				else
+					zindex = 3
+				end
 				if featuresonoff == nil then
 					featuresonoff = {}
+				end
+				local titlebarsize
+				local closebuttonoffset
+				local collapseoffset
+				if featuresonoff.collapse ~= false and featuresonoff.closebutton ~= false then
+					titlebarsize = UDim2.fromOffset(x - 50, 25)
+					closebuttonoffset = UDim2.fromOffset(x - 25, 0)
+					collapseoffset = UDim2.fromOffset(x - 50, 0)
+				elseif featuresonoff.collapse ~= false then
+					titlebarsize = UDim2.fromOffset(x - 25, 25)
+					collapseoffset = UDim2.fromOffset(x - 50, 0)
+				elseif featuresonoff.closebutton ~= false then
+					titlebarsize = UDim2.fromOffset(x - 25, 25)
+					closebuttonoffset = UDim2.fromOffset(x - 50, 0)
 				end
 				if featuresonoff.titlebar ~= false then
 					titlebar = screen:CreateElement("TextButton", {
@@ -549,7 +603,7 @@ local success, errorcode = pcall(function()
 						BorderSizePixel = 0;
 						TextScaled = true;
 						AutoButtonColor = false;
-						ZIndex = 3;
+						ZIndex = zindex;
 					})
 				end
 				if featuresonoff.closebutton ~= false then
@@ -605,21 +659,33 @@ local success, errorcode = pcall(function()
 				})
 				windowframeContainerContainer:AddChild(windowframeContainer)
 				windowframeContainer:AddChild(windowframe)
-				titlebar:AddChild(closebutton)
-				titlebar:AddChild(collapseButton)
-				titlebar:AddChild(windowframeContainerContainer)
-				local collapsed = false
-				collapseButton.MouseButton1Click:Connect(function()
-					if collapsed == false then
-						collapseButton:ChangeProperties({Text = "+"})
-						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-						collapsed = true
-					else
-						collapseButton:ChangeProperties({Text = "-"})
-						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-						collapsed = false
+				if titlebar ~= nil then
+					if closebutton ~= nil then
+						titlebar:AddChild(closebutton)
 					end
-				end)
+					if collapseButton ~= nil then
+						titlebar:AddChild(collapseButton)
+					end
+					titlebar:AddChild(windowframeContainerContainer)
+				else
+					local posy = overrideY or (450 - y) / 2 - 24
+					local posx = overrideX or (800 - x) / 2
+					windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+				end
+				local collapsed = false
+				if collapseButton ~= nil then
+					collapseButton.MouseButton1Click:Connect(function()
+						if collapsed == false then
+							collapseButton:ChangeProperties({Text = "+"})
+							windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+							collapsed = true
+						else
+							collapseButton:ChangeProperties({Text = "-"})
+							windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+							collapsed = false
+						end
+					end)
+				end
 				local windowID = #windows + 1
 				for i, v in pairs(windows) do
 					if v.forced ~= true then
@@ -633,10 +699,12 @@ local success, errorcode = pcall(function()
 					["titlebarcolor"] = titlebarcolor;
 					["forced"] = forced;
 				}
-				closebutton.MouseButton1Click:Connect(function()
-					titlebar:Destroy()
-					windows[windowID] = nil
-				end)
+				if closebutton ~= nil then
+					closebutton.MouseButton1Click:Connect(function()
+						titlebar:Destroy()
+						windows[windowID] = nil
+					end)
+				end
 				local offsetX
 				local offsetY
 				local dragging
