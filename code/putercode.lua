@@ -429,6 +429,7 @@ local success, errorcode = pcall(function()
 			function windowframemet:CreateElement(className, properties)
 				local element = screen:CreateElement(className, properties)
 				windowframe:AddChild(element)
+				return element
 			end
 			function windowframemet:AddChild(element)
 				windowframe:AddChild(element)
@@ -767,6 +768,7 @@ local success, errorcode = pcall(function()
 				function windowframemet:CreateElement(className, properties)
 					local element = screen:CreateElement(className, properties)
 					windowframe:AddChild(element)
+					return element
 				end
 				function windowframemet:AddChild(element)
 					windowframe:AddChild(element)
