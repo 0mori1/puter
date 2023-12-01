@@ -438,7 +438,14 @@ local success, errorcode = pcall(function()
 				return windows[windowID].active
 			end
 			function windowframemet:GetCursors()
-				return screen:GetCursors()
+				local cursorsProcessed = {}
+				local cursors = screen:GetCursors()
+				for i, v in pairs(cursors) do
+					if v.X - posx >= 0 and v.Y - posy >= 0 then
+						cursorsProcessed[#cursorsProcessed + 1] = v
+					end
+				end
+				return cursorsProcessed
 			end
 			function windowframemet:Close()
 				if titlebar ~= nil then
