@@ -549,6 +549,79 @@ local success, errorcode = pcall(function()
 			return output
 		end;
 	}
+	local filesystem = {
+		createDirectory = function(path, disk)
+			print(path)
+			if string.sub(path, 1, 1) ~= "/" then
+				path = "/" .. path
+			end
+			if string.sub(path, #path, #path) ~= "/" then
+				path = path .. "/"
+			end
+			disk:Write(path, "t:folder")
+			print(path)
+		end;
+		scanPath = function(path, disk)
+			local buffer1 = {}
+			local buffer2 = {}
+			local buffer3 = {}
+			if string.sub(path, #path, #path) ~= "/" then
+				path = path .. "/"
+			end
+			for i, v in pairs(disk:ReadEntireDisk()) do
+				if string.sub(i, 1, #path) == path and v ~= nil then
+					buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
+				end
+			end
+			for i, v in pairs(buffer1) do
+				local added = false
+				for i = 1, #v, 1 do
+					if string.sub(v, i, i) == "/" and added == false then
+						added = true
+						if buffer2[string.sub(v, 1, i - 1)] == nil then
+							buffer2[string.sub(v, 1, i - 1)] = true
+						end
+					elseif i == #v and added == false then
+						added = true
+						if buffer2[string.sub(v, 1, i)] == nil then
+							buffer2[string.sub(v, 1, i)] = true
+						end
+					end
+				end
+			end
+			for i, v in pairs(buffer2) do
+				buffer3[#buffer3 + 1] = i
+			end
+			return buffer3
+		end;
+		write = function(path, filename, data, disk)
+			if string.sub(path, 1, 1) ~= "/" then
+				path = "/" .. path
+			end
+			if string.sub(path, #path, #path) ~= "/" then
+				path = path .. "/"
+			end
+			local badName = false
+			for i = 1, #filename, 1 do
+				if string.sub(filename, i, i) == "/" then
+					badName = true
+				end
+			end
+			if badName == false then
+				if disk:Read(path) == "t:folder" then
+					disk:Write(path .. filename, data)
+					return true, path .. filename
+				else
+					return false, "not a folder"
+				end
+			else
+				return false, "bad character in name"
+			end
+		end;
+		read = function(path, disk)
+			return disk:Read(path)
+		end;
+	}
 	local function InitializeROM()
 		rom:Write("PuterLibrary", {
 			AddWindowElement = function(Window, Element, ElementProperties)
@@ -881,6 +954,7 @@ local success, errorcode = pcall(function()
 				return output
 			end;
 		})
+		rom:Write("filesystem", filesystem)
 	end
 	local function createwOSboot()
 		screen:CreateElement("TextLabel", {
@@ -1212,79 +1286,6 @@ local success, errorcode = pcall(function()
 		Beep()
 		-- this funny thing does funny defining with the InitializeDesktop() function
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp = InitializeDesktop()
-		local filesystem = {
-			createDirectory = function(path, disk)
-				print(path)
-				if string.sub(path, 1, 1) ~= "/" then
-					path = "/" .. path
-				end
-				if string.sub(path, #path, #path) ~= "/" then
-					path = path .. "/"
-				end
-				disk:Write(path, "t:folder")
-				print(path)
-			end;
-			scanPath = function(path, disk)
-				local buffer1 = {}
-				local buffer2 = {}
-				local buffer3 = {}
-				if string.sub(path, #path, #path) ~= "/" then
-					path = path .. "/"
-				end
-				for i, v in pairs(disk:ReadEntireDisk()) do
-					if string.sub(i, 1, #path) == path and v ~= nil then
-						buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
-					end
-				end
-				for i, v in pairs(buffer1) do
-					local added = false
-					for i = 1, #v, 1 do
-						if string.sub(v, i, i) == "/" and added == false then
-							added = true
-							if buffer2[string.sub(v, 1, i - 1)] == nil then
-								buffer2[string.sub(v, 1, i - 1)] = true
-							end
-						elseif i == #v and added == false then
-							added = true
-							if buffer2[string.sub(v, 1, i)] == nil then
-								buffer2[string.sub(v, 1, i)] = true
-							end
-						end
-					end
-				end
-				for i, v in pairs(buffer2) do
-					buffer3[#buffer3 + 1] = i
-				end
-				return buffer3
-			end;
-			write = function(path, filename, data, disk)
-				if string.sub(path, 1, 1) ~= "/" then
-					path = "/" .. path
-				end
-				if string.sub(path, #path, #path) ~= "/" then
-					path = path .. "/"
-				end
-				local badName = false
-				for i = 1, #filename, 1 do
-					if string.sub(filename, i, i) == "/" then
-						badName = true
-					end
-				end
-				if badName == false then
-					if disk:Read(path) == "t:folder" then
-						disk:Write(path .. filename, data)
-						return true, path .. filename
-					else
-						return false, "not a folder"
-					end
-				else
-					return false, "bad character in name"
-				end
-			end;
-			read = function(path, disk)
-				return disk:Read(path)
-			end;
-		}
 		for i, v in pairs(mounteddisks) do
 			v:Write("/", "t:folder")
 		end
