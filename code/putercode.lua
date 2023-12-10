@@ -129,7 +129,6 @@ local success, errorcode = pcall(function()
 	local startmenustatus = false
 	local canspawnsettings = true
 	local disks
-	local disksdetected
 	local mounteddisks = {}
 	local outAmount = 0
 	local voicecommands = true
@@ -257,7 +256,7 @@ local success, errorcode = pcall(function()
 			end
 			if featuresonoff.titlebar ~= false then
 				titlebar = screen:CreateElement("TextButton", {
-					Size = UDim2.fromOffset(x - 50, 25);
+					Size = titlebarsize;
 					Position = UDim2.fromOffset(posx, posy);
 					Text = title;
 					TextColor3 = textcolor;
@@ -354,13 +353,6 @@ local success, errorcode = pcall(function()
 					v.active = false
 				end
 			end
-			windows[windowID] = {
-				["active"] = true;
-				["titlebar"] = titlebar;
-				["textcolor"] = textcolor;
-				["titlebarcolor"] = titlebarcolor;
-				["forced"] = forced;
-			}
 			if closebutton ~= nil then
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
@@ -371,49 +363,51 @@ local success, errorcode = pcall(function()
 			local offsetY
 			local dragging
 			local whodrags
-			titlebar.MouseButton1Down:Connect(function(x, y)
-				for i, v in pairs(windows) do
-					if v.forced ~= true then
-						v.active = false
-					end
-				end
-				windows[windowID].active = true
-				local succ, fail = pcall(function()
-					offsetX = posx - x
-					offsetY = posy - y
-					for i, v in pairs(cursorPositions) do
-						print(i)
-						print(v.X .. ", " ..  v.Y)
-						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
-							whodrags = i
-							print(whodrags .. " is gonna be dragging")
+			if titlebar ~= nil then
+				titlebar.MouseButton1Down:Connect(function(x, y)
+					for i, v in pairs(windows) do
+						if v.forced ~= true then
+							v.active = false
 						end
 					end
-					if whodrags ~= nil then
-						dragging = true
-						titlebar:ChangeProperties({ZIndex = 4})
-						titlebar:ChangeProperties({ZIndex = 3})
-						if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-							dragging = false
+					windows[windowID].active = true
+					local succ, fail = pcall(function()
+						offsetX = posx - x
+						offsetY = posy - y
+						for i, v in pairs(cursorPositions) do
+							print(i)
+							print(v.X .. ", " ..  v.Y)
+							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+								whodrags = i
+								print(whodrags .. " is gonna be dragging")
+							end
 						end
-						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-							dragging = false
+						if whodrags ~= nil then
+							dragging = true
+							titlebar:ChangeProperties({ZIndex = 4})
+							titlebar:ChangeProperties({ZIndex = 3})
+							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+								dragging = false
+							end
+							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+								dragging = false
+							end
+							print("someone's draggin")
+						else
+							print("how the hell")
 						end
-						print("someone's draggin")
-					else
-						print("how the hell")
+					end)
+					if succ == false then
+						print(fail)
 					end
 				end)
-				if succ == false then
-					print(fail)
-				end
-			end)
-			titlebar.MouseButton1Up:Connect(function()
-				dragging = false
-				whodrags = nil
-				offsetX = nil
-				offsetY = nil
-			end)
+				titlebar.MouseButton1Up:Connect(function()
+					dragging = false
+					whodrags = nil
+					offsetX = nil
+					offsetY = nil
+				end)
+			end
 			screenCursorMoved(function(cursor)
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
@@ -437,11 +431,15 @@ local success, errorcode = pcall(function()
 			function windowframemet:IsActive()
 				return windows[windowID].active
 			end
+			local add = 0
+			if titlebar ~= nil then
+				add = 25
+			end
 			function windowframemet:GetCursors()
 				local cursorsProcessed = {}
 				local cursors = screen:GetCursors()
 				for i, v in pairs(cursors) do
-					if v.X - posx >= 0 and v.Y - posy >= 0 then
+					if v.X - posx >= 0 and v.Y - posy + add >= 0 then
 						cursorsProcessed[#cursorsProcessed + 1] = v
 					end
 				end
@@ -464,6 +462,21 @@ local success, errorcode = pcall(function()
 				windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
 				collapsed = true
 			end
+			if titlebar == nil then
+				titlebar = screen:CreateElement("TextLabel", {
+					BackgroundTransparency = 1;
+				})
+				windowframeContainerContainer:AddChild(titlebar)
+			end
+			windows[windowID] = {
+				["active"] = true;
+				["titlebar"] = titlebar;
+				["textcolor"] = textcolor;
+				["titlebarcolor"] = titlebarcolor;
+				["forced"] = forced;
+				["custom"] = false;
+				["framemet"] = windowframemet
+			}
 			return windowframemet, closebutton, titlebar
 		end;
 	}
@@ -520,7 +533,7 @@ local success, errorcode = pcall(function()
 			end
 			local inputbar
 			if prefix ~= nil then
-
+				
 			else
 				prefix = ""
 			end
@@ -676,7 +689,7 @@ local success, errorcode = pcall(function()
 				end
 				if featuresonoff.titlebar ~= false then
 					titlebar = screen:CreateElement("TextButton", {
-						Size = UDim2.fromOffset(x - 50, 25);
+						Size = titlebarsize;
 						Position = UDim2.fromOffset(posx, posy);
 						Text = title;
 						TextColor3 = textcolor;
@@ -773,13 +786,6 @@ local success, errorcode = pcall(function()
 						v.active = false
 					end
 				end
-				windows[windowID] = {
-					["active"] = true;
-					["titlebar"] = titlebar;
-					["textcolor"] = textcolor;
-					["titlebarcolor"] = titlebarcolor;
-					["forced"] = forced;
-				}
 				if closebutton ~= nil then
 					closebutton.MouseButton1Click:Connect(function()
 						titlebar:Destroy()
@@ -790,49 +796,51 @@ local success, errorcode = pcall(function()
 				local offsetY
 				local dragging
 				local whodrags
-				titlebar.MouseButton1Down:Connect(function(x, y)
-					for i, v in pairs(windows) do
-						if v.forced ~= true then
-							v.active = false
-						end
-					end
-					windows[windowID].active = true
-					local succ, fail = pcall(function()
-						offsetX = posx - x
-						offsetY = posy - y
-						for i, v in pairs(cursorPositions) do
-							print(i)
-							print(v.X .. ", " ..  v.Y)
-							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
-								whodrags = i
-								print(whodrags .. " is gonna be dragging")
+				if titlebar ~= nil then
+					titlebar.MouseButton1Down:Connect(function(x, y)
+						for i, v in pairs(windows) do
+							if v.forced ~= true then
+								v.active = false
 							end
 						end
-						if whodrags ~= nil then
-							dragging = true
-							titlebar:ChangeProperties({ZIndex = 4})
-							titlebar:ChangeProperties({ZIndex = 3})
-							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-								dragging = false
+						windows[windowID].active = true
+						local succ, fail = pcall(function()
+							offsetX = posx - x
+							offsetY = posy - y
+							for i, v in pairs(cursorPositions) do
+								print(i)
+								print(v.X .. ", " ..  v.Y)
+								if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+									whodrags = i
+									print(whodrags .. " is gonna be dragging")
+								end
 							end
-							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-								dragging = false
+							if whodrags ~= nil then
+								dragging = true
+								titlebar:ChangeProperties({ZIndex = 4})
+								titlebar:ChangeProperties({ZIndex = 3})
+								if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+									dragging = false
+								end
+								if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+									dragging = false
+								end
+								print("someone's draggin")
+							else
+								print("how the hell")
 							end
-							print("someone's draggin")
-						else
-							print("how the hell")
+						end)
+						if succ == false then
+							print(fail)
 						end
 					end)
-					if succ == false then
-						print(fail)
-					end
-				end)
-				titlebar.MouseButton1Up:Connect(function()
-					dragging = false
-					whodrags = nil
-					offsetX = nil
-					offsetY = nil
-				end)
+					titlebar.MouseButton1Up:Connect(function()
+						dragging = false
+						whodrags = nil
+						offsetX = nil
+						offsetY = nil
+					end)
+				end
 				screenCursorMoved(function(cursor)
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
@@ -856,14 +864,27 @@ local success, errorcode = pcall(function()
 				function windowframemet:IsActive()
 					return windows[windowID].active
 				end
+				local add = 0
+				if titlebar ~= nil then
+					add = 25
+				end
 				function windowframemet:GetCursors()
-					return screen:GetCursors()
+					local cursorsProcessed = {}
+					local cursors = screen:GetCursors()
+					for i, v in pairs(cursors) do
+						if v.X - posx >= 0 and v.Y - posy + add >= 0 then
+							cursorsProcessed[#cursorsProcessed + 1] = v
+						end
+					end
+					return cursorsProcessed
 				end
 				function windowframemet:Close()
 					if titlebar ~= nil then
 						titlebar:Destroy()
+						windows[windowID] = nil
 					else
 						windowframeContainerContainer:Destroy()
+						windows[windowID] = nil
 					end
 				end
 				function windowframemet:Restore()
@@ -874,6 +895,21 @@ local success, errorcode = pcall(function()
 					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
 					collapsed = true
 				end
+				if titlebar == nil then
+					titlebar = screen:CreateElement("TextLabel", {
+						BackgroundTransparency = 1;
+					})
+					windowframeContainerContainer:AddChild(titlebar)
+				end
+				windows[windowID] = {
+					["active"] = true;
+					["titlebar"] = titlebar;
+					["textcolor"] = textcolor;
+					["titlebarcolor"] = titlebarcolor;
+					["forced"] = forced;
+					["custom"] = true;
+					["framemet"] = windowframemet
+				}
 				return windowframemet, closebutton, titlebar
 			end;
 		})
@@ -1271,15 +1307,14 @@ local success, errorcode = pcall(function()
 		local keyboard = availableComponents["keyboard"]
 		local mic = availableComponents["microphone"]
 		disks = GetPartsFromPort(1, "Disk")
-		local diskamount = 0
 		for i, disk in pairs(disks) do
 			if disk ~= nil then
-				disksdetected = true
-				diskamount = i
 				mounteddisks[i] = disk
 			end
 		end
-		CreateSelfTestOutput("Disks detected: " .. tostring(diskamount), UDim2.fromOffset(10, outAmount * 25 + 10))
+		if #mounteddisks ~= 0 then
+			CreateSelfTestOutput("Disks detected: " .. tostring(#mounteddisks), UDim2.fromOffset(10, outAmount * 25 + 10))
+		end
 		wait(1)
 		outAmount = 0
 		closeCoroutine(loadBarRoutine)
@@ -1610,6 +1645,12 @@ local success, errorcode = pcall(function()
 				elseif string.sub(text, 1, 4) == "kill" then
 					local killed = closeByName(string.sub(text, 6, #text))
 					terminalout("Killed " .. tostring(killed) .. " coroutines.")
+				elseif text == "closecustom" then
+					for i, window in pairs(windows) do
+						if window.custom == true then
+							window.framemet:Close()
+						end
+					end
 				else
 					return true, "no such command"
 				end
