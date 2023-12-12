@@ -472,6 +472,7 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 				})
+				windowframeContainer:AddChild(windowframe)
 			end
 			if titlebar == nil then
 				titlebar = screen:CreateElement("TextLabel", {
@@ -930,7 +931,7 @@ local success, errorcode = pcall(function()
 					["textcolor"] = textcolor;
 					["titlebarcolor"] = titlebarcolor;
 					["forced"] = forced;
-					["custom"] = false;
+					["custom"] = true;
 					["framemet"] = windowframemet
 				}
 				return windowframemet, closebutton, titlebar
