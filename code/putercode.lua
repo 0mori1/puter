@@ -711,7 +711,7 @@ local success, errorcode = pcall(function()
 						ZIndex = zindex;
 					})
 				end
-				if featuresonoff.closebutton ~= false then
+				if featuresonoff.closebutton ~= false and titlebar ~= nil then
 					closebutton = screen:CreateElement("TextButton", {
 						Position = UDim2.fromOffset(x - 25, 0);
 						Size = UDim2.fromOffset(25, 25);
@@ -723,7 +723,7 @@ local success, errorcode = pcall(function()
 						ZIndex = 3;
 					})
 				end
-				if featuresonoff.collapse ~= false then
+				if featuresonoff.collapse ~= false and titlebar ~= nil then
 					collapseButton = screen:CreateElement("TextButton", {
 						Position = UDim2.fromOffset(x - 50, 0);
 						Size = UDim2.fromOffset(25, 25);
@@ -906,6 +906,17 @@ local success, errorcode = pcall(function()
 					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
 					collapsed = true
 				end
+				function windowframemet:ClearElements()
+					windowframe:Destroy()
+					windowframe = screen:CreateElement("Frame", {
+						Size = UDim2.fromOffset(x, y);
+						Position = UDim2.fromOffset(0, 0);
+						BorderSizePixel = 0;
+						BackgroundColor3 = backgrndcolor;
+						ZIndex = 3;
+						ClipsDescendants = true;
+					})
+				end
 				if titlebar == nil then
 					titlebar = screen:CreateElement("TextLabel", {
 						BackgroundTransparency = 1;
@@ -918,7 +929,7 @@ local success, errorcode = pcall(function()
 					["textcolor"] = textcolor;
 					["titlebarcolor"] = titlebarcolor;
 					["forced"] = forced;
-					["custom"] = true;
+					["custom"] = false;
 					["framemet"] = windowframemet
 				}
 				return windowframemet, closebutton, titlebar
