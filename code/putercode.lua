@@ -121,6 +121,9 @@ local function ReturnError(errorcode, errortype)
 	end
 end
 local success, errorcode = pcall(function()
+	local cliblacklist = {
+		["bredisgudok"] = true;
+	}
 	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
 	local iconAmount = 0
@@ -545,7 +548,7 @@ local success, errorcode = pcall(function()
 			end
 			local inputbar
 			if prefix ~= nil then
-				
+
 			else
 				prefix = ""
 			end
@@ -559,17 +562,21 @@ local success, errorcode = pcall(function()
 			output(outOnStart)
 			requireNewInputBar()
 			xConnect("keyboard", "TextInputted", function(text, plr)
-				text = string.sub(text, 1, #text - 1)
-				if inputbar ~= nil then
-					cliOutput[inputbar] = prefix .. "> " .. text
-					updateOutput()
-				else
+				if cliblacklist[plr] == nil then
+					text = string.sub(text, 1, #text - 1)
+					if inputbar ~= nil then
+						cliOutput[inputbar] = prefix .. "> " .. text
+						updateOutput()
+					else
+						requireNewInputBar()
+						cliOutput[inputbar] = prefix .. "> " .. text
+						updateOutput()
+					end
+					oninput(text, plr, output, clear)
 					requireNewInputBar()
-					cliOutput[inputbar] = prefix .. "> " .. text
-					updateOutput()
+				else
+					Beep(0.5)
 				end
-				oninput(text, plr, output, clear)
-				requireNewInputBar()
 			end)
 			return output
 		end;
@@ -1000,16 +1007,20 @@ local success, errorcode = pcall(function()
 				output(outOnStart)
 				requireNewInputBar()
 				xConnect("keyboard", "TextInputted", function(text, plr)
-					if inputbar ~= nil then
-						cliOutput[inputbar] = "> " .. text
-						updateOutput()
-					else
+					if cliblacklist[plr] == nil then
+						if inputbar ~= nil then
+							cliOutput[inputbar] = "> " .. text
+							updateOutput()
+						else
+							requireNewInputBar()
+							cliOutput[inputbar] = "> " .. text
+							updateOutput()
+						end
+						oninput(text, plr, output, clear)
 						requireNewInputBar()
-						cliOutput[inputbar] = "> " .. text
-						updateOutput()
+					else
+						Beep(0.5)
 					end
-					oninput(text, plr, output, clear)
-					requireNewInputBar()
 				end)
 				return output
 			end;
