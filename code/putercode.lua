@@ -1712,7 +1712,7 @@ local success, errorcode = pcall(function()
 			["image"] = "Image";
 			["audio"] = "Audio";
 			["video"] = "Video";
-			["folder"] = "Folder"
+			["folder"] = "Folder";
 		}
 		local function typeParser(input)
 			if input == "t:folder" then
@@ -1795,6 +1795,7 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 				})
 				local lag = {}
+				local lagBars = {}
 				local function addFramerate(framerate)
 					if #lag <= 13 then
 						lag[#lag + 1] = framerate
@@ -1858,20 +1859,28 @@ local success, errorcode = pcall(function()
 							else
 								size = UDim2.fromOffset(25, 60)
 							end
-							local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
-								Size = size;
-								BackgroundColor3 = color;
-								BorderSizePixel = 0;
-								Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
-							})
-							local lagAmount = puter.AddElement(lagBar, "TextLabel", {
-								Size = UDim2.fromOffset(15, 15);
-								Position = UDim2.fromOffset(5, -20);
-								Text = tostring(v);
-								TextScaled = true;
-								TextColor3 = color;
-								BackgroundTransparency = 1;
-							})
+							if lagBars[i] == nil then
+								local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
+									Size = size;
+									BackgroundColor3 = color;
+									BorderSizePixel = 0;
+									Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
+								})
+								local lagAmount = puter.AddElement(lagBar, "TextLabel", {
+									Size = UDim2.fromOffset(15, 15);
+									Position = UDim2.fromOffset(5, -20);
+									Text = tostring(v);
+									TextScaled = true;
+									TextColor3 = color;
+									BackgroundTransparency = 1;
+								})
+								lagBars[i] = {}
+								lagBars[i]["bar"] = lagBar
+								lagBars[i]["amount"] = lagAmount
+							else
+								lagBars[i]["bar"]:ChangeProperties({Size = size; BackgroundColor3 = color; Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25);})
+								lagBars[i]["amount"]:ChangeProperties({Text = tostring(v); TextColor3 = color;})
+							end
 						end
 					end
 				end, "Lag History")
