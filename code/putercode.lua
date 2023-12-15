@@ -1833,13 +1833,6 @@ local success, errorcode = pcall(function()
 				local lagHistory = newCoroutine(function()
 					while true do 
 						wait(0.5)
-						lagHistoryFrame:Destroy()
-						lagHistoryFrame = puter.AddWindowElement(window, "Frame", {
-							Size = UDim2.fromOffset(350, 85);
-							Position = UDim2.fromOffset(0, 140);
-							BackgroundColor3 = Color3.fromRGB(0,0,0);
-							BorderSizePixel = 0;
-						})
 						for i, v in pairs(lag) do
 							local color
 							local size
