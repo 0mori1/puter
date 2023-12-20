@@ -1033,17 +1033,19 @@ local success, errorcode = pcall(function()
 				output(outOnStart)
 				requireNewInputBar()
 				xConnect("keyboard", "TextInputted", function(text, plr)
-					if cliblacklist[plr] == nil then
-						if inputbar ~= nil then
-							cliOutput[inputbar] = "> " .. text
-							updateOutput()
-						else
+					if cliblacklist[plr] == nil and cliwindow ~= nil then
+						if cliwindow:Active() == true then
+							if inputbar ~= nil then
+								cliOutput[inputbar] = "> " .. text
+								updateOutput()
+							else
+								requireNewInputBar()
+								cliOutput[inputbar] = "> " .. text
+								updateOutput()
+							end
+							oninput(text, plr, output, clear)
 							requireNewInputBar()
-							cliOutput[inputbar] = "> " .. text
-							updateOutput()
 						end
-						oninput(text, plr, output, clear)
-						requireNewInputBar()
 					else
 						Beep(0.5)
 					end
@@ -1060,7 +1062,8 @@ local success, errorcode = pcall(function()
 			Text = "wOS";
 			TextScaled = true;
 			TextColor3 = Color3.fromRGB(130, 204, 158);
-			BackgroundTransparency = 1
+			BackgroundTransparency = 1;
+			Font = Enum.Font.Arcade;
 		})
 		for i = 0, 1, 1 do
 			screen:CreateElement("Frame", {
