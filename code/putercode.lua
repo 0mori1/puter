@@ -580,6 +580,32 @@ local success, errorcode = pcall(function()
 			end)
 			return output
 		end;
+		iconEngine = function(iconX, iconY, paddingX, paddingY, maxX, maxY, parentFrame, isImage)
+			local iconsCreated = 0
+			local maxIconX = math.floor((maxX - paddingX) / (iconX + paddingX))
+			local maxIconY = math.floor((maxY - paddingY) / (iconY + paddingY))
+			local function createIcon(text, image)
+				if isImage == false then
+					puter.AddElement(parentFrame, "TextButton", {
+						Text = text;
+						Size = UDim2.fromOffset(iconX, iconY);
+					})
+				else
+					if image ~= nil then
+						puter.AddElement(parentFrame, "ImageButton", {
+							Text = text;
+							Size = UDim2.fromOffset(iconX, iconY);
+							Image = image
+						})
+					else
+						puter.AddElement(parentFrame, "ImageButton", {
+							Text = text;
+							Size = UDim2.fromOffset(iconX, iconY);
+						})
+					end
+				end
+			end
+		end;
 	}
 	local filesystem = {
 		createDirectory = function(path, disk)
@@ -1518,6 +1544,53 @@ local success, errorcode = pcall(function()
 			["Hail12Pink"] = "No.";
 			["Syroos"] = "nah";
 		}
+		local pages = {
+			[1] = {
+				"Page 1 out of 4";
+				"lua run [Code]: Runs the code on an";
+				"another microcontroller";
+				"lua stop: Stops running code";
+				"shutdown: Shuts down the puter";
+				"restart: Restarts the puter";
+				"record: Starts recording chat messages";
+				"stop recording: Stops recording chat messages";
+			};
+			[2] = {
+				"Page 2 out of 4";
+				"setwallpaper [ImageID]: Sets the wallpaper";
+				"to the specified image. [Marketplace IDs don't]";
+				"work";
+				"play all messages: Displays all recorded";
+				"messages on an another window";
+				"clear recorded: Clears all recorded messages";
+				"play audio [AudioID]: Plays an audio";
+				"display image [ImageID]: Displays an image";
+			};
+			[3] = {
+				"Page 3 out of 4";
+				"setmodemid [number]: Sets the network ID of";
+				"the program accessable modem";
+				"record text: Records keyboard inputs";
+				"stop recording text: Stops recording";
+				"keyboard inputs";
+				"play all text messages: Displays all";
+				"recorded keyboard inputs.";
+				"clear recorded text: Clears recorded";
+				"keyboard inputs";
+			};
+			[4] = {
+				"Page 4 out of 4";
+				"set pitch [pitch]: Sets the pitch of the speaker";
+				"disk run [key]: Runs the code in the key of the";
+				"attachable disk";
+				"play video [VideoID]: Plays a video";
+				"reset: Clears the storage disk";
+				"crash: Causes a crash";
+				"clear: Clears the terminal";
+				"kill [Coroutine]: Kills a coroutine.";
+				"closecustom: Closes all custom windows.";
+			}
+		}
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
@@ -1542,9 +1615,6 @@ local success, errorcode = pcall(function()
 						storage:Write("Wallpaper", image)
 					end
 					background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
-				elseif string.sub(text, 1, 21) == "play recorded message" then
-					local message = recorded[tonumber(string.sub(text, 23, #text))]
-					terminalout(tostring(message))
 				elseif text == "play all messages" then
 					if displayingallmsgs == false then
 						local frame, closebutton = puter.CreateWindow(500, 225, "All Messages")
@@ -1613,9 +1683,6 @@ local success, errorcode = pcall(function()
 					recordingtext = true
 				elseif text == "stop recording text" then
 					recordingtext = false
-				elseif text == "play recorded text message" then
-					local message = recordedtext[tonumber(string.sub(text, 28, #text))]
-					terminalout(tostring(message))
 				elseif string.sub(text, 1, 22) == "play all text messages" then
 					if displayingallmsgs == false then
 						local frame, closebutton = puter.CreateWindow(500, 225, "All Text Messages")
@@ -1685,6 +1752,14 @@ local success, errorcode = pcall(function()
 						if window.custom == true then
 							window.framemet:Close()
 						end
+					end
+				elseif string.sub(text, 1, 4) == "help" then
+					if pages[tonumber(string.sub(text, 6, #text))] ~= nil then
+						for i, v in pairs(pages[tonumber(string.sub(text, 6, #text))]) do
+							terminalout(v)
+						end
+					else
+						terminalout("help [Page]: Displays 1 of the 4 pages.")
 					end
 				else
 					return true, "no such command"
