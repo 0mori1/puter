@@ -584,26 +584,79 @@ local success, errorcode = pcall(function()
 			local iconsCreated = 0
 			local maxIconX = math.floor((maxX - paddingX) / (iconX + paddingX))
 			local maxIconY = math.floor((maxY - paddingY) / (iconY + paddingY))
-			local function createIcon(text, image)
-				if isImage == false then
-					puter.AddElement(parentFrame, "TextButton", {
-						Text = text;
-						Size = UDim2.fromOffset(iconX, iconY);
-					})
-				else
-					if image ~= nil then
-						puter.AddElement(parentFrame, "ImageButton", {
+			if isImage ~= true then
+				local function createIcon(text, backgroundcolor, textcolor)
+					local yOffset = math.floor(iconsCreated / maxIconX)
+					local xOffset = iconsCreated - yOffset * maxIconX
+					if yOffset < maxIconY then
+						local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
+						puter.AddElement(parentFrame, "TextButton", {
 							Text = text;
 							Size = UDim2.fromOffset(iconX, iconY);
-							Image = image
-						})
-					else
-						puter.AddElement(parentFrame, "ImageButton", {
-							Text = text;
-							Size = UDim2.fromOffset(iconX, iconY);
+							Position = position;
+							BackgroundColor3 = backgroundcolor;
+							TextColor3 = textcolor;
+							TextScaled = true;
 						})
 					end
 				end
+				return createIcon
+			else
+				local function createIcon(text, textcolor, image)
+					local yOffset = math.floor(iconsCreated / maxIconX)
+					local xOffset = iconsCreated - yOffset * maxIconX
+					if yOffset < maxIconY then
+						local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
+						if image ~= nil then
+							local parent = puter.AddElement(parentFrame, "Frame", {
+								Size = UDim2.fromOffset(iconX, iconY);
+								Position = position;
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+							})
+							local label = puter.AddElement(parent, "TextLabel", {
+								Size = UDim2.fromOffset(iconX, 15);
+								Position = UDim2.fromOffset(0, iconX - 10);
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+								Text = text;
+								TextScaled = true;
+								TextColor3 = textcolor
+							})	
+							return puter.AddElement(parent, "ImageButton", {
+								Size = UDim2.fromOffset(iconX, iconY - 25);
+								Position = position;
+								BorderSizePixel = 0;
+								Image = image;
+							})
+						else
+							local parent = puter.AddElement(parentFrame, "Frame", {
+								Size = UDim2.fromOffset(iconX, iconY);
+								Position = position;
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+							})
+							local label = puter.AddElement(parent, "TextLabel", {
+								Size = UDim2.fromOffset(iconX, 15);
+								Position = UDim2.fromOffset(0, iconX - 10);
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+								Text = text;
+								TextScaled = true;
+								TextColor3 = textcolor
+							})
+							return puter.AddElement(parent, "ImageButton", {
+								Size = UDim2.fromOffset(iconX, iconY - 25);
+								Position = UDim2.fromOffset(0, 0);
+								BorderSizePixel = 0;
+							})
+						end
+					else
+						warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
+						return
+					end
+				end
+				return createIcon
 			end
 		end;
 	}
@@ -970,89 +1023,7 @@ local success, errorcode = pcall(function()
 				return windowframemet, closebutton, titlebar
 			end;
 		})
-		rom:Write("puterutils", {
-			cliengine = function(oninput, name, outOnStart, onClose, prefix)
-				local puter = rom:Read("PuterLibrary")
-				local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
-				local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
-					Size = UDim2.fromOffset(450, 275);
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					BorderSizePixel = 0;
-				})
-				closebutton.MouseButton1Click:Connect(onClose)
-				local cliOutput = {}
-				local function addTextToOutput(Out)
-					if #cliOutput <= 10 then
-						cliOutput[#cliOutput + 1] = Out
-						return #cliOutput
-					else
-						cliOutput[1] = nil
-						for i, v in pairs(cliOutput) do
-							if i >= 2 and i <= 11 then
-								cliOutput[i - 1] = cliOutput[i]
-							end
-						end
-						cliOutput[11] = Out
-						return 11
-					end
-				end
-				local function updateOutput()
-					frame:Destroy()
-					frame = puter.AddWindowElement(cliwindow, "Frame", {
-						Size = UDim2.fromOffset(450, 275);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						BorderSizePixel = 0;
-					})
-					for i, v in pairs(cliOutput) do
-						local textlabel = puter.AddWindowElement(cliwindow, "TextLabel", {
-							Size = UDim2.fromOffset(444, 25);
-							Position = UDim2.fromOffset(0, (i - 1) * 25);
-							Text = v;
-							TextColor3 = Color3.fromRGB(255,255,255);
-							BackgroundColor3 = Color3.fromRGB(0,0,0);
-							BorderSizePixel = 0;
-							TextXAlignment = Enum.TextXAlignment.Left;
-							TextScaled = true;
-							Font = Enum.Font.RobotoMono
-						})
-						frame:AddChild(textlabel)
-					end
-				end
-				local function output(Out)
-					addTextToOutput(Out)
-					updateOutput()
-				end
-				local inputbar
-				local function requireNewInputBar()
-					inputbar = addTextToOutput(prefix or "" .. "> ")
-					updateOutput()
-				end
-				local function clear()
-					cliOutput = {}
-				end
-				output(outOnStart)
-				requireNewInputBar()
-				xConnect("keyboard", "TextInputted", function(text, plr)
-					if cliblacklist[plr] == nil and cliwindow ~= nil then
-						if cliwindow:Active() == true then
-							if inputbar ~= nil then
-								cliOutput[inputbar] = "> " .. text
-								updateOutput()
-							else
-								requireNewInputBar()
-								cliOutput[inputbar] = "> " .. text
-								updateOutput()
-							end
-							oninput(text, plr, output, clear)
-							requireNewInputBar()
-						end
-					else
-						Beep(0.5)
-					end
-				end)
-				return output
-			end;
-		})
+		rom:Write("puterutils", puterutils)
 		rom:Write("filesystem", filesystem)
 	end
 	local function createwOSboot()
@@ -3418,6 +3389,7 @@ local success, errorcode = pcall(function()
 		end)
 		local canopennetworking = true
 		local canopenpreferences = true
+		local canopenpersonalization = true
 		settingsbutton.MouseButton1Click:Connect(function()
 			local settingswindow
 			local closebtn
@@ -3432,6 +3404,12 @@ local success, errorcode = pcall(function()
 				local preferences = puter.AddWindowElement(settingswindow, "TextButton", {
 					Text = "Preferences";
 					Position = UDim2.fromOffset(250, 25);
+					Size = UDim2.fromOffset(175, 50);
+					TextScaled = true;
+				})
+				local personalization = puter.AddWindowElement(settingswindow, "TextButton", {
+					Text = "Personalization";
+					Position = UDim2.fromOffset(25, 100);
 					Size = UDim2.fromOffset(175, 50);
 					TextScaled = true;
 				})
@@ -3564,7 +3542,24 @@ local success, errorcode = pcall(function()
 						end)
 					end
 				end)
-				canspawnsettings = false
+				personalization.MouseButton1Click:Connect(function()
+					if canopenpersonalization == true then
+						local window, closebutton, titlebar = puter.CreateWindow(300, 375, "Personalization")
+						closebutton.MouseButton1Click:Connect(function()
+							canopenpersonalization = true
+						end)
+						canopenpersonalization = false
+						window:CreateElement("TextLabel", {
+							Size = UDim2.fromOffset(300, 25);
+							Position = UDim2.fromOffset(0, 0);
+							BackgroundTransparency = 1;
+							BorderSizePixel = 0;
+							Text = "Under construction, stay away!";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(255,255,255);
+						})
+					end
+				end)
 			end
 			closebtn.MouseButton1Click:Connect(function()
 				canopennetworking = true
