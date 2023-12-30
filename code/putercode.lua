@@ -3544,13 +3544,13 @@ local success, errorcode = pcall(function()
 				end)
 				personalization.MouseButton1Click:Connect(function()
 					if canopenpersonalization == true then
-						local window, closebutton, titlebar = puter.CreateWindow(250, 300, "Personalization")
+						local window, closebutton, titlebar = puter.CreateWindow(350, 300, "Personalization")
 						closebutton.MouseButton1Click:Connect(function()
 							canopenpersonalization = true
 						end)
 						canopenpersonalization = false
 						window:CreateElement("TextLabel", {
-							Size = UDim2.fromOffset(300, 25);
+							Size = UDim2.fromOffset(350, 25);
 							Position = UDim2.fromOffset(0, 0);
 							BackgroundTransparency = 1;
 							BorderSizePixel = 0;
