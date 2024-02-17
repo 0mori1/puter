@@ -3373,6 +3373,13 @@ local success, errorcode = pcall(function()
 				["headerKey"] = "headerEdit";
 				["headerValue"] = "headerEdit";
 			}
+			local prefixes = {
+				["domain"] = "Domain: ";
+				["dataKey"] = "Data Index: ";
+				["dataValue"] = "Data Value: ";
+				["headerKey"] = "Header Index: ";
+				["headerValue"] = "Header Value: ";
+			}
 			local currentlyOpen = "main"
 			local data = {}
 			local headers = {}
@@ -3405,6 +3412,7 @@ local success, errorcode = pcall(function()
 				})
 				addButton.MouseButton1Click:Connect(function()
 					currentlyOpen = "dataEdit"
+					window:ClearElements()
 					system.dataKey = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(380, 25);
 						Position = UDim2.fromOffset(10, 10);
@@ -3415,7 +3423,7 @@ local success, errorcode = pcall(function()
 					})
 					system.dataValue = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(380, 25);
-						Position = UDim2.fromOffset(10, 10);
+						Position = UDim2.fromOffset(10, 45);
 						Text = "Data Value: " .. memory.dataValue;
 						BackgroundColor3 = Color3.fromRGB(100,100,100);
 						TextColor3 = Color3.fromRGB(0,0,0);
@@ -3459,6 +3467,9 @@ local success, errorcode = pcall(function()
 						})
 						wait(1)
 						success:Destroy()
+					end)
+					backButton.MouseButton1Click:Connect(function()
+						openDataMenu()
 					end)
 				end)
 				local dataFrame = window:CreateElement("ScrollingFrame", {
@@ -3537,6 +3548,7 @@ local success, errorcode = pcall(function()
 				})
 				addButton.MouseButton1Click:Connect(function()
 					currentlyOpen = "headerEdit"
+					window:ClearElements()
 					system.headerKey = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(380, 25);
 						Position = UDim2.fromOffset(10, 10);
@@ -3578,6 +3590,9 @@ local success, errorcode = pcall(function()
 						focused = "headerValue"
 						system.headerKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
 						system.headerValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+					end)
+					backButton.MouseButton1Click:Connect(function()
+						openHeaderMenu()
 					end)
 					addButton.MouseButton1Click:Connect(function()
 						headers[memory.headerKey] = memory.headerValue
@@ -3802,7 +3817,7 @@ local success, errorcode = pcall(function()
 				if currentlyOpen == focusLogic[focused] then
 					if memory[focused] ~= nil then memory[focused] = text end
 					if system[focused] ~= nil then
-						system[focused]:ChangeProperties({Text = text})
+						system[focused]:ChangeProperties({Text = prefixes[focused] .. text})
 					end
 				end
 			end)
