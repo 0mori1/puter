@@ -3431,7 +3431,7 @@ local success, errorcode = pcall(function()
 					})
 					local backButton = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(50, 25);
-						Position = UDim2.fromOffset(145, 365);
+						Position = UDim2.fromOffset(145, 190);
 						Text = "Back";
 						BackgroundColor3 = Color3.fromRGB(100,100,100);
 						TextColor3 = Color3.fromRGB(0,0,0);
@@ -3439,7 +3439,7 @@ local success, errorcode = pcall(function()
 					})
 					local addButton = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(50, 25);
-						Position = UDim2.fromOffset(205, 365);
+						Position = UDim2.fromOffset(205, 190);
 						Text = "Add";
 						BackgroundColor3 = Color3.fromRGB(100,100,100);
 						TextColor3 = Color3.fromRGB(0,0,0);
@@ -3460,7 +3460,7 @@ local success, errorcode = pcall(function()
 						local success = window:CreateElement("TextLabel", {
 							Text = "added";
 							Size = UDim2.fromOffset(400, 25);
-							Position = UDim2.fromOffset(0, 330);
+							Position = UDim2.fromOffset(0, 155);
 							TextScaled = true;
 							TextColor3 = Color3.fromRGB(0,255,0);
 							BackgroundTransparency = 1;
@@ -3567,7 +3567,7 @@ local success, errorcode = pcall(function()
 					})
 					local backButton = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(50, 25);
-						Position = UDim2.fromOffset(145, 365);
+						Position = UDim2.fromOffset(145, 190);
 						Text = "Back";
 						BackgroundColor3 = Color3.fromRGB(100,100,100);
 						TextColor3 = Color3.fromRGB(0,0,0);
@@ -3575,7 +3575,7 @@ local success, errorcode = pcall(function()
 					})
 					local addButton = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(50, 25);
-						Position = UDim2.fromOffset(205, 365);
+						Position = UDim2.fromOffset(205, 190);
 						Text = "Add";
 						BackgroundColor3 = Color3.fromRGB(100,100,100);
 						TextColor3 = Color3.fromRGB(0,0,0);
@@ -3599,7 +3599,7 @@ local success, errorcode = pcall(function()
 						local success = window:CreateElement("TextLabel", {
 							Text = "added";
 							Size = UDim2.fromOffset(400, 25);
-							Position = UDim2.fromOffset(0, 330);
+							Position = UDim2.fromOffset(0, 155);
 							TextScaled = true;
 							TextColor3 = Color3.fromRGB(0,255,0);
 							BackgroundTransparency = 1;
@@ -3693,7 +3693,6 @@ local success, errorcode = pcall(function()
 								BackgroundColor3 = Color3.fromRGB(100,100,100);
 								TextColor3 = Color3.fromRGB(0,0,0);
 								TextScaled = true;
-								BorderSizePixel = 0;
 							})
 							okButton.MouseButton1Click:Connect(function()
 								initialize()
@@ -3732,7 +3731,6 @@ local success, errorcode = pcall(function()
 								BackgroundColor3 = Color3.fromRGB(100,100,100);
 								TextColor3 = Color3.fromRGB(0,0,0);
 								TextScaled = true;
-								BorderSizePixel = 0;
 							})
 							okButton.MouseButton1Click:Connect(function()
 								initialize()
@@ -3754,7 +3752,6 @@ local success, errorcode = pcall(function()
 							BackgroundColor3 = Color3.fromRGB(100,100,100);
 							TextColor3 = Color3.fromRGB(0,0,0);
 							TextScaled = true;
-							BorderSizePixel = 0;
 						})
 						okButton.MouseButton1Click:Connect(function()
 							initialize()
@@ -3822,7 +3819,7 @@ local success, errorcode = pcall(function()
 						if memory[focused] ~= nil then print("written input to memory") memory[focused] = text end
 						if system[focused] ~= nil then
 							print("attempting to change the properties of the focused textbox")
-							system[focused]:ChangeProperties({Text = prefixes[focused] or "something went wrong" .. text})
+							system[focused]:ChangeProperties({Text = prefixes[focused] .. text})
 						end
 					end
 				end
