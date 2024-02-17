@@ -1194,6 +1194,7 @@ local success, errorcode = pcall(function()
 		startmenu:AddChild(restartbutton)
 		startmenu:AddChild(settingsbutton)
 		startmenu:AddChild(terminal)
+		startmenu:AddChild(postomatic)
 		-- Assign the start button to open up the start menu
 		startbutton.MouseButton1Click:Connect(function()
 			if startmenustatus == true then
@@ -3395,7 +3396,7 @@ local success, errorcode = pcall(function()
 				end)
 				local addButton = window:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(300, 25);
-					Position = UDim2.fromOffset(0, 0);
+					Position = UDim2.fromOffset(100, 0);
 					Text = "Add";
 					TextScaled = true;
 					BackgroundColor3 = Color3.fromRGB(0,255,0);
@@ -3527,7 +3528,7 @@ local success, errorcode = pcall(function()
 				end)
 				local addButton = window:CreateElement("TextButton", {
 					Size = UDim2.fromOffset(300, 25);
-					Position = UDim2.fromOffset(0, 0);
+					Position = UDim2.fromOffset(100, 0);
 					Text = "Add";
 					TextScaled = true;
 					BackgroundColor3 = Color3.fromRGB(0,255,0);
