@@ -598,6 +598,8 @@ local success, errorcode = pcall(function()
 							TextColor3 = textcolor;
 							TextScaled = true;
 						})
+					else
+						warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
 					end
 				end
 				return createIcon
@@ -1173,6 +1175,13 @@ local success, errorcode = pcall(function()
 			TextScaled = true;
 			ZIndex = 5
 		})
+		local postomatic = screen:CreateElement("TextButton", {
+			Position = UDim2.fromOffset(10, 110);
+			Size = UDim2.fromOffset(180, 40);
+			Text = "Post O'Matic";
+			TextScaled = true;
+			ZIndex = 5
+		})
 		-- Add all of these items to their specific locations
 		background:AddChild(explorerApp)
 		background:AddChild(chatApp)
@@ -1196,7 +1205,7 @@ local success, errorcode = pcall(function()
 			end
 		end)
 		-- Return all of these items
-		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp
+		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic
 	end
 	local powerCheck
 	powerCheck = newCoroutine(function()
@@ -1355,7 +1364,7 @@ local success, errorcode = pcall(function()
 		closeCoroutine(loadBarRoutine)
 		Beep()
 		-- this funny thing does funny defining with the InitializeDesktop() function
-		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp = InitializeDesktop()
+		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic = InitializeDesktop()
 		for i, v in pairs(mounteddisks) do
 			v:Write("/", "t:folder")
 		end
@@ -3335,6 +3344,473 @@ local success, errorcode = pcall(function()
 		chatApp.MouseButton1Click:Connect(function()
 			openChat()
 		end)
+		local postomaticOpen = false
+		local function openPostOMatic()
+			local window, closebutton, titlebar = puter.CreateWindow(400, 225, "Post-O-Matic")
+			postomaticOpen = true
+			closebutton.MouseButton1Click:Connect(function()
+				postomaticOpen = false
+			end)
+			local memory = {
+				["domain"] = "";
+				["dataKey"] = "";
+				["dataValue"] = "";
+				["headerKey"] = "";
+				["headerValue"] = "";
+			}
+			local system = {
+				["domain"] = nil;
+				["dataKey"] = nil;
+				["dataValue"] = nil;
+				["headerKey"] = nil;
+				["headerValue"] = nil;
+			}
+			local focusLogic = {
+				["domain"] = "main";
+				["dataKey"] = "dataEdit";
+				["dataValue"] = "dataEdit";
+				["headerKey"] = "headerEdit";
+				["headerValue"] = "headerEdit";
+			}
+			local currentlyOpen = "main"
+			local data = {}
+			local headers = {}
+			local focused = ""
+			local busy = false
+			local initialize
+			local function openDataMenu()
+				currentlyOpen = "dataMenu"
+				window:ClearElements()
+				local backButton = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(100, 25);
+					Position = UDim2.fromOffset(0, 0);
+					Text = "< Back";
+					TextScaled = true;
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BorderSizePixel = 0;
+				})
+				backButton.MouseButton1Click:Connect(function()
+					initialize()
+				end)
+				local addButton = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(300, 25);
+					Position = UDim2.fromOffset(0, 0);
+					Text = "Add";
+					TextScaled = true;
+					BackgroundColor3 = Color3.fromRGB(0,255,0);
+					TextColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				addButton.MouseButton1Click:Connect(function()
+					currentlyOpen = "dataEdit"
+					system.dataKey = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(380, 25);
+						Position = UDim2.fromOffset(10, 10);
+						Text = "Data Index: " .. memory.dataKey;
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					system.dataValue = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(380, 25);
+						Position = UDim2.fromOffset(10, 10);
+						Text = "Data Value: " .. memory.dataValue;
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					local backButton = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(50, 25);
+						Position = UDim2.fromOffset(145, 365);
+						Text = "Back";
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					local addButton = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(50, 25);
+						Position = UDim2.fromOffset(205, 365);
+						Text = "Add";
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					system.dataKey.MouseButton1Click:Connect(function()
+						focused = "dataKey"
+						system.dataKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+						system.dataValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
+					end)
+					system.dataValue.MouseButton1Click:Connect(function()
+						focused = "dataValue"
+						system.dataKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
+						system.dataValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+					end)
+					addButton.MouseButton1Click:Connect(function()
+						data[memory.dataKey] = memory.dataValue
+						local success = window:CreateElement("TextLabel", {
+							Text = "added";
+							Size = UDim2.fromOffset(400, 25);
+							Position = UDim2.fromOffset(0, 330);
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,255,0);
+							BackgroundTransparency = 1;
+						})
+						wait(1)
+						success:Destroy()
+					end)
+				end)
+				local dataFrame = window:CreateElement("ScrollingFrame", {
+					Size = UDim2.fromOffset(400, 200);
+					Position = UDim2.fromOffset(0, 25);
+					BackgroundColor3 = Color3.fromRGB(86, 86, 86);
+					BorderSizePixel = 0;
+					ScrollBarThickness = 2;
+					ScrollingDirection = Enum.ScrollingDirection.Y;
+					CanvasSize = UDim2.fromOffset(0, 0);
+				})
+				local offset = 0
+				for i, v in pairs(data) do
+					offset += 1
+					dataFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset * 25)})
+					local parent = window:CreateElement("Frame", {
+						Size = UDim2.fromOffset(400, 25);
+						Position = UDim2.fromOffset(0, (offset - 1) * 25);
+						BackgroundTransparency = 1;
+						BorderSizePixel = 0;
+					})
+					puter.AddElement(parent, "TextLabel", {
+						Size = UDim2.fromOffset(180, 25);
+						Position = UDim2.fromOffset(0, 0);
+						Text = i;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundTransparency = 1;
+						TextScaled = true;
+						BorderSizePixel = 0;
+					})
+					puter.AddElement(parent, "TextLabel", {
+						Size = UDim2.fromOffset(180, 25);
+						Position = UDim2.fromOffset(180, 0);
+						Text = v;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundTransparency = 1;
+						TextScaled = true;
+						BorderSizePixel = 0;
+					})
+					local remove = puter.AddElement(parent, "TextButton", {
+						Size = UDim2.fromOffset(40, 25);
+						Position = UDim2.fromOffset(360, 0);
+						Text = "Remove";
+						TextColor3 = Color3.fromRGB(255,0,0);
+						TextScaled = true;
+						BorderSizePixel = 0;
+					})
+					remove.MouseButton1Click:Connect(function()
+						data[i] = nil
+					end)
+				end
+			end
+			local function openHeaderMenu()
+				currentlyOpen = "headerMenu"
+				window:ClearElements()
+				local backButton = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(100, 25);
+					Position = UDim2.fromOffset(0, 0);
+					Text = "< Back";
+					TextScaled = true;
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BorderSizePixel = 0;
+				})
+				backButton.MouseButton1Click:Connect(function()
+					initialize()
+				end)
+				local addButton = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(300, 25);
+					Position = UDim2.fromOffset(0, 0);
+					Text = "Add";
+					TextScaled = true;
+					BackgroundColor3 = Color3.fromRGB(0,255,0);
+					TextColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				addButton.MouseButton1Click:Connect(function()
+					currentlyOpen = "headerEdit"
+					system.headerKey = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(380, 25);
+						Position = UDim2.fromOffset(10, 10);
+						Text = "Header Index: " .. memory.headerKey;
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					system.headerValue = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(380, 25);
+						Position = UDim2.fromOffset(10, 10);
+						Text = "Header Value: " .. memory.headerValue;
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					local backButton = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(50, 25);
+						Position = UDim2.fromOffset(145, 365);
+						Text = "Back";
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					local addButton = window:CreateElement("TextButton", {
+						Size = UDim2.fromOffset(50, 25);
+						Position = UDim2.fromOffset(205, 365);
+						Text = "Add";
+						BackgroundColor3 = Color3.fromRGB(100,100,100);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						TextScaled = true;
+					})
+					system.headerKey.MouseButton1Click:Connect(function()
+						focused = "headerKey"
+						system.headerKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+						system.headerValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
+					end)
+					system.headerValue.MouseButton1Click:Connect(function()
+						focused = "headerValue"
+						system.headerKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
+						system.headerValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+					end)
+					addButton.MouseButton1Click:Connect(function()
+						headers[memory.headerKey] = memory.headerValue
+						local success = window:CreateElement("TextLabel", {
+							Text = "added";
+							Size = UDim2.fromOffset(400, 25);
+							Position = UDim2.fromOffset(0, 330);
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,255,0);
+							BackgroundTransparency = 1;
+						})
+						wait(1)
+						success:Destroy()
+					end)
+				end)
+				local headerFrame = window:CreateElement("ScrollingFrame", {
+					Size = UDim2.fromOffset(400, 200);
+					Position = UDim2.fromOffset(0, 25);
+					BackgroundColor3 = Color3.fromRGB(86, 86, 86);
+					BorderSizePixel = 0;
+					ScrollBarThickness = 2;
+					ScrollingDirection = Enum.ScrollingDirection.Y;
+					CanvasSize = UDim2.fromOffset(0, 0);
+				})
+				local offset = 0
+				for i, v in pairs(headers) do
+					offset += 1
+					headerFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset * 25)})
+					local parent = window:CreateElement("Frame", {
+						Size = UDim2.fromOffset(400, 25);
+						Position = UDim2.fromOffset(0, (offset - 1) * 25);
+						BackgroundTransparency = 1;
+						BorderSizePixel = 0;
+					})
+					puter.AddElement(parent, "TextLabel", {
+						Size = UDim2.fromOffset(180, 25);
+						Position = UDim2.fromOffset(0, 0);
+						Text = i;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundTransparency = 1;
+						TextScaled = true;
+						BorderSizePixel = 0;
+					})
+					puter.AddElement(parent, "TextLabel", {
+						Size = UDim2.fromOffset(180, 25);
+						Position = UDim2.fromOffset(180, 0);
+						Text = v;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BackgroundTransparency = 1;
+						TextScaled = true;
+						BorderSizePixel = 0;
+					})
+					local remove = puter.AddElement(parent, "TextButton", {
+						Size = UDim2.fromOffset(40, 25);
+						Position = UDim2.fromOffset(360, 0);
+						Text = "Remove";
+						TextColor3 = Color3.fromRGB(255,0,0);
+						TextScaled = true;
+						BorderSizePixel = 0;
+					})
+					remove.MouseButton1Click:Connect(function()
+						headers[i] = nil
+					end)
+				end
+			end
+			local function send()
+				if busy == false then
+					busy = true
+					local response
+					local success
+					newCoroutine(function()
+						response, success = modem:RealPostRequest(memory.domain, JSONEncode(data), false, nil, headers)
+					end, "PostRequest")
+					window:ClearElements()
+					window:CreateElement("TextLabel", {
+						BackgroundTransparency = 1;
+						TextScaled = true;
+						Text = "Waiting for response...";
+						Size = UDim2.fromOffset(400, 25);
+						TextColor3 = Color3.fromRGB(0,0,0)
+					})
+					repeat wait() until response or wait(10)
+					if response then
+						if GetPartFromPort(4, "Disk") then
+							GetPartFromPort(4, "Disk"):Write("response", response)
+							window:CreateElement("TextLabel", {
+								BackgroundTransparency = 1;
+								TextScaled = true;
+								Text = "Response written to the 'response' key.";
+								Size = UDim2.fromOffset(400, 25);
+								Position = UDim2.fromOffset(0, 25);
+								TextColor3 = Color3.fromRGB(0,0,0);
+							})
+							local okButton = window:CreateElement("TextButton", {
+								Size = UDim2.fromOffset(50, 25);
+								Position = UDim2.fromOffset(175, 175);
+								Text = "OK";
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								TextColor3 = Color3.fromRGB(0,0,0);
+								TextScaled = true;
+								BorderSizePixel = 0;
+							})
+							okButton.MouseButton1Click:Connect(function()
+								initialize()
+							end)
+						else
+							window:CreateElement("TextLabel", {
+								BackgroundTransparency = 1;
+								TextScaled = true;
+								Text = "Insert a... Storage Device on the ethernet cable thats on the left part of your device.";
+								Size = UDim2.fromOffset(400, 50);
+								Position = UDim2.fromOffset(0, 25);
+								TextColor3 = Color3.fromRGB(0,0,0);
+							})
+							local disk
+							newCoroutine(function()
+								while wait(0.5) do
+									if GetPartFromPort(4, "Disk") then
+										disk = GetPartFromPort(4, "Disk")
+									end
+								end
+							end, "DiskWait")
+							repeat wait() until disk
+							disk:Write("response", response)
+							window:CreateElement("TextLabel", {
+								BackgroundTransparency = 1;
+								TextScaled = true;
+								Text = "Response written to the 'response' key.";
+								Size = UDim2.fromOffset(400, 25);
+								Position = UDim2.fromOffset(0, 75);
+								TextColor3 = Color3.fromRGB(0,0,0);
+							})
+							local okButton = window:CreateElement("TextButton", {
+								Size = UDim2.fromOffset(50, 25);
+								Position = UDim2.fromOffset(175, 175);
+								Text = "OK";
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								TextColor3 = Color3.fromRGB(0,0,0);
+								TextScaled = true;
+								BorderSizePixel = 0;
+							})
+							okButton.MouseButton1Click:Connect(function()
+								initialize()
+							end)
+						end
+					else
+						window:CreateElement("TextLabel", {
+							BackgroundTransparency = 1;
+							TextScaled = true;
+							Text = "Website took too long to respond.";
+							Size = UDim2.fromOffset(400, 25);
+							Position = UDim2.fromOffset(0, 25);
+							TextColor3 = Color3.fromRGB(0,0,0);
+						})
+						local okButton = window:CreateElement("TextButton", {
+							Size = UDim2.fromOffset(50, 25);
+							Position = UDim2.fromOffset(175, 175);
+							Text = "OK";
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							TextColor3 = Color3.fromRGB(0,0,0);
+							TextScaled = true;
+							BorderSizePixel = 0;
+						})
+						okButton.MouseButton1Click:Connect(function()
+							initialize()
+						end)
+					end
+					busy = false
+				end
+			end
+			function initialize()
+				currentlyOpen = "main"
+				window:ClearElements()
+				system.domain = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(380, 25);
+					Position = UDim2.fromOffset(10, 10);
+					Text = "Domain: " .. memory.domain;
+					BackgroundColor3 = Color3.fromRGB(100,100,100);
+					TextColor3 = Color3.fromRGB(0,0,0);
+					TextScaled = true;
+				})
+				local dataButton = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(380, 25);
+					Position = UDim2.fromOffset(10, 45);
+					Text = "Data...";
+					BackgroundColor3 = Color3.fromRGB(100,100,100);
+					TextColor3 = Color3.fromRGB(0,0,0);
+					TextScaled = true;
+				})
+				local headerButton = window:CreateElement("TextButton", {
+					Size = UDim2.fromOffset(380, 25);
+					Position = UDim2.fromOffset(10, 80);
+					Text = "Headers...";
+					BackgroundColor3 = Color3.fromRGB(100,100,100);
+					TextColor3 = Color3.fromRGB(0,0,0);
+					TextScaled = true;
+				})
+				local sendButton = window:CreateElement("TextButton", {
+					Text = "Add";
+					TextColor3 = Color3.fromRGB(0,0,0);
+					TextScaled = true;
+					Size = UDim2.fromOffset(100, 25);
+					Position = UDim2.fromOffset(150, 190);
+					BackgroundColor3 = Color3.fromRGB(100,100,100);
+				})
+				system.domain.MouseButton1Click:Connect(function()
+					focused = "domain"
+				end)
+				dataButton.MouseButton1Click:Connect(function()
+					openDataMenu()
+				end)
+				headerButton.MouseButton1Click:Connect(function()
+					openHeaderMenu()
+				end)
+				sendButton.MouseButton1Click:Connect(function()
+					send()
+				end)
+			end
+			initialize()
+			xConnect("keyboard", "TextInputted", function(text, plr)
+				text = string.sub(text, 1, #text - 1)
+				if currentlyOpen == focusLogic[focused] then
+					if memory[focused] ~= nil then memory[focused] = text end
+					if system[focused] ~= nil then
+						system[focused]:ChangeProperties({Text = text})
+					end
+				end
+			end)
+		end
+		postomatic.MouseButton1Click:Connect(function()
+			if postomaticOpen ~= true then
+				openPostOMatic()
+			end
+		end)
 		if mic ~= nil then
 			local listeningto
 			local listening = false
@@ -3373,7 +3849,7 @@ local success, errorcode = pcall(function()
 				local terminalmicrocontroller = GetPartFromPort(6, "Microcontroller")
 				canopenterminal = false
 				--increment the version each major change
-				local ver = "wOS Codename BasicSystem, Version 11 Revision 2"
+				local ver = "wOS Codename BasicSystem, Version 12 Revision 2"
 				puterutils.cliengine(function(text, plr, terminalout, clear)
 					local failed, reason = check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clear)
 					if failed == true then
