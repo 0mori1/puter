@@ -3764,6 +3764,7 @@ local success, errorcode = pcall(function()
 				end
 			end
 			function initialize()
+				focused = "domain"
 				currentlyOpen = "main"
 				window:ClearElements()
 				system.domain = window:CreateElement("TextLabel", {
@@ -3791,7 +3792,7 @@ local success, errorcode = pcall(function()
 					TextScaled = true;
 				})
 				local sendButton = window:CreateElement("TextButton", {
-					Text = "Add";
+					Text = "Send";
 					TextColor3 = Color3.fromRGB(0,0,0);
 					TextScaled = true;
 					Size = UDim2.fromOffset(100, 25);
@@ -3817,7 +3818,7 @@ local success, errorcode = pcall(function()
 				if currentlyOpen == focusLogic[focused] then
 					if memory[focused] ~= nil then memory[focused] = text end
 					if system[focused] ~= nil then
-						system[focused]:ChangeProperties({Text = prefixes[focused] .. text})
+						system[focused]:ChangeProperties({Text = prefixes[focused] or "something went wrong" .. text})
 					end
 				end
 			end)
