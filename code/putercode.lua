@@ -3491,6 +3491,7 @@ local success, errorcode = pcall(function()
 						BackgroundTransparency = 1;
 						BorderSizePixel = 0;
 					})
+					dataFrame:AddChild(parent)
 					puter.AddElement(parent, "TextLabel", {
 						Size = UDim2.fromOffset(180, 25);
 						Position = UDim2.fromOffset(0, 0);
@@ -3559,7 +3560,7 @@ local success, errorcode = pcall(function()
 					})
 					system.headerValue = window:CreateElement("TextButton", {
 						Size = UDim2.fromOffset(380, 25);
-						Position = UDim2.fromOffset(10, 10);
+						Position = UDim2.fromOffset(10, 45);
 						Text = "Header Value: " .. memory.headerValue;
 						BackgroundColor3 = Color3.fromRGB(100,100,100);
 						TextColor3 = Color3.fromRGB(0,0,0);
@@ -3627,6 +3628,7 @@ local success, errorcode = pcall(function()
 						BackgroundTransparency = 1;
 						BorderSizePixel = 0;
 					})
+					headerFrame:AddChild(parent)
 					puter.AddElement(parent, "TextLabel", {
 						Size = UDim2.fromOffset(180, 25);
 						Position = UDim2.fromOffset(0, 0);
