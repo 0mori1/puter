@@ -3766,7 +3766,7 @@ local success, errorcode = pcall(function()
 			function initialize()
 				currentlyOpen = "main"
 				window:ClearElements()
-				system.domain = window:CreateElement("TextButton", {
+				system.domain = window:CreateElement("TextLabel", {
 					Size = UDim2.fromOffset(380, 25);
 					Position = UDim2.fromOffset(10, 10);
 					Text = "Domain: " .. memory.domain;
