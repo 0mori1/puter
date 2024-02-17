@@ -3799,26 +3799,31 @@ local success, errorcode = pcall(function()
 					Position = UDim2.fromOffset(150, 190);
 					BackgroundColor3 = Color3.fromRGB(100,100,100);
 				})
-				system.domain.MouseButton1Click:Connect(function()
-					focused = "domain"
-				end)
 				dataButton.MouseButton1Click:Connect(function()
 					openDataMenu()
 				end)
 				headerButton.MouseButton1Click:Connect(function()
+					print("attempting to open headers")
 					openHeaderMenu()
 				end)
 				sendButton.MouseButton1Click:Connect(function()
+					print("attempting to send")
 					send()
 				end)
 			end
 			initialize()
 			xConnect("keyboard", "TextInputted", function(text, plr)
-				text = string.sub(text, 1, #text - 1)
-				if currentlyOpen == focusLogic[focused] then
-					if memory[focused] ~= nil then memory[focused] = text end
-					if system[focused] ~= nil then
-						system[focused]:ChangeProperties({Text = prefixes[focused] or "something went wrong" .. text})
+				if window:IsActive() and window ~= nil then
+					text = string.sub(text, 1, #text - 1)
+					Beep()
+					print("something got inputted")
+					if currentlyOpen == focusLogic[focused] then
+						print("logic checks out")
+						if memory[focused] ~= nil then print("written input to memory") memory[focused] = text end
+						if system[focused] ~= nil then
+							print("attempting to change the properties of the focused textbox")
+							system[focused]:ChangeProperties({Text = prefixes[focused] or "something went wrong" .. text})
+						end
 					end
 				end
 			end)
