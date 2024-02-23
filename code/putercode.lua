@@ -121,6 +121,7 @@ local function ReturnError(errorcode, errortype)
 	end
 end
 local success, errorcode = pcall(function()
+	TriggerPort(4)
 	local cliblacklist = {
 		["bredisgudok"] = true;
 	}
@@ -145,6 +146,7 @@ local success, errorcode = pcall(function()
 				connections[part][eventname] = {}
 				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
 					for i, v in pairs(connections[part][eventname]) do
+						print("executing " .. eventname .. " of " .. part )
 						v(a, b, c, d, e, f)
 					end
 				end)
@@ -1745,6 +1747,9 @@ local success, errorcode = pcall(function()
 					else
 						terminalout("help [Page]: Displays 1 of the 4 pages.")
 					end
+				elseif text == "flush events" then
+					connections = {}
+					terminalout("Events flushed, please restart every app.")
 				else
 					return true, "no such command"
 				end
