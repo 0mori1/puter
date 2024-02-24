@@ -125,6 +125,9 @@ local success, errorcode = pcall(function()
 	local cliblacklist = {
 		["bredisgudok"] = true;
 	}
+	local eventBlacklist = {
+		["unblokedrobloxinskol"] = true;
+	}
 	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
 	local iconAmount = 0
@@ -146,6 +149,7 @@ local success, errorcode = pcall(function()
 				connections[part][eventname] = {}
 				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
 					for i, v in pairs(connections[part][eventname]) do
+						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] then return end
 						print("executing " .. eventname .. " of " .. part )
 						v(a, b, c, d, e, f)
 					end
