@@ -3519,12 +3519,14 @@ local success, errorcode = pcall(function()
 						Size = UDim2.fromOffset(40, 25);
 						Position = UDim2.fromOffset(360, 0);
 						Text = "Remove";
-						TextColor3 = Color3.fromRGB(255,0,0);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundColor3 = Color3.fromRGB(255,0,0);
 						TextScaled = true;
 						BorderSizePixel = 0;
 					})
 					remove.MouseButton1Click:Connect(function()
 						data[i] = nil
+						openDataMenu()
 					end)
 				end
 			end
@@ -3656,12 +3658,14 @@ local success, errorcode = pcall(function()
 						Size = UDim2.fromOffset(40, 25);
 						Position = UDim2.fromOffset(360, 0);
 						Text = "Remove";
-						TextColor3 = Color3.fromRGB(255,0,0);
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundColor3 = Color3.fromRGB(255,0,0);
 						TextScaled = true;
 						BorderSizePixel = 0;
 					})
 					remove.MouseButton1Click:Connect(function()
 						headers[i] = nil
+						openHeaderMenu()
 					end)
 				end
 			end
@@ -3669,6 +3673,7 @@ local success, errorcode = pcall(function()
 				if busy == false then
 					busy = true
 					local response
+					local timedout = false
 					local success
 					newCoroutine(function()
 						response, success = modem:RealPostRequest(memory.domain, JSONEncode(data), false, nil, headers)
@@ -3681,7 +3686,12 @@ local success, errorcode = pcall(function()
 						Size = UDim2.fromOffset(400, 25);
 						TextColor3 = Color3.fromRGB(0,0,0)
 					})
-					repeat wait() until response or wait(10)
+					newCoroutine(function()
+						wait(10)
+						timedout = true
+					end, "ResponseTimeout")
+					repeat wait() until response or timedout
+					closeByName("ResponseTimeout")
 					if response then
 						if GetPartFromPort(4, "Disk") then
 							GetPartFromPort(4, "Disk"):Write("response", response)
