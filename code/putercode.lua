@@ -568,7 +568,7 @@ local success, errorcode = pcall(function()
 			output(outOnStart)
 			requireNewInputBar()
 			xConnect("keyboard", "TextInputted", function(text, plr)
-				if cliblacklist[plr] == nil then
+				if cliblacklist[plr] == nil and cliwindow:IsActive() then
 					text = string.sub(text, 1, #text - 1)
 					if inputbar ~= nil then
 						cliOutput[inputbar] = prefix .. "> " .. text
