@@ -738,7 +738,75 @@ local success, errorcode = pcall(function()
 			end
 		end;
 		read = function(path, disk)
-			return disk:Read(path)
+			local file = {data = disk:Read(path)}
+			function file:delete()
+				if file.data ~= "t:folder" then
+					disk:Write(path, nil)
+				else
+					if string.sub(path, #path, #path) ~= "/" then
+						path = path .. "/"
+					end
+					for i, v in pairs(disk:ReadEntireDisk()) do
+						if string.sub(i, 1, #path) == path then
+							disk:Write(i, nil)
+						end
+					end
+				end
+			end
+			if file.data == "t:folder" then
+				function file:getDescendants()
+					local locationsAndValues = {}
+					if string.sub(path, #path, #path) ~= "/" then
+						path = path .. "/"
+					end
+					for i, v in pairs(disk:ReadEntireDisk()) do
+						if string.sub(i, 1, #path) == path then
+							locationsAndValues[string.sub(i, #path, #i)] = v
+						end
+					end
+					return locationsAndValues
+				end
+			end
+			function file:copy(ddisk, destination)
+				local name
+				if string.sub(destination, #destination, #destination) ~= "/" then
+					destination = destination .. "/"
+				end
+				for i = #path, 1, -1 do
+					if string.sub(path, i, i) == "/" and i ~= #path then
+						name = string.sub(path, i + 1, #path)
+						if string.sub(name, #name, #name) == "/" then
+							name = string.sub(name, 1, #name - 1)
+						end
+					end
+				end
+				if ddisk:Read(destination) == "t:folder" then
+					if file.data ~= "t:folder" then
+						ddisk:Write(destination .. name, file.data)
+					else
+						ddisk:Write(destination .. name .. "/", "t:folder")
+						for i, v in pairs(file:getDescendants()) do
+							ddisk:Write(destination .. name .. i, v)
+						end
+					end
+				end
+			end
+			function file:rename(newName)
+				local namelessPath
+				if string.sub(newName, #newName, #newName) == "/" and file.data ~= "t:folder" then
+					newName = string.sub(newName, 1, #newName - 1)
+				elseif file.data == "t:folder" and string.sub(newName, #newName, #newName) ~= "/" then
+					newName = newName .. "/"
+				end
+				for i = #path, 1, -1 do
+					if string.sub(path, i, i) == "/" and i ~= #path then
+						namelessPath = string.sub(path, 1, i)
+					end
+				end
+				disk:Write(namelessPath .. newName, file.data)
+				path = namelessPath .. newName
+			end
+			return file
 		end;
 	}
 	local function InitializeROM()
@@ -1440,8 +1508,18 @@ local success, errorcode = pcall(function()
 		local function luastop(polysilicon)
 			polysilicon:Configure({PolysiliconMode = 1})
 			TriggerPort(6)
+			for i, window in pairs(windows) do
+				if window.custom == true then
+					window.framemet:Close()
+				end
+			end
 		end
 		local function luarun(codetorun, terminalmicrocontroller, polysilicon)
+			for i, window in pairs(windows) do
+				if window.custom == true then
+					window.framemet:Close()
+				end
+			end
 			if terminalmicrocontroller ~= nil and polysilicon ~= nil then
 				luastop(polysilicon)
 				terminalmicrocontroller:Configure({Code = codetorun})
@@ -1449,6 +1527,9 @@ local success, errorcode = pcall(function()
 				wait(0.5)
 				TriggerPort(6)
 				print(codetorun)
+				return true
+			else	
+				return false
 			end
 		end
 		local specialCharactersIn = {
@@ -1584,7 +1665,10 @@ local success, errorcode = pcall(function()
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
-					luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
+					local success = luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
+					if not success then
+						terminalout("A part of the lua microcontroller is missing.")
+					end
 				elseif text == "lua stop" then
 					luastop(polysilicon)
 				elseif text == "shutdown" or text == "die" then
@@ -1717,16 +1801,37 @@ local success, errorcode = pcall(function()
 					end
 				elseif string.sub(text, 1, 10) == "play video" then
 					local image = string.sub(text, 12, #text)
-					local playing = false
+					local playing = true
 					if playingvideo == false then
-						local frame, closebutton = puter.CreateWindow(400, 225, "Video Player")
+						local frame, closebutton = puter.CreateWindow(400, 250, "Video Player")
+						playingvideo = true
 						local video = puter.AddWindowElement(frame, "VideoFrame", {
 							Video = "http://www.roblox.com/asset/?id=" .. image;
 							Size = UDim2.fromOffset(400, 225);
 							Playing = true;
 							Looped = true;
-							Volume = 100
+							Volume = 100;
 						})
+						local pauseButton = frame:CreateElement("TextButton", {
+							Text = "Pause";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							Size = UDim2.fromOffset(400, 25);
+							Position = UDim2.fromOffset(0, 225);
+							BorderSizePixel = 0;
+							BackgroundColor3 = Color3.fromRGB(0,0,0)
+						})
+						pauseButton.MouseButton1Click:Connect(function()
+							if playing then
+								pauseButton:ChangeProperties({Text = "Play"})
+								video:Pause()
+								playing = false
+							else
+								pauseButton:ChangeProperties({Text = "Pause"})
+								video:Play()
+								playing = true
+							end
+						end)
 					end
 				elseif text == "reset" then
 					storage:ClearDisk()
@@ -2342,21 +2447,7 @@ local success, errorcode = pcall(function()
 						CanvasSize = UDim2.fromOffset(0,0);
 					})
 					local canopenproperties = true
-					local function deleteFolder(path, disk)
-						if string.sub(path, #path, #path) ~= "/" then
-							path = path .. "/"
-						end
-						disk:Write(path, nil)
-						local childFiles = filesystem.scanPath(path, disk)
-						for i, v in pairs(childFiles) do
-							if filesystem.read(path .. v .. "/", disk) ~= nil then
-								deleteFolder(path .. v .. "/", disk)
-							elseif filesystem.read(path .. v, disk) ~= nil then
-								disk:Write(path .. v, nil)
-							end
-						end
-					end
-					local function addFile(fileName, fileType, position, data, trueType, trueData)
+					local function addFile(fileName, fileType, position, data, trueType, trueData, file)
 						local cachedpath = path .. fileName
 						local cachedDisk = viewingDisk
 						local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
@@ -2404,7 +2495,7 @@ local success, errorcode = pcall(function()
 							if thingToDo ~= nil then
 								thingToDo(data)
 							elseif fileType == "folder" then
-								if filesystem.read(cachedpath .. "/", cachedDisk) == "t:folder" then
+								if filesystem.read(cachedpath .. "/", cachedDisk).data == "t:folder" then
 									if string.sub(path, #path, #path) ~= "/" then
 										path = path .. "/"
 									end
@@ -2465,12 +2556,7 @@ local success, errorcode = pcall(function()
 									})
 									deletebutton.MouseButton1Click:Connect(function()
 										if trueType ~= "t:folder" then
-											cachedDisk:Write(cachedpath, nil)
-											called = true
-											titlebar:Destroy()
-											canopenproperties = true
-										else
-											deleteFolder(cachedpath .. "/", cachedDisk)
+											file:delete()
 											called = true
 											titlebar:Destroy()
 											canopenproperties = true
@@ -2506,9 +2592,9 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(folders) do
 							local folder = filesystem.read(path .. v .. "/", disk)
 							if folder ~= nil then
-								local fileType, data, trueType = typeParser(folder)
+								local fileType, data, trueType = typeParser(folder.data)
 								offset = offset + 1
-								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, filesystem.read(path .. v .. "/", disk))
+								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, folder.data, folder)
 								print("i got a folder")
 							end
 						end
@@ -2521,9 +2607,9 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
-								local fileType, data, trueType = typeParser(file)
+								local fileType, data, trueType = typeParser(file.data)
 								offsetv2 = offsetv2 + 1
-								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, filesystem.read(path .. v, disk))
+								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, file.data, file)
 								print("i got a file")
 							end
 						end
@@ -2768,7 +2854,7 @@ local success, errorcode = pcall(function()
 														path = path .. "/"
 														print("glued a / to the path")
 													end
-													if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+													if filesystem.read(path, mounteddisks[disk]).data == "t:folder" then
 														if name ~= nil then
 															local badName = false
 															for i = 1, #name, 1 do
@@ -2968,7 +3054,7 @@ local success, errorcode = pcall(function()
 															path = path .. "/"
 															print("glued a / to the path")
 														end
-														if filesystem.read(path, mounteddisks[disk]) == "t:folder" then
+														if filesystem.read(path, mounteddisks[disk]).data == "t:folder" then
 															if name ~= nil then
 																local badName = false
 																for i = 1, #name, 1 do
@@ -3907,10 +3993,9 @@ local success, errorcode = pcall(function()
 		local canopenpreferences = true
 		local canopenpersonalization = true
 		settingsbutton.MouseButton1Click:Connect(function()
-			local settingswindow
-			local closebtn
 			if canspawnsettings == true then
-				settingswindow, closebtn = puter.CreateWindow(450, 300, "Settings", Color3.fromRGB(50,50,50))
+				local settingswindow, closebtn = puter.CreateWindow(450, 300, "Settings", Color3.fromRGB(50,50,50))
+				canspawnsettings = false
 				local networking = puter.AddWindowElement(settingswindow, "TextButton", {
 					Text = "Networking";
 					Position = UDim2.fromOffset(25, 25);
@@ -4076,11 +4161,11 @@ local success, errorcode = pcall(function()
 						})
 					end
 				end)
+				closebtn.MouseButton1Click:Connect(function()
+					canopennetworking = true
+					canspawnsettings = true
+				end)
 			end
-			closebtn.MouseButton1Click:Connect(function()
-				canopennetworking = true
-				canspawnsettings = true
-			end)
 		end)
 		--main loop
 		while true do
