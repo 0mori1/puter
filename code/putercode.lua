@@ -128,7 +128,7 @@ local success, errorcode = pcall(function()
 	local eventBlacklist = {
 		["unblokedrobloxinskol"] = true;
 	}
-	local componentsToFind = {"Keyboard", "Modem", "Microphone", "Speaker", "Disk", "LifeSensor"}
+	local componentsToFind = {"Keyboard", "Modem", "ChatModem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
 	local iconAmount = 0
 	local rom
@@ -150,8 +150,9 @@ local success, errorcode = pcall(function()
 				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
 					for i, v in pairs(connections[part][eventname]) do
 						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] then return end
-						print("executing " .. eventname .. " of " .. part )
+						print("executing " .. eventname .. " of " .. part .. " with ID " .. tostring(i))
 						v(a, b, c, d, e, f)
+						print("execution end")
 					end
 				end)
 			end
@@ -241,6 +242,7 @@ local success, errorcode = pcall(function()
 			local closebutton
 			local collapseButton
 			local zindex
+			local windowframemet = {}
 			if forced == true then
 				zindex = 4
 			else
@@ -338,7 +340,7 @@ local success, errorcode = pcall(function()
 				end
 				titlebar:AddChild(windowframeContainerContainer)
 			else
-				local posy = overrideY or (450 - y) / 2 - 24
+				local posy = overrideY or (400 - y) / 2 - 24
 				local posx = overrideX or (800 - x) / 2
 				windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
 			end
@@ -428,7 +430,6 @@ local success, errorcode = pcall(function()
 					print(whodrags)
 				end
 			end)
-			local windowframemet = {}
 			function windowframemet:CreateElement(className, properties)
 				local element = screen:CreateElement(className, properties)
 				windowframe:AddChild(element)
@@ -455,6 +456,9 @@ local success, errorcode = pcall(function()
 				return cursorsProcessed
 			end
 			function windowframemet:Close()
+				if windowframemet.closeBehavior ~= nil and typeof(windowframemet.closeBehavior) == "function" then
+					windowframemet.closeBehavior()
+				end
 				if titlebar ~= nil then
 					titlebar:Destroy()
 					windows[windowID] = nil
@@ -936,7 +940,7 @@ local success, errorcode = pcall(function()
 					end
 					titlebar:AddChild(windowframeContainerContainer)
 				else
-					local posy = overrideY or (450 - y) / 2 - 24
+					local posy = overrideY or (400 - y) / 2 - 24
 					local posx = overrideX or (800 - x) / 2
 					windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
 				end
@@ -1145,41 +1149,6 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			ZIndex = 1
 		})
-		local explorerApp = screen:CreateElement("TextButton", {
-			Position = UDim2.fromOffset(15, 15);
-			Size = UDim2.fromOffset(100, 100);
-			Text = "Explorer";
-			TextScaled = true;
-			ZIndex = 3
-		})
-		local chatApp = screen:CreateElement("TextButton", {
-			Position = UDim2.fromOffset(15, 130);
-			Size = UDim2.fromOffset(100, 100);
-			Text = "Chat";
-			TextScaled = true;
-			ZIndex = 3
-		})
-		local diskUtilApp = screen:CreateElement("TextButton", {
-			Position = UDim2.fromOffset(15, 245);
-			Size = UDim2.fromOffset(100, 100);
-			Text = "Disk Utility";
-			TextScaled = true;
-			ZIndex = 3
-		})
-		local lagOMeterApp = screen:CreateElement("TextButton", {
-			Position = UDim2.fromOffset(130, 15);
-			Size = UDim2.fromOffset(100, 100);
-			Text = "Lag O'Meter";
-			TextScaled = true;
-			ZIndex = 3
-		})
-		local musicApp = screen:CreateElement("TextButton", {
-			Position = UDim2.fromOffset(130, 130);
-			Size = UDim2.fromOffset(100, 100);
-			Text = "Music Player";
-			TextScaled = true;
-			ZIndex = 3
-		})
 		iconAmount = iconAmount + 5
 		local background = screen:CreateElement("ImageLabel", {
 			BorderSizePixel = 0;
@@ -1187,6 +1156,12 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			ZIndex = 2;
 		})
+		local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false)
+		local explorerApp = createIcon("Explorer", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+		local chatApp = createIcon("Chat", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+		local diskUtilApp = createIcon("Disk Utility", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+		local lagOMeterApp = createIcon("Lag O'Meter", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+		local musicApp = createIcon("Music Player", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
 		-- Paint the task bar
 		local taskbar = screen:CreateElement("Frame", {
 			Position = UDim2.fromOffset(0, 400);
@@ -1257,11 +1232,6 @@ local success, errorcode = pcall(function()
 			ZIndex = 5
 		})
 		-- Add all of these items to their specific locations
-		background:AddChild(explorerApp)
-		background:AddChild(chatApp)
-		background:AddChild(diskUtilApp)
-		background:AddChild(lagOMeterApp)
-		background:AddChild(musicApp)
 		taskbar:AddChild(startbutton)
 		brazil:AddChild(startmenu)
 		startmenu:AddChild(shutdownbutton)
@@ -1280,7 +1250,7 @@ local success, errorcode = pcall(function()
 			end
 		end)
 		-- Return all of these items
-		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic
+		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon
 	end
 	local powerCheck
 	powerCheck = newCoroutine(function()
@@ -1411,6 +1381,12 @@ local success, errorcode = pcall(function()
 				else
 					CreateSelfTestOutput("Warning: Storage disk not found", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,255,0))
 				end
+			elseif v == "ChatModem" then
+				if GetPartFromPort(6, "Modem") ~= nil then
+
+				else
+					CreateSelfTestOutput("Warning: Chat Modem not found", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,255,0))
+				end
 			else
 				if GetPartFromPort(1, v) ~= nil then
 					availableComponents[string.lower(v)] = GetPartFromPort(1, v)
@@ -1439,12 +1415,25 @@ local success, errorcode = pcall(function()
 		closeCoroutine(loadBarRoutine)
 		Beep()
 		-- this funny thing does funny defining with the InitializeDesktop() function
-		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic = InitializeDesktop()
+		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		for i, v in pairs(mounteddisks) do
 			v:Write("/", "t:folder")
 		end
 		if mounteddisks[1] ~= nil then
 			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/7fca2440fb964c491a6ab86151c23ba69cf1105d/destroybot.lua", mounteddisks[1])
+		end
+		local foundPrimary
+		for i, v in pairs(mounteddisks) do
+			if v:Read("primary") == "yea" then
+				foundPrimary = i
+			end
+		end
+		if not foundPrimary then
+			if mounteddisks[1] ~= nil then
+				mounteddisks[1]:Write("primary", "yea")
+				filesystem.createDirectory("/Desktop/", mounteddisks[1])
+				foundPrimary = 1
+			end
 		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
@@ -1949,433 +1938,8 @@ local success, errorcode = pcall(function()
 			})
 			return icon
 		end
-		local function lagometer()
-			if canopenlagometer == true then
-				canopenlagometer = false
-				local window, closebutton = puter.CreateWindow(400, 225, "Lag O'Meter", Color3.fromRGB(0,0,0))
-				local currentFPS = puter.AddWindowElement(window, "TextLabel", {
-					Size = UDim2.fromOffset(50, 50);
-					Position = UDim2.fromOffset(350, 0);
-					TextColor3 = Color3.fromRGB(255,255,255);
-					BackgroundTransparency = 1;
-					TextScaled = true;
-					Text = "N/A";
-				})
-				local lagHistoryFrame = puter.AddWindowElement(window, "Frame", {
-					Size = UDim2.fromOffset(350, 85);
-					Position = UDim2.fromOffset(0, 140);
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					BorderSizePixel = 0;
-				})
-				local lag = {}
-				local lagBars = {}
-				local function addFramerate(framerate)
-					if #lag <= 13 then
-						lag[#lag + 1] = framerate
-					elseif #lag >= 14 then
-						for i, v in pairs(lag) do
-							if i >= 2 then
-								lag[i - 1] = lag[i]
-							end
-						end
-						lag[14] = framerate
-					end
-				end
-				local lagMeasurer = newCoroutine(function()
-					while true do
-						local curTime = tick()
-						wait(1)
-						local difference = tick() - curTime
-						local framerate = math.floor(60 / difference)
-						addFramerate(framerate)
-						local color
-						if framerate >= 45 then
-							color = Color3.fromRGB(0,255,0)
-						elseif framerate >= 30 then
-							color = Color3.fromRGB(255,255,0)
-						elseif framerate >= 15 then
-							color = Color3.fromRGB(255,126,0)
-						elseif framerate >= 1 then
-							color = Color3.fromRGB(255,0,0)
-						else
-							color = Color3.fromRGB(143, 255, 244)
-						end
-						currentFPS:ChangeProperties({Text = tostring(framerate); TextColor3 = color;})
-					end
-				end, "Lag Measurer")
-				local lagHistory = newCoroutine(function()
-					while true do 
-						wait(0.5)
-						for i, v in pairs(lag) do
-							local color
-							local size
-							if v >= 45 then
-								color = Color3.fromRGB(0,255,0)
-							elseif v >= 30 then
-								color = Color3.fromRGB(255,255,0)
-							elseif v >= 15 then
-								color = Color3.fromRGB(255,126,0)
-							elseif v >= 1 then
-								color = Color3.fromRGB(255,0,0)
-							else
-								color = Color3.fromRGB(143, 255, 244)
-							end
-							if v >= 1 then
-								size = UDim2.fromOffset(25,v)
-							else
-								size = UDim2.fromOffset(25, 60)
-							end
-							if lagBars[i] == nil then
-								local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
-									Size = size;
-									BackgroundColor3 = color;
-									BorderSizePixel = 0;
-									Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
-								})
-								local lagAmount = puter.AddElement(lagBar, "TextLabel", {
-									Size = UDim2.fromOffset(15, 15);
-									Position = UDim2.fromOffset(5, -20);
-									Text = tostring(v);
-									TextScaled = true;
-									TextColor3 = color;
-									BackgroundTransparency = 1;
-								})
-								lagBars[i] = {}
-								lagBars[i]["bar"] = lagBar
-								lagBars[i]["amount"] = lagAmount
-							else
-								lagBars[i]["bar"]:ChangeProperties({Size = size; BackgroundColor3 = color; Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25);})
-								lagBars[i]["amount"]:ChangeProperties({Text = tostring(v); TextColor3 = color;})
-							end
-						end
-					end
-				end, "Lag History")
-				closebutton.MouseButton1Click:Connect(function()
-					closeCoroutine(lagMeasurer)
-					closeCoroutine(lagHistory)
-					canopenlagometer = true
-				end)
-			end
-		end
-		lagOMeterApp.MouseButton1Click:Connect(function()
-			lagometer()
-		end)
-		local function musicPlayer()
-			if canopenmusic == true then
-				local musicList
-				local canopenadd = true
-				local window, closebutton = puter.CreateWindow(400, 300, "Music Player")
-				closebutton.MouseButton1Click:Connect(function()
-					canopenmusic = true
-				end)
-				canopenmusic = false
-				if storage:Read("musicList") ~= nil then
-					musicList = decodeRawMusicList(storage:Read("musicList"))
-				else
-					musicList = {}
-					storage:Write("musicList", encodeMusicList(musicList))
-				end
-				local addButton = puter.AddWindowElement(window, "TextButton", {
-					BackgroundColor3 = Color3.fromRGB(0,255,0);
-					Text = "Add";
-					TextScaled = true;
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BorderSizePixel = 0;
-					Position = UDim2.fromOffset(50,0);
-					Size = UDim2.fromOffset(250, 25);
-				})
-				local space = puter.AddWindowElement(window, "TextLabel", {
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					Text = tostring(#musicList) .. " / 70";
-					TextScaled = true;
-					TextColor3 = Color3.fromRGB(255,255,255);
-					BorderSizePixel = 0;
-					Position = UDim2.fromOffset(0,0);
-					Size = UDim2.fromOffset(50, 25);
-				})
-				local nameLabel = puter.AddWindowElement(window, "TextLabel", {
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					Text = "Name";
-					TextScaled = true;
-					TextColor3 = Color3.fromRGB(255,255,255);
-					BorderSizePixel = 0;
-					Position = UDim2.fromOffset(0,25);
-					Size = UDim2.fromOffset(150, 25);
-				})
-				local idlabel = puter.AddWindowElement(window, "TextLabel", {
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					Text = "Audio ID";
-					TextScaled = true;
-					TextColor3 = Color3.fromRGB(255,255,255);
-					BorderSizePixel = 0;
-					Position = UDim2.fromOffset(150,25);
-					Size = UDim2.fromOffset(150, 25);
-				})
-				local actionLabel = puter.AddWindowElement(window, "TextLabel", {
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					Text = "Actions";
-					TextScaled = true;
-					TextColor3 = Color3.fromRGB(255,255,255);
-					BorderSizePixel = 0;
-					Position = UDim2.fromOffset(300,25);
-					Size = UDim2.fromOffset(100, 25);
-				})
-				local scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
-					Size = UDim2.fromOffset(400, 250);
-					Position = UDim2.fromOffset(0, 50);
-					BackgroundColor3 = Color3.fromRGB(86, 86, 86);
-					ScrollBarThickness = 2;
-					ScrollingDirection = Enum.ScrollingDirection.Y;
-					CanvasSize = UDim2.fromOffset(0, 0);
-				})
-				local function refresh()
-					musicList = decodeRawMusicList(storage:Read("musicList"))
-					space:ChangeProperties({Text = tostring(#musicList) .. " / 70"})
-					scrollFrame:Destroy()
-					scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
-						Size = UDim2.fromOffset(400, 250);
-						Position = UDim2.fromOffset(0, 50);
-						BackgroundColor3 = Color3.fromRGB(86, 86, 86);
-						ScrollBarThickness = 1;
-						ScrollingDirection = Enum.ScrollingDirection.Y;
-						CanvasSize = UDim2.fromOffset(0, 0);
-					})
-					for i, v in pairs(musicList) do
-						local parentFrame = puter.AddElement(scrollFrame, "Frame", {
-							Size = UDim2.fromOffset(398, 25);
-							Position = UDim2.fromOffset(0, (i - 1) * 25);
-							BackgroundTransparency = 1;
-						})
-						scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
-						for i2, v2 in pairs(v) do
-							if i2 == "name" then
-								puter.AddElement(parentFrame, "TextLabel", {
-									Size = UDim2.fromOffset(150, 25);
-									Position = UDim2.fromOffset(0, 0);
-									Text = v2;
-									TextColor3 = Color3.fromRGB(255,255,255);
-									TextScaled = true;
-									BackgroundTransparency = 1;
-								})
-							elseif i2 == "id" then
-								puter.AddElement(parentFrame, "TextLabel", {
-									Size = UDim2.fromOffset(150, 25);
-									Position = UDim2.fromOffset(150, 0);
-									Text = v2;
-									TextColor3 = Color3.fromRGB(255,255,255);
-									TextScaled = true;
-									BackgroundTransparency = 1;
-								})
-								local playButton = puter.AddElement(parentFrame, "TextButton", {
-									Text = ">";
-									TextScaled = true;
-									TextColor3 = Color3.fromRGB(0,0,0);
-									BackgroundColor3 = Color3.fromRGB(0,255,0);
-									BorderSizePixel = 0;
-									Size = UDim2.fromOffset(25, 25);
-									Position = UDim2.fromOffset(300, 0);
-								})
-								local pauseButton = puter.AddElement(parentFrame, "TextButton", {
-									Text = "x";
-									TextScaled = true;
-									TextColor3 = Color3.fromRGB(0,0,0);
-									BackgroundColor3 = Color3.fromRGB(255,255,0);
-									BorderSizePixel = 0;
-									Size = UDim2.fromOffset(25, 25);
-									Position = UDim2.fromOffset(325, 0);
-								})
-								playButton.MouseButton1Click:Connect(function()
-									puter.PlayAudio(v2, speaker)
-								end)
-								pauseButton.MouseButton1Click:Connect(function()
-									if speaker ~= nil then
-										speaker:ClearSounds()
-									end
-								end)
-								local clickedDelete = false
-								local deleteButton = puter.AddElement(parentFrame, "TextButton", {
-									Text = "Delete";
-									TextScaled = true;
-									TextColor3 = Color3.fromRGB(0,0,0);
-									BackgroundColor3 = Color3.fromRGB(255,0,0);
-									BorderSizePixel = 0;
-									Size = UDim2.fromOffset(49, 25);
-									Position = UDim2.fromOffset(350, 0);
-								})
-								deleteButton.MouseButton1Click:Connect(function()
-									if clickedDelete == true then
-										musicList[i] = nil
-										storage:Write("musicList", encodeMusicList(musicList))
-										parentFrame:Destroy()
-										refresh()
-									else
-										deleteButton:ChangeProperties({Text  = "Are you sure?"})
-										clickedDelete = true
-										wait(2.5)
-										if deleteButton ~= nil then
-											deleteButton:ChangeProperties({Text = "Delete"})
-										end
-										clickedDelete = false
-									end
-								end)
-							end
-						end
-					end
-				end
-				local refreshButton = puter.AddWindowElement(window, "TextButton", {
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					Text = "Refresh";
-					TextScaled = true;
-					TextColor3 = Color3.fromRGB(255,255,255);
-					BorderSizePixel = 0;
-					Position = UDim2.fromOffset(300,0);
-					Size = UDim2.fromOffset(100, 25);
-				})
-				refreshButton.MouseButton1Click:Connect(function()
-					refresh()
-				end)
-				refresh()
-				addButton.MouseButton1Click:Connect(function()
-					if canopenadd == true then
-						local window, closebutton = puter.CreateWindow(400, 300, "Add Music")
-						closebutton.MouseButton1Click:Connect(function()
-							canopenadd = true
-						end)
-						canopenadd = false
-						local focusedon = nil
-						local name
-						local id
-						local musicName = puter.AddWindowElement(window, "TextButton", {
-							Text = "Music Name:";
-							TextScaled = true;
-							TextColor3 = Color3.fromRGB(0,0,0);
-							BackgroundColor3 = Color3.fromRGB(77, 77, 77);
-							Size = UDim2.fromOffset(380, 25);
-							Position = UDim2.fromOffset(10, 10);
-						})
-						local musicId = puter.AddWindowElement(window, "TextButton", {
-							Text = "Music ID:";
-							TextScaled = true;
-							TextColor3 = Color3.fromRGB(0,0,0);
-							BackgroundColor3 = Color3.fromRGB(77, 77, 77);
-							Size = UDim2.fromOffset(380, 25);
-							Position = UDim2.fromOffset(10, 45);
-						})
-						local okbutton = puter.AddWindowElement(window, "TextButton", {
-							Text = "Add";
-							TextColor3 = Color3.fromRGB(0,0,0);
-							TextScaled = true;
-							Size = UDim2.fromOffset(100, 25);
-							Position = UDim2.fromOffset(150, 250);
-							BackgroundColor3 = Color3.fromRGB(77, 77, 77);
-						})
-						musicName.MouseButton1Click:Connect(function()
-							focusedon = "name"
-							musicName:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-							musicId:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-						end)
-						musicId.MouseButton1Click:Connect(function()
-							focusedon = "id"
-							musicId:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-							musicName:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-						end)
-						okbutton.MouseButton1Click:Connect(function()
-							if name ~= nil then
-								if #name <= 50 then
-									if id ~= nil then
-										if #musicList <= 69 then
-											musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
-											storage:Write("musicList", encodeMusicList(musicList))
-											refresh()
-											local success = puter.AddWindowElement(window, "TextLabel", {
-												Text = "saved";
-												Size = UDim2.fromOffset(400, 25);
-												Position = UDim2.fromOffset(0, 225);
-												TextScaled = true;
-												TextColor3 = Color3.fromRGB(0,255,0);
-												BackgroundTransparency = 1;
-											})
-											wait(1)
-											success:Destroy()
-										else
-											local err = puter.AddWindowElement(window, "TextLabel", {
-												Text = "out of space";
-												Size = UDim2.fromOffset(400, 25);
-												Position = UDim2.fromOffset(0, 225);
-												TextScaled = true;
-												TextColor3 = Color3.fromRGB(255,0,0);
-												BackgroundTransparency = 1;
-											})
-											wait(1)
-											err:Destroy()
-										end
-									else
-										local err = puter.AddWindowElement(window, "TextLabel", {
-											Text = "please input an ID";
-											Size = UDim2.fromOffset(400, 25);
-											Position = UDim2.fromOffset(0, 225);
-											TextScaled = true;
-											TextColor3 = Color3.fromRGB(255,0,0);
-											BackgroundTransparency = 1;
-										})
-										wait(1)
-										err:Destroy()
-									end
-								else
-									local err = puter.AddWindowElement(window, "TextLabel", {
-										Text = "name is too long";
-										Size = UDim2.fromOffset(400, 25);
-										Position = UDim2.fromOffset(0, 225);
-										TextScaled = true;
-										TextColor3 = Color3.fromRGB(255,0,0);
-										BackgroundTransparency = 1;
-									})
-									wait(1)
-									err:Destroy()
-								end
-							else
-								local err = puter.AddWindowElement(window, "TextLabel", {
-									Text = "please input a name";
-									Size = UDim2.fromOffset(400, 25);
-									Position = UDim2.fromOffset(0, 225);
-									TextScaled = true;
-									TextColor3 = Color3.fromRGB(255,0,0);
-									BackgroundTransparency = 1;
-								})
-								wait(1)
-								err:Destroy()
-							end
-						end)
-						xConnect("keyboard", "TextInputted", function(text, plr)
-							text = string.sub(text, 1, #text - 1)
-							if focusedon == "name" then
-								name = text
-								musicName:ChangeProperties({Text = "Music Name: " .. text})
-							elseif focusedon == "id" then
-								id = text
-								musicId:ChangeProperties({Text = "Music ID: " .. text})
-							end
-						end, "addMusic")
-					end
-				end)
-			end
-		end
-		musicApp.MouseButton1Click:Connect(function()
-			musicPlayer()
-		end)
-		shutdownbutton.MouseButton1Click:Connect(function()
-			shutdown()
-		end)
-		restartbutton.MouseButton1Click:Connect(function()
-			screen:ClearElements()
-			for i, v in pairs(coroutines) do
-				closeCoroutine(i)
-			end
-			Beep()
-			TriggerPort(3)
-		end)
 		local canopenexplorer = true
-		explorerApp.MouseButton1Click:Connect(function()
+		local function explorer(directory, disk)
 			if canopenexplorer == true then
 				local explorerwindow, closeexplorer = puter.CreateWindow(500, 300, "Explorer")
 				canopenexplorer = false
@@ -2405,8 +1969,8 @@ local success, errorcode = pcall(function()
 						BorderSizePixel = 0;
 					})
 					local called = true
-					local path = "Disk View"
-					local viewingDisk
+					local path = directory
+					local viewingDisk = disk
 					local pathLabel = puter.AddWindowElement(explorerwindow, "TextLabel", {
 						Size = UDim2.fromOffset(495, 25);
 						Position = UDim2.fromOffset(5, 25);
@@ -2617,54 +2181,56 @@ local success, errorcode = pcall(function()
 						return offsetv2 * 25
 					end
 					local function getPath(path, disk)
-						local yay, noooo = pcall(function()
-							pathLabel:ChangeProperties({Text = path})
-							mainScrollFrame:Destroy()
-							mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
-								Size = UDim2.fromOffset(500, 225);
-								Position = UDim2.fromOffset(0, 75);
-								BorderSizePixel = 0;
-								BackgroundColor3 = Color3.fromRGB(60, 60, 60);
-								ScrollBarThickness = 2;
-								CanvasSize = UDim2.fromOffset(0,0);
-							})
-							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
-								Size = UDim2.fromOffset(498, 25);
-								Position = UDim2.fromOffset(0, 0);
-								BorderSizePixel = 0;
-								BackgroundTransparency = 1;
-							})
-							local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
-								Size = UDim2.fromOffset(300, 25);
-								Position = UDim2.fromOffset(0,0);
-								BackgroundColor3 = Color3.fromRGB(100,100,100);
-								BorderSizePixel = 0;
-								TextColor3 = Color3.fromRGB(255,255,255);
-								TextScaled = true;
-								Text = ".."
-							})
-							puter.AddElement(parentFrame, "TextLabel", {
-								Size = UDim2.fromOffset(198, 25);
-								Position = UDim2.fromOffset(300,0);
-								BackgroundColor3 = Color3.fromRGB(100,100,100);
-								BorderSizePixel = 0;
-								TextColor3 = Color3.fromRGB(255,255,255);
-								TextScaled = true;
-								Text = "Folder"
-							})
-							fileNameButton.MouseButton1Click:Connect(function()
-								getUp()
+						if filesystem.read(path, disk).data == "t:folder" then
+							local yay, noooo = pcall(function()
+								pathLabel:ChangeProperties({Text = path})
+								mainScrollFrame:Destroy()
+								mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
+									Size = UDim2.fromOffset(500, 225);
+									Position = UDim2.fromOffset(0, 75);
+									BorderSizePixel = 0;
+									BackgroundColor3 = Color3.fromRGB(60, 60, 60);
+									ScrollBarThickness = 2;
+									CanvasSize = UDim2.fromOffset(0,0);
+								})
+								local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+									Size = UDim2.fromOffset(498, 25);
+									Position = UDim2.fromOffset(0, 0);
+									BorderSizePixel = 0;
+									BackgroundTransparency = 1;
+								})
+								local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+									Size = UDim2.fromOffset(300, 25);
+									Position = UDim2.fromOffset(0,0);
+									BackgroundColor3 = Color3.fromRGB(100,100,100);
+									BorderSizePixel = 0;
+									TextColor3 = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = ".."
+								})
+								puter.AddElement(parentFrame, "TextLabel", {
+									Size = UDim2.fromOffset(198, 25);
+									Position = UDim2.fromOffset(300,0);
+									BackgroundColor3 = Color3.fromRGB(100,100,100);
+									BorderSizePixel = 0;
+									TextColor3 = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = "Folder"
+								})
+								fileNameButton.MouseButton1Click:Connect(function()
+									getUp()
+								end)
+								local files = filesystem.scanPath(path, disk)
+								local offset = getFolders(path, disk)
+								local offsetv2 = getFiles(path, disk, offset)
+								mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset + offsetv2)})
 							end)
-							local files = filesystem.scanPath(path, disk)
-							local offset = getFolders(path, disk)
-							local offsetv2 = getFiles(path, disk, offset)
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset + offsetv2)})
-						end)
-						if yay == false then
-							print(noooo)
-							print("DEBUG DATA: [KEY: DATA]")
-							for i, v in pairs(disk:ReadEntireDisk()) do
-								print(i .. ": " .. v)
+							if yay == false then
+								print(noooo)
+								print("DEBUG DATA: [KEY: DATA]")
+								for i, v in pairs(disk:ReadEntireDisk()) do
+									print(i .. ": " .. v)
+								end
 							end
 						end
 					end
@@ -2719,11 +2285,11 @@ local success, errorcode = pcall(function()
 								print("i got called")
 								if viewingDisk ~= nil then
 									print("viewing disk is not nil")
-									if path ~= "Disk View" then
+									if path ~= "Disk View" and path ~= nil then
 										print("getting data at path " .. path)
 										getPath(path, viewingDisk)
 									else
-										print("the path is Disk View, cmon you know thats not valid")
+										print("bad path")
 										viewingDisk = nil
 										displayDisks()
 									end
@@ -3143,6 +2709,459 @@ local success, errorcode = pcall(function()
 				end
 				openMainExplorer()
 			end
+		end
+		if foundPrimary then
+			local children = filesystem.scanPath("/Desktop/", mounteddisks[foundPrimary])
+			for i, v in pairs(children) do
+				local file = filesystem.read("/Desktop/" .. v, mounteddisks[foundPrimary])
+				if file ~= nil then
+					local fileIcon = createIcon(v, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+					fileIcon.MouseButton1Click:Connect(function()
+						if file.data ~= "t:folder" then
+							local fileType, data, trueType = typeParser(file.data)
+							local thingToDo = knownFileTypes[fileType]
+							print(fileType)
+							if thingToDo ~= nil then
+								thingToDo(data)
+							else
+								errorPopup("Unknown file type")
+							end
+						else
+							explorer("/Desktop/" .. v, mounteddisks[foundPrimary])
+						end
+					end)
+				end
+			end
+		end
+		local function lagometer()
+			if canopenlagometer == true then
+				canopenlagometer = false
+				local window, closebutton = puter.CreateWindow(400, 225, "Lag O'Meter", Color3.fromRGB(0,0,0))
+				local currentFPS = puter.AddWindowElement(window, "TextLabel", {
+					Size = UDim2.fromOffset(50, 50);
+					Position = UDim2.fromOffset(350, 0);
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BackgroundTransparency = 1;
+					TextScaled = true;
+					Text = "N/A";
+				})
+				local lagHistoryFrame = puter.AddWindowElement(window, "Frame", {
+					Size = UDim2.fromOffset(350, 85);
+					Position = UDim2.fromOffset(0, 140);
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				local lag = {}
+				local lagBars = {}
+				local function addFramerate(framerate)
+					if #lag <= 13 then
+						lag[#lag + 1] = framerate
+					elseif #lag >= 14 then
+						for i, v in pairs(lag) do
+							if i >= 2 then
+								lag[i - 1] = lag[i]
+							end
+						end
+						lag[14] = framerate
+					end
+				end
+				local lagMeasurer = newCoroutine(function()
+					while true do
+						local curTime = tick()
+						wait(1)
+						local difference = tick() - curTime
+						local framerate = math.floor(60 / difference)
+						addFramerate(framerate)
+						local color
+						if framerate >= 45 then
+							color = Color3.fromRGB(0,255,0)
+						elseif framerate >= 30 then
+							color = Color3.fromRGB(255,255,0)
+						elseif framerate >= 15 then
+							color = Color3.fromRGB(255,126,0)
+						elseif framerate >= 1 then
+							color = Color3.fromRGB(255,0,0)
+						else
+							color = Color3.fromRGB(143, 255, 244)
+						end
+						currentFPS:ChangeProperties({Text = tostring(framerate); TextColor3 = color;})
+					end
+				end, "Lag Measurer")
+				local lagHistory = newCoroutine(function()
+					while true do 
+						wait(0.5)
+						for i, v in pairs(lag) do
+							local color
+							local size
+							if v >= 45 then
+								color = Color3.fromRGB(0,255,0)
+							elseif v >= 30 then
+								color = Color3.fromRGB(255,255,0)
+							elseif v >= 15 then
+								color = Color3.fromRGB(255,126,0)
+							elseif v >= 1 then
+								color = Color3.fromRGB(255,0,0)
+							else
+								color = Color3.fromRGB(143, 255, 244)
+							end
+							if v >= 1 then
+								size = UDim2.fromOffset(25,v)
+							else
+								size = UDim2.fromOffset(25, 60)
+							end
+							if lagBars[i] == nil then
+								local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
+									Size = size;
+									BackgroundColor3 = color;
+									BorderSizePixel = 0;
+									Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
+								})
+								local lagAmount = puter.AddElement(lagBar, "TextLabel", {
+									Size = UDim2.fromOffset(15, 15);
+									Position = UDim2.fromOffset(5, -20);
+									Text = tostring(v);
+									TextScaled = true;
+									TextColor3 = color;
+									BackgroundTransparency = 1;
+								})
+								lagBars[i] = {}
+								lagBars[i]["bar"] = lagBar
+								lagBars[i]["amount"] = lagAmount
+							else
+								lagBars[i]["bar"]:ChangeProperties({Size = size; BackgroundColor3 = color; Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25);})
+								lagBars[i]["amount"]:ChangeProperties({Text = tostring(v); TextColor3 = color;})
+							end
+						end
+					end
+				end, "Lag History")
+				closebutton.MouseButton1Click:Connect(function()
+					closeCoroutine(lagMeasurer)
+					closeCoroutine(lagHistory)
+					canopenlagometer = true
+				end)
+			end
+		end
+		lagOMeterApp.MouseButton1Click:Connect(function()
+			lagometer()
+		end)
+		local function musicPlayer()
+			if availableComponents["speaker"] ~= nil then
+				if canopenmusic == true then
+					local musicList
+					local canopenadd = true
+					local window, closebutton = puter.CreateWindow(400, 300, "Music Player")
+					closebutton.MouseButton1Click:Connect(function()
+						canopenmusic = true
+					end)
+					canopenmusic = false
+					if storage:Read("musicList") ~= nil then
+						musicList = decodeRawMusicList(storage:Read("musicList"))
+					else
+						musicList = {}
+						storage:Write("musicList", encodeMusicList(musicList))
+					end
+					local addButton = puter.AddWindowElement(window, "TextButton", {
+						BackgroundColor3 = Color3.fromRGB(0,255,0);
+						Text = "Add";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(50,0);
+						Size = UDim2.fromOffset(250, 25);
+					})
+					local space = puter.AddWindowElement(window, "TextLabel", {
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Text = tostring(#musicList) .. " / 70";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(0,0);
+						Size = UDim2.fromOffset(50, 25);
+					})
+					local nameLabel = puter.AddWindowElement(window, "TextLabel", {
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Text = "Name";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(0,25);
+						Size = UDim2.fromOffset(150, 25);
+					})
+					local idlabel = puter.AddWindowElement(window, "TextLabel", {
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Text = "Audio ID";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(150,25);
+						Size = UDim2.fromOffset(150, 25);
+					})
+					local actionLabel = puter.AddWindowElement(window, "TextLabel", {
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Text = "Actions";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(300,25);
+						Size = UDim2.fromOffset(100, 25);
+					})
+					local scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
+						Size = UDim2.fromOffset(400, 250);
+						Position = UDim2.fromOffset(0, 50);
+						BackgroundColor3 = Color3.fromRGB(86, 86, 86);
+						ScrollBarThickness = 2;
+						ScrollingDirection = Enum.ScrollingDirection.Y;
+						CanvasSize = UDim2.fromOffset(0, 0);
+					})
+					local function refresh()
+						musicList = decodeRawMusicList(storage:Read("musicList"))
+						space:ChangeProperties({Text = tostring(#musicList) .. " / 70"})
+						scrollFrame:Destroy()
+						scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
+							Size = UDim2.fromOffset(400, 250);
+							Position = UDim2.fromOffset(0, 50);
+							BackgroundColor3 = Color3.fromRGB(86, 86, 86);
+							ScrollBarThickness = 1;
+							ScrollingDirection = Enum.ScrollingDirection.Y;
+							CanvasSize = UDim2.fromOffset(0, 0);
+						})
+						for i, v in pairs(musicList) do
+							local parentFrame = puter.AddElement(scrollFrame, "Frame", {
+								Size = UDim2.fromOffset(398, 25);
+								Position = UDim2.fromOffset(0, (i - 1) * 25);
+								BackgroundTransparency = 1;
+							})
+							scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
+							for i2, v2 in pairs(v) do
+								if i2 == "name" then
+									puter.AddElement(parentFrame, "TextLabel", {
+										Size = UDim2.fromOffset(150, 25);
+										Position = UDim2.fromOffset(0, 0);
+										Text = v2;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										BackgroundTransparency = 1;
+									})
+								elseif i2 == "id" then
+									puter.AddElement(parentFrame, "TextLabel", {
+										Size = UDim2.fromOffset(150, 25);
+										Position = UDim2.fromOffset(150, 0);
+										Text = v2;
+										TextColor3 = Color3.fromRGB(255,255,255);
+										TextScaled = true;
+										BackgroundTransparency = 1;
+									})
+									local playButton = puter.AddElement(parentFrame, "TextButton", {
+										Text = ">";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(0,255,0);
+										BorderSizePixel = 0;
+										Size = UDim2.fromOffset(25, 25);
+										Position = UDim2.fromOffset(300, 0);
+									})
+									local pauseButton = puter.AddElement(parentFrame, "TextButton", {
+										Text = "x";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(255,255,0);
+										BorderSizePixel = 0;
+										Size = UDim2.fromOffset(25, 25);
+										Position = UDim2.fromOffset(325, 0);
+									})
+									playButton.MouseButton1Click:Connect(function()
+										puter.PlayAudio(v2, speaker)
+									end)
+									pauseButton.MouseButton1Click:Connect(function()
+										if speaker ~= nil then
+											speaker:ClearSounds()
+										end
+									end)
+									local clickedDelete = false
+									local deleteButton = puter.AddElement(parentFrame, "TextButton", {
+										Text = "Delete";
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(0,0,0);
+										BackgroundColor3 = Color3.fromRGB(255,0,0);
+										BorderSizePixel = 0;
+										Size = UDim2.fromOffset(49, 25);
+										Position = UDim2.fromOffset(350, 0);
+									})
+									deleteButton.MouseButton1Click:Connect(function()
+										if clickedDelete == true then
+											musicList[i] = nil
+											storage:Write("musicList", encodeMusicList(musicList))
+											parentFrame:Destroy()
+											refresh()
+										else
+											deleteButton:ChangeProperties({Text  = "Are you sure?"})
+											clickedDelete = true
+											wait(2.5)
+											if deleteButton ~= nil then
+												deleteButton:ChangeProperties({Text = "Delete"})
+											end
+											clickedDelete = false
+										end
+									end)
+								end
+							end
+						end
+					end
+					local refreshButton = puter.AddWindowElement(window, "TextButton", {
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						Text = "Refresh";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(255,255,255);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(300,0);
+						Size = UDim2.fromOffset(100, 25);
+					})
+					refreshButton.MouseButton1Click:Connect(function()
+						refresh()
+					end)
+					refresh()
+					addButton.MouseButton1Click:Connect(function()
+						if canopenadd == true then
+							local window, closebutton = puter.CreateWindow(400, 300, "Add Music")
+							closebutton.MouseButton1Click:Connect(function()
+								canopenadd = true
+							end)
+							canopenadd = false
+							local focusedon = nil
+							local name
+							local id
+							local musicName = puter.AddWindowElement(window, "TextButton", {
+								Text = "Music Name:";
+								TextScaled = true;
+								TextColor3 = Color3.fromRGB(0,0,0);
+								BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+								Size = UDim2.fromOffset(380, 25);
+								Position = UDim2.fromOffset(10, 10);
+							})
+							local musicId = puter.AddWindowElement(window, "TextButton", {
+								Text = "Music ID:";
+								TextScaled = true;
+								TextColor3 = Color3.fromRGB(0,0,0);
+								BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+								Size = UDim2.fromOffset(380, 25);
+								Position = UDim2.fromOffset(10, 45);
+							})
+							local okbutton = puter.AddWindowElement(window, "TextButton", {
+								Text = "Add";
+								TextColor3 = Color3.fromRGB(0,0,0);
+								TextScaled = true;
+								Size = UDim2.fromOffset(100, 25);
+								Position = UDim2.fromOffset(150, 250);
+								BackgroundColor3 = Color3.fromRGB(77, 77, 77);
+							})
+							musicName.MouseButton1Click:Connect(function()
+								focusedon = "name"
+								musicName:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+								musicId:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+							end)
+							musicId.MouseButton1Click:Connect(function()
+								focusedon = "id"
+								musicId:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+								musicName:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+							end)
+							okbutton.MouseButton1Click:Connect(function()
+								if name ~= nil then
+									if #name <= 50 then
+										if id ~= nil then
+											if #musicList <= 69 then
+												musicList[#musicList + 1] = {["name"] = name, ["id"] = id}
+												storage:Write("musicList", encodeMusicList(musicList))
+												refresh()
+												local success = puter.AddWindowElement(window, "TextLabel", {
+													Text = "saved";
+													Size = UDim2.fromOffset(400, 25);
+													Position = UDim2.fromOffset(0, 225);
+													TextScaled = true;
+													TextColor3 = Color3.fromRGB(0,255,0);
+													BackgroundTransparency = 1;
+												})
+												wait(1)
+												success:Destroy()
+											else
+												local err = puter.AddWindowElement(window, "TextLabel", {
+													Text = "out of space";
+													Size = UDim2.fromOffset(400, 25);
+													Position = UDim2.fromOffset(0, 225);
+													TextScaled = true;
+													TextColor3 = Color3.fromRGB(255,0,0);
+													BackgroundTransparency = 1;
+												})
+												wait(1)
+												err:Destroy()
+											end
+										else
+											local err = puter.AddWindowElement(window, "TextLabel", {
+												Text = "please input an ID";
+												Size = UDim2.fromOffset(400, 25);
+												Position = UDim2.fromOffset(0, 225);
+												TextScaled = true;
+												TextColor3 = Color3.fromRGB(255,0,0);
+												BackgroundTransparency = 1;
+											})
+											wait(1)
+											err:Destroy()
+										end
+									else
+										local err = puter.AddWindowElement(window, "TextLabel", {
+											Text = "name is too long";
+											Size = UDim2.fromOffset(400, 25);
+											Position = UDim2.fromOffset(0, 225);
+											TextScaled = true;
+											TextColor3 = Color3.fromRGB(255,0,0);
+											BackgroundTransparency = 1;
+										})
+										wait(1)
+										err:Destroy()
+									end
+								else
+									local err = puter.AddWindowElement(window, "TextLabel", {
+										Text = "please input a name";
+										Size = UDim2.fromOffset(400, 25);
+										Position = UDim2.fromOffset(0, 225);
+										TextScaled = true;
+										TextColor3 = Color3.fromRGB(255,0,0);
+										BackgroundTransparency = 1;
+									})
+									wait(1)
+									err:Destroy()
+								end
+							end)
+							xConnect("keyboard", "TextInputted", function(text, plr)
+								text = string.sub(text, 1, #text - 1)
+								if focusedon == "name" then
+									name = text
+									musicName:ChangeProperties({Text = "Music Name: " .. text})
+								elseif focusedon == "id" then
+									id = text
+									musicId:ChangeProperties({Text = "Music ID: " .. text})
+								end
+							end, "addMusic")
+						end
+					end)
+				end
+			end
+		end
+		musicApp.MouseButton1Click:Connect(function()
+			musicPlayer()
+		end)
+		shutdownbutton.MouseButton1Click:Connect(function()
+			shutdown()
+		end)
+		restartbutton.MouseButton1Click:Connect(function()
+			screen:ClearElements()
+			for i, v in pairs(coroutines) do
+				closeCoroutine(i)
+			end
+			Beep()
+			TriggerPort(3)
+		end)
+		explorerApp.MouseButton1Click:Connect(function()
+			explorer()
 		end)
 		local canopenterminal = true
 		local canopenchat = true
