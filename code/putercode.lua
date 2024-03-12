@@ -744,7 +744,9 @@ local success, errorcode = pcall(function()
 			end
 		end;
 		read = function(path, disk)
-			local file = {data = disk:Read(path)}
+			local file = {}
+			file.data = disk:Read(path)
+			print(file.data)
 			function file:delete()
 				if file.data ~= "t:folder" then
 					disk:Write(path, nil)
@@ -2158,6 +2160,7 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(folders) do
 							local folder = filesystem.read(path .. v .. "/", disk)
 							if folder ~= nil then
+								print(folder.data)
 								local fileType, data, trueType = typeParser(folder.data)
 								offset = offset + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, folder.data, folder)
@@ -2173,6 +2176,7 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
+								print(file.data)
 								local fileType, data, trueType = typeParser(file.data)
 								offsetv2 = offsetv2 + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, file.data, file)
