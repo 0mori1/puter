@@ -600,7 +600,7 @@ local success, errorcode = pcall(function()
 					local xOffset = iconsCreated - yOffset * maxIconX
 					if yOffset < maxIconY then
 						local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
-						puter.AddElement(parentFrame, "TextButton", {
+						local icon = puter.AddElement(parentFrame, "TextButton", {
 							Text = text;
 							Size = UDim2.fromOffset(iconX, iconY);
 							Position = position;
@@ -608,6 +608,7 @@ local success, errorcode = pcall(function()
 							TextColor3 = textcolor;
 							TextScaled = true;
 						})
+						return icon
 					else
 						warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
 					end
