@@ -608,6 +608,7 @@ local success, errorcode = pcall(function()
 							TextColor3 = textcolor;
 							TextScaled = true;
 						})
+						iconsCreated += 1
 						return icon
 					else
 						warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
