@@ -842,7 +842,6 @@ local success, errorcode = pcall(function()
 									if string.sub(name, #name, #name) == "/" then
 										name = string.sub(name, 1, #name - 1)
 									end
-									return
 								end
 							end
 							return name
