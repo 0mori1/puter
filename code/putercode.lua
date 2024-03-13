@@ -2748,7 +2748,6 @@ local success, errorcode = pcall(function()
 			local files = {}
 			local function getFolders(path, disk)
 				local folders = filesystem.scanPath(path, disk)
-				local offset = 0
 				for i, v in pairs(folders) do
 					print(v)
 					local folder = filesystem.read(path .. v .. "/", disk)
@@ -2759,8 +2758,6 @@ local success, errorcode = pcall(function()
 						print("i got a folder")
 					end
 				end
-				print(offset * 25)
-				return offset * 25
 			end
 			local function getFiles(path, disk)
 				local files = filesystem.scanPath(path, disk)
