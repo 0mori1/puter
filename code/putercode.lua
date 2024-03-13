@@ -2167,6 +2167,7 @@ local success, errorcode = pcall(function()
 						local folders = filesystem.scanPath(path, disk)
 						local offset = 0
 						for i, v in pairs(folders) do
+							print(v)
 							local folder = filesystem.read(path .. v .. "/", disk)
 							print(path .. v .. "/")
 							if folder ~= nil then
