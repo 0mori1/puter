@@ -835,13 +835,14 @@ local success, errorcode = pcall(function()
 						function file:getName()
 							local name
 							for i = #path, 1, -1 do
-								if string.sub(path, i, i) == "/" and i ~= #path then
+								if string.sub(path, i, i) == "/" and i ~= #path and not name then
 									print(tostring(i))
 									name = string.sub(path, i + 1, #path)
 									print(name)
 									if string.sub(name, #name, #name) == "/" then
 										name = string.sub(name, 1, #name - 1)
 									end
+									return
 								end
 							end
 							return name
