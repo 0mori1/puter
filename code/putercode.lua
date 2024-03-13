@@ -836,7 +836,7 @@ local success, errorcode = pcall(function()
 							local name
 							for i = #path, 1, -1 do
 								if string.sub(path, i, i) == "/" and i ~= #path then
-									print(i)
+									print(tostring(i))
 									name = string.sub(path, i + 1, #path)
 									print(name)
 									if string.sub(name, #name, #name) == "/" then
