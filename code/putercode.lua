@@ -2744,8 +2744,8 @@ local success, errorcode = pcall(function()
 			end
 		end
 		if foundPrimary then
-			local folders = {}
-			local files = {}
+			local foldersToDisplay = {}
+			local filesToDisplay = {}
 			local function getFolders(path, disk)
 				local folders = filesystem.scanPath(path, disk)
 				for i, v in pairs(folders) do
@@ -2754,7 +2754,7 @@ local success, errorcode = pcall(function()
 					print(path .. v .. "/")
 					if folder ~= nil then
 						print(folder.data)
-						folders[path .. v .. "/"] = folder
+						foldersToDisplay[path .. v .. "/"] = folder
 						print("i got a folder")
 					end
 				end
@@ -2765,14 +2765,14 @@ local success, errorcode = pcall(function()
 					local file = filesystem.read(path .. v, disk)
 					if file ~= nil then
 						print(file.data)
-						files[path .. v] = file
+						filesToDisplay[path .. v] = file
 						print("i got a file")
 					end
 				end
 			end
 			getFiles("/Desktop/", mounteddisks[foundPrimary])
 			getFolders("/Desktop/", mounteddisks[foundPrimary])
-			for i, v in pairs(files) do
+			for i, v in pairs(filesToDisplay) do
 				local fileIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
 				fileIcon.MouseButton1Click:Connect(function()
 					local fileType, data, trueType = typeParser(v.data)
@@ -2785,7 +2785,7 @@ local success, errorcode = pcall(function()
 					end
 				end)
 			end
-			for i, v in pairs(folders) do
+			for i, v in pairs(foldersToDisplay) do
 				local folderIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
 				folderIcon.MouseButton1Click:Connect(function()
 					explorer(i, mounteddisks[foundPrimary])
