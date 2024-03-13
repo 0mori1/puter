@@ -744,77 +744,86 @@ local success, errorcode = pcall(function()
 			end
 		end;
 		read = function(path, disk)
-			local file = {}
-			file.data = disk:Read(path)
-			print(file.data)
-			function file:delete()
-				if file.data ~= "t:folder" then
-					disk:Write(path, nil)
+			if path ~= nil then
+				if disk ~= nil then
+					print(path)
+					local file = {}
+					file.data = disk:Read(path)
+					print(file.data)
+					function file:delete()
+						if file.data ~= "t:folder" then
+							disk:Write(path, nil)
+						else
+							if string.sub(path, #path, #path) ~= "/" then
+								path = path .. "/"
+							end
+							for i, v in pairs(disk:ReadEntireDisk()) do
+								if string.sub(i, 1, #path) == path then
+									disk:Write(i, nil)
+								end
+							end
+						end
+					end
+					if file.data == "t:folder" then
+						function file:getDescendants()
+							local locationsAndValues = {}
+							if string.sub(path, #path, #path) ~= "/" then
+								path = path .. "/"
+							end
+							for i, v in pairs(disk:ReadEntireDisk()) do
+								if string.sub(i, 1, #path) == path then
+									locationsAndValues[string.sub(i, #path, #i)] = v
+								end
+							end
+							return locationsAndValues
+						end
+					end
+					function file:copy(ddisk, destination)
+						local name
+						if string.sub(destination, #destination, #destination) ~= "/" then
+							destination = destination .. "/"
+						end
+						for i = #path, 1, -1 do
+							if string.sub(path, i, i) == "/" and i ~= #path then
+								name = string.sub(path, i + 1, #path)
+								if string.sub(name, #name, #name) == "/" then
+									name = string.sub(name, 1, #name - 1)
+								end
+							end
+						end
+						if ddisk:Read(destination) == "t:folder" then
+							if file.data ~= "t:folder" then
+								ddisk:Write(destination .. name, file.data)
+							else
+								ddisk:Write(destination .. name .. "/", "t:folder")
+								for i, v in pairs(file:getDescendants()) do
+									ddisk:Write(destination .. name .. i, v)
+								end
+							end
+						end
+					end
+					function file:rename(newName)
+						local namelessPath
+						if string.sub(newName, #newName, #newName) == "/" and file.data ~= "t:folder" then
+							newName = string.sub(newName, 1, #newName - 1)
+						elseif file.data == "t:folder" and string.sub(newName, #newName, #newName) ~= "/" then
+							newName = newName .. "/"
+						end
+						for i = #path, 1, -1 do
+							if string.sub(path, i, i) == "/" and i ~= #path then
+								namelessPath = string.sub(path, 1, i)
+							end
+						end
+						disk:Write(namelessPath .. newName, file.data)
+						path = namelessPath .. newName
+					end
+					return file
 				else
-					if string.sub(path, #path, #path) ~= "/" then
-						path = path .. "/"
-					end
-					for i, v in pairs(disk:ReadEntireDisk()) do
-						if string.sub(i, 1, #path) == path then
-							disk:Write(i, nil)
-						end
-					end
+					return {data = "whoops the disk is not a thing"}
 				end
+			else
+				return {data = "whoops the path is missing"}
 			end
-			if file.data == "t:folder" then
-				function file:getDescendants()
-					local locationsAndValues = {}
-					if string.sub(path, #path, #path) ~= "/" then
-						path = path .. "/"
-					end
-					for i, v in pairs(disk:ReadEntireDisk()) do
-						if string.sub(i, 1, #path) == path then
-							locationsAndValues[string.sub(i, #path, #i)] = v
-						end
-					end
-					return locationsAndValues
-				end
-			end
-			function file:copy(ddisk, destination)
-				local name
-				if string.sub(destination, #destination, #destination) ~= "/" then
-					destination = destination .. "/"
-				end
-				for i = #path, 1, -1 do
-					if string.sub(path, i, i) == "/" and i ~= #path then
-						name = string.sub(path, i + 1, #path)
-						if string.sub(name, #name, #name) == "/" then
-							name = string.sub(name, 1, #name - 1)
-						end
-					end
-				end
-				if ddisk:Read(destination) == "t:folder" then
-					if file.data ~= "t:folder" then
-						ddisk:Write(destination .. name, file.data)
-					else
-						ddisk:Write(destination .. name .. "/", "t:folder")
-						for i, v in pairs(file:getDescendants()) do
-							ddisk:Write(destination .. name .. i, v)
-						end
-					end
-				end
-			end
-			function file:rename(newName)
-				local namelessPath
-				if string.sub(newName, #newName, #newName) == "/" and file.data ~= "t:folder" then
-					newName = string.sub(newName, 1, #newName - 1)
-				elseif file.data == "t:folder" and string.sub(newName, #newName, #newName) ~= "/" then
-					newName = newName .. "/"
-				end
-				for i = #path, 1, -1 do
-					if string.sub(path, i, i) == "/" and i ~= #path then
-						namelessPath = string.sub(path, 1, i)
-					end
-				end
-				disk:Write(namelessPath .. newName, file.data)
-				path = namelessPath .. newName
-			end
-			return file
 		end;
 	}
 	local function InitializeROM()
@@ -2159,6 +2168,7 @@ local success, errorcode = pcall(function()
 						local offset = 0
 						for i, v in pairs(folders) do
 							local folder = filesystem.read(path .. v .. "/", disk)
+							print(path .. v .. "/")
 							if folder ~= nil then
 								print(folder.data)
 								local fileType, data, trueType = typeParser(folder.data)
