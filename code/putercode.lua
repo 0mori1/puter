@@ -779,6 +779,20 @@ local success, errorcode = pcall(function()
 								return locationsAndValues
 							end
 						end
+						if file.data == "t:folder" then
+							function file:getDescendants()
+								local locationsAndValues = {}
+								if string.sub(path, #path, #path) ~= "/" then
+									path = path .. "/"
+								end
+								for i, v in pairs(disk:ReadEntireDisk()) do
+									if string.sub(i, 1, #path) == path then
+										locationsAndValues[string.sub(i, #path, #i)] = v
+									end
+								end
+								return locationsAndValues
+							end
+						end
 						function file:copy(ddisk, destination)
 							local name
 							if string.sub(destination, #destination, #destination) ~= "/" then
@@ -817,6 +831,18 @@ local success, errorcode = pcall(function()
 							end
 							disk:Write(namelessPath .. newName, file.data)
 							path = namelessPath .. newName
+						end
+						function file:getName()
+							local name
+							for i = #path, 1, -1 do
+								if string.sub(path, i, i) == "/" and i ~= #path then
+									name = string.sub(path, i + 1, #path)
+									if string.sub(name, #name, #name) == "/" then
+										name = string.sub(name, 1, #name - 1)
+									end
+								end
+							end
+							return name
 						end
 						return file
 					end
@@ -1941,18 +1967,6 @@ local success, errorcode = pcall(function()
 			end
 		end)
 		local canuseapp = {}
-		local function addIcon(iconName)
-			local xOffset = math.floor(iconAmount / 3)
-			local yOffset = iconAmount - xOffset * 3
-			local icon = puter.AddElement(background, "TextButton", {
-				Position = UDim2.fromOffset(15 + xOffset * 115, 15 + (yOffset - 1) * 115);
-				Size = UDim2.fromOffset(100, 100);
-				Text = iconName;
-				TextScaled = true;
-				ZIndex = 3;
-			})
-			return icon
-		end
 		local canopenexplorer = true
 		local function explorer(directory, disk)
 			if canopenexplorer == true then
@@ -2730,26 +2744,55 @@ local success, errorcode = pcall(function()
 			end
 		end
 		if foundPrimary then
-			local children = filesystem.scanPath("/Desktop/", mounteddisks[foundPrimary])
-			for i, v in pairs(children) do
-				local file = filesystem.read("/Desktop/" .. v, mounteddisks[foundPrimary])
-				if file ~= nil then
-					local fileIcon = createIcon(v, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-					fileIcon.MouseButton1Click:Connect(function()
-						if file.data ~= "t:folder" then
-							local fileType, data, trueType = typeParser(file.data)
-							local thingToDo = knownFileTypes[fileType]
-							print(fileType)
-							if thingToDo ~= nil then
-								thingToDo(data)
-							else
-								errorPopup("Unknown file type")
-							end
-						else
-							explorer("/Desktop/" .. v, mounteddisks[foundPrimary])
-						end
-					end)
+			local folders = {}
+			local files = {}
+			local function getFolders(path, disk)
+				local folders = filesystem.scanPath(path, disk)
+				local offset = 0
+				for i, v in pairs(folders) do
+					print(v)
+					local folder = filesystem.read(path .. v .. "/", disk)
+					print(path .. v .. "/")
+					if folder ~= nil then
+						print(folder.data)
+						folders[path .. v .. "/"] = folder
+						print("i got a folder")
+					end
 				end
+				print(offset * 25)
+				return offset * 25
+			end
+			local function getFiles(path, disk)
+				local files = filesystem.scanPath(path, disk)
+				for i, v in pairs(files) do
+					local file = filesystem.read(path .. v, disk)
+					if file ~= nil then
+						print(file.data)
+						files[path .. v] = file
+						print("i got a file")
+					end
+				end
+			end
+			getFiles("/Desktop/", mounteddisks[foundPrimary])
+			getFolders("/Desktop/", mounteddisks[foundPrimary])
+			for i, v in pairs(files) do
+				local fileIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				fileIcon.MouseButton1Click:Connect(function()
+					local fileType, data, trueType = typeParser(v.data)
+					local thingToDo = knownFileTypes[fileType]
+					print(fileType)
+					if thingToDo ~= nil then
+						thingToDo(data)
+					else
+						errorPopup("Unknown file type")
+					end
+				end)
+			end
+			for i, v in pairs(folders) do
+				local folderIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				folderIcon.MouseButton1Click:Connect(function()
+					explorer(i, mounteddisks[foundPrimary])
+				end)
 			end
 		end
 		local function lagometer()
