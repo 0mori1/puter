@@ -1477,6 +1477,12 @@ local success, errorcode = pcall(function()
 				filesystem.createDirectory("/Desktop/", mounteddisks[1])
 				foundPrimary = 1
 			end
+		else
+			if mounteddisks[foundPrimary] then
+				if not filesystem.read("/Desktop/", mounteddisks[foundPrimary]) then
+					filesystem.createDirectory("/Desktop/", mounteddisks[foundPrimary])
+				end
+			end
 		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
@@ -2150,12 +2156,10 @@ local success, errorcode = pcall(function()
 										Text = "Delete";
 									})
 									deletebutton.MouseButton1Click:Connect(function()
-										if trueType ~= "t:folder" then
-											file:delete()
-											called = true
-											titlebar:Destroy()
-											canopenproperties = true
-										end
+										file:delete()
+										called = true
+										titlebar:Destroy()
+										canopenproperties = true
 									end)
 								end)
 								if yes == false then
