@@ -590,28 +590,48 @@ local success, errorcode = pcall(function()
 			end)
 			return output
 		end;
-		iconEngine = function(iconX, iconY, paddingX, paddingY, maxX, maxY, parentFrame, isImage)
+		iconEngine = function(iconX, iconY, paddingX, paddingY, maxX, maxY, parentFrame, isImage, layout)
 			local iconsCreated = 0
 			local maxIconX = math.floor((maxX - paddingX) / (iconX + paddingX))
 			local maxIconY = math.floor((maxY - paddingY) / (iconY + paddingY))
 			if isImage ~= true then
 				local function createIcon(text, backgroundcolor, textcolor)
-					local yOffset = math.floor(iconsCreated / maxIconX)
-					local xOffset = iconsCreated - yOffset * maxIconX
-					if yOffset < maxIconY then
-						local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
-						local icon = puter.AddElement(parentFrame, "TextButton", {
-							Text = text;
-							Size = UDim2.fromOffset(iconX, iconY);
-							Position = position;
-							BackgroundColor3 = backgroundcolor;
-							TextColor3 = textcolor;
-							TextScaled = true;
-						})
-						iconsCreated += 1
-						return icon
+					if layout ~= 1 then
+						local yOffset = math.floor(iconsCreated / maxIconX)
+						local xOffset = iconsCreated - yOffset * maxIconX
+						if yOffset < maxIconY then
+							local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
+							local icon = puter.AddElement(parentFrame, "TextButton", {
+								Text = text;
+								Size = UDim2.fromOffset(iconX, iconY);
+								Position = position;
+								BackgroundColor3 = backgroundcolor;
+								TextColor3 = textcolor;
+								TextScaled = true;
+							})
+							iconsCreated += 1
+							return icon
+						else
+							warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
+						end
 					else
-						warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
+						local xOffset = math.floor(iconsCreated / maxIconY)
+						local yOffset = iconsCreated - xOffset * maxIconY
+						if yOffset < maxIconY then
+							local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
+							local icon = puter.AddElement(parentFrame, "TextButton", {
+								Text = text;
+								Size = UDim2.fromOffset(iconX, iconY);
+								Position = position;
+								BackgroundColor3 = backgroundcolor;
+								TextColor3 = textcolor;
+								TextScaled = true;
+							})
+							iconsCreated += 1
+							return icon
+						else
+							warn("maximum amount of icons reached, consider fixing this if this message reaches to you")
+						end
 					end
 				end
 				return createIcon
@@ -1199,7 +1219,7 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			ZIndex = 2;
 		})
-		local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false)
+		local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
 		local explorerApp = createIcon("Explorer", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
 		local chatApp = createIcon("Chat", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
 		local diskUtilApp = createIcon("Disk Utility", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
