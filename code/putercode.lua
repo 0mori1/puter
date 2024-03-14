@@ -487,6 +487,10 @@ local success, errorcode = pcall(function()
 				})
 				windowframeContainer:AddChild(windowframe)
 			end
+			local eventsConnected = {}
+			function windowframemet:Connect(event, func)
+				
+			end
 			if titlebar == nil then
 				titlebar = screen:CreateElement("TextLabel", {
 					BackgroundTransparency = 1;
@@ -617,7 +621,7 @@ local success, errorcode = pcall(function()
 					else
 						local xOffset = math.floor(iconsCreated / maxIconY)
 						local yOffset = iconsCreated - xOffset * maxIconY
-						if yOffset < maxIconY then
+						if xOffset < maxIconX then
 							local position = UDim2.fromOffset(paddingX + (iconX + paddingX) * xOffset, paddingY + (iconX + paddingY) * yOffset)
 							local icon = puter.AddElement(parentFrame, "TextButton", {
 								Text = text;
