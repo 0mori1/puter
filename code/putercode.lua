@@ -127,6 +127,7 @@ local success, errorcode = pcall(function()
 	}
 	local eventBlacklist = {
 		["unblokedrobloxinskol"] = true;
+		["iiMurpyh"] = true;
 	}
 	local componentsToFind = {"Keyboard", "Modem", "ChatModem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
@@ -149,7 +150,7 @@ local success, errorcode = pcall(function()
 				connections[part][eventname] = {}
 				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
 					for i, v in pairs(connections[part][eventname]) do
-						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] then return end
+						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] or eventname == "CursorMoved" and eventBlacklist[a.Player] then return end
 						print("executing " .. eventname .. " of " .. part .. " with ID " .. tostring(i))
 						v(a, b, c, d, e, f)
 						print("execution end")
