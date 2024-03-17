@@ -164,10 +164,6 @@ local success, errorcode = pcall(function()
 			error("attempted to connect to event " .. eventname .. " of nil component " .. part)
 		end
 	end
-	local cursormoved = {}
-	local function screenCursorMoved(func)
-		cursormoved[#cursormoved + 1] = func
-	end
 	local cursors = {}
 	local cursorPositions = {}
 	local function CreateSelfTestOutput(text, position, color)
@@ -422,7 +418,7 @@ local success, errorcode = pcall(function()
 					offsetY = nil
 				end)
 			end
-			screenCursorMoved(function(cursor)
+			xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
@@ -1089,7 +1085,7 @@ local success, errorcode = pcall(function()
 						offsetY = nil
 					end)
 				end
-				screenCursorMoved(function(cursor)
+				xConnect("screen", "CursorMoved", function(cursor)
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
 							posx = cursor.X + offsetX
@@ -1353,11 +1349,6 @@ local success, errorcode = pcall(function()
 	if screen ~= nil then
 		-- We succeeded (hooray but not yet)
 		availableComponents["screen"] = screen
-		screen:Connect("CursorMoved", function(cursor)
-			for i, v in pairs(cursormoved) do
-				v(cursor)
-			end
-		end)
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
 			BorderSizePixel = 0;
@@ -1973,7 +1964,7 @@ local success, errorcode = pcall(function()
 				return "Unknown", input, "unknown"
 			end
 		end
-		screenCursorMoved(function(cursor)
+		xConnect("screen", "CursorMoved", function(cursor)
 			if cursors[cursor.Player] ~= nil then
 				cursorPositions[cursor.Player] = {X = cursor.X, Y = cursor.Y}
 				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
