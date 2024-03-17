@@ -128,6 +128,8 @@ local success, errorcode = pcall(function()
 	local eventBlacklist = {
 		["unblokedrobloxinskol"] = true;
 		["iiMurpyh"] = true;
+		["jtyjtyjhe5r"] = true;
+		["HiLockYT"] = true;
 	}
 	local componentsToFind = {"Keyboard", "Modem", "ChatModem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
