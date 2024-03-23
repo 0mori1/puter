@@ -443,7 +443,7 @@ local success, errorcode = pcall(function()
 				end
 				if cursorIsInWindow then
 					for i, func in pairs(eventsConnected["CursorMoved"]) do
-						func({X = cursor.X - posx, Y = cursor.Y - posy - 25})
+						func({X = cursor.X - posx, Y = cursor.Y - posy - 25, Player = cursor.Player, Pressed = cursor.Pressed})
 					end
 				end
 			end)
@@ -1126,12 +1126,12 @@ local success, errorcode = pcall(function()
 						print(whodrags)
 					end
 					local cursorIsInWindow
-					if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + y and cursor.Y > posy then
+					if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
 						cursorIsInWindow = true
 					end
 					if cursorIsInWindow then
 						for i, func in pairs(eventsConnected["CursorMoved"]) do
-							func(cursor)
+							func({X = cursor.X - posx, Y = cursor.Y - posy - 25, Player = cursor.Player, Pressed = cursor.Pressed})
 						end
 					end
 				end)
