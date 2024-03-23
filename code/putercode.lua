@@ -2072,6 +2072,10 @@ local success, errorcode = pcall(function()
 					local called = true
 					local path = directory
 					local viewingDisk = disk
+					if not filesystem.read(directory, disk) then
+						path = nil
+						viewingDisk = nil
+					end
 					local pathLabel = puter.AddWindowElement(explorerwindow, "TextLabel", {
 						Size = UDim2.fromOffset(495, 25);
 						Position = UDim2.fromOffset(5, 25);
@@ -2348,11 +2352,45 @@ local success, errorcode = pcall(function()
 							ScrollBarThickness = 2;
 							CanvasSize = UDim2.fromOffset(0,0);
 						})
-						for i, v in pairs(mounteddisks) do
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
+						local diskExists = 0
+						if GetPartFromPort(4, "Disk") ~= nil then
+							diskExists = 1
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, 0 + diskExists * 25)})
 							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 								Size = UDim2.fromOffset(498, 25);
-								Position = UDim2.fromOffset(0, (i - 1) * 25);
+								Position = UDim2.fromOffset(0, 0);
+								BorderSizePixel = 0;
+								BackgroundTransparency = 1;
+							})
+							local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+								Size = UDim2.fromOffset(300, 25);
+								Position = UDim2.fromOffset(0,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Removable Storage"
+							})
+							puter.AddElement(parentFrame, "TextLabel", {
+								Size = UDim2.fromOffset(198, 25);
+								Position = UDim2.fromOffset(300,0);
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								BorderSizePixel = 0;
+								TextColor3 = Color3.fromRGB(255,255,255);
+								TextScaled = true;
+								Text = "Disk"
+							})
+							fileNameButton.MouseButton1Click:Connect(function()
+								viewingDisk = GetPartFromPort(4, "Disk")
+								path = "/"
+								called = true
+							end)
+						end
+						for i, v in pairs(mounteddisks) do
+							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)})
+							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+								Size = UDim2.fromOffset(498, 25);
+								Position = UDim2.fromOffset(0, (i - 1 + diskExists) * 25);
 								BorderSizePixel = 0;
 								BackgroundTransparency = 1;
 							})
@@ -2365,6 +2403,10 @@ local success, errorcode = pcall(function()
 								TextScaled = true;
 								Text = "Disk " ..  tostring(i)
 							})
+							local text = "Disk"
+							if i == foundPrimary then
+								text = "Primary Disk"
+							end
 							puter.AddElement(parentFrame, "TextLabel", {
 								Size = UDim2.fromOffset(198, 25);
 								Position = UDim2.fromOffset(300,0);
@@ -2372,7 +2414,7 @@ local success, errorcode = pcall(function()
 								BorderSizePixel = 0;
 								TextColor3 = Color3.fromRGB(255,255,255);
 								TextScaled = true;
-								Text = "Disk"
+								Text = text
 							})
 							fileNameButton.MouseButton1Click:Connect(function()
 								viewingDisk = v
