@@ -2380,6 +2380,7 @@ local success, errorcode = pcall(function()
 								TextScaled = true;
 								Text = "Disk"
 							})
+							GetPartFromPort(4, "Disk"):Write("/", "t:folder")
 							fileNameButton.MouseButton1Click:Connect(function()
 								viewingDisk = GetPartFromPort(4, "Disk")
 								path = "/"
