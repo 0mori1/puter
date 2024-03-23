@@ -40,15 +40,23 @@ local function closeByName(name)
 	end
 	return amountKilled
 end
-local function shutdown()
-	Beep()
-	for i, v in pairs(coroutines) do
-		closeCoroutine(i)
+local eventBlacklist = {
+	["unblokedrobloxinskol"] = true;
+	["iiMurpyh"] = true;
+	["jtyjtyjhe5r"] = true;
+	["HiLockYT"] = true;
+}
+local function shutdown(user)
+	if not eventBlacklist[user] then
+		Beep()
+		for i, v in pairs(coroutines) do
+			closeCoroutine(i)
+		end
+		if screen ~= nil then
+			screen:ClearElements()
+		end
+		TriggerPort(2)
 	end
-	if screen ~= nil then
-		screen:ClearElements()
-	end
-	TriggerPort(2)
 end
 local function ReturnError(errorcode, errortype)
 	print("An error has occured")
@@ -124,12 +132,6 @@ local success, errorcode = pcall(function()
 	TriggerPort(4)
 	local cliblacklist = {
 		["bredisgudok"] = true;
-	}
-	local eventBlacklist = {
-		["unblokedrobloxinskol"] = true;
-		["iiMurpyh"] = true;
-		["jtyjtyjhe5r"] = true;
-		["HiLockYT"] = true;
 	}
 	local componentsToFind = {"Keyboard", "Modem", "ChatModem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
@@ -418,15 +420,31 @@ local success, errorcode = pcall(function()
 					offsetY = nil
 				end)
 			end
+			local eventsConnected = {
+				["CursorMoved"] = {};
+				["WindowDragged"] = {};
+			}
 			xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
 						posy = cursor.Y + offsetY
 						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+						for i, func in pairs(eventsConnected["WindowDragged"]) do
+							func(whodrags, cursor.X, cursor.Y)
+						end
 					end
 				elseif dragging == true then
 					print(whodrags)
+				end
+				local cursorIsInWindow
+				if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + y and cursor.Y > posy then
+					cursorIsInWindow = true
+				end
+				if cursorIsInWindow then
+					for i, func in pairs(eventsConnected["CursorMoved"]) do
+						func(cursor)
+					end
 				end
 			end)
 			function windowframemet:CreateElement(className, properties)
@@ -486,9 +504,10 @@ local success, errorcode = pcall(function()
 				})
 				windowframeContainer:AddChild(windowframe)
 			end
-			local eventsConnected = {}
 			function windowframemet:Connect(event, func)
-				
+				if eventsConnected[event] and typeof(func) == "function" then
+					eventsConnected[event][#eventsConnected[event] + 1] = func
+				end
 			end
 			if titlebar == nil then
 				titlebar = screen:CreateElement("TextLabel", {
@@ -506,6 +525,9 @@ local success, errorcode = pcall(function()
 				["framemet"] = windowframemet
 			}
 			return windowframemet, closebutton, titlebar
+		end;
+		createSecureTextButton = function(properties, blacklist)
+			
 		end;
 	}
 	local puterutils = {
@@ -909,6 +931,7 @@ local success, errorcode = pcall(function()
 				local closebutton
 				local collapseButton
 				local zindex
+				local windowframemet = {}
 				if forced == true then
 					zindex = 4
 				else
@@ -1085,18 +1108,33 @@ local success, errorcode = pcall(function()
 						offsetY = nil
 					end)
 				end
+				local eventsConnected = {
+					["CursorMoved"] = {};
+					["WindowDragged"] = {};
+				}
 				xConnect("screen", "CursorMoved", function(cursor)
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
 							posx = cursor.X + offsetX
 							posy = cursor.Y + offsetY
 							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+							for i, func in pairs(eventsConnected["WindowDragged"]) do
+								func(whodrags, cursor.X, cursor.Y)
+							end
 						end
 					elseif dragging == true then
 						print(whodrags)
 					end
+					local cursorIsInWindow
+					if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + y and cursor.Y > posy then
+						cursorIsInWindow = true
+					end
+					if cursorIsInWindow then
+						for i, func in pairs(eventsConnected["CursorMoved"]) do
+							func(cursor)
+						end
+					end
 				end)
-				local windowframemet = {}
 				function windowframemet:CreateElement(className, properties)
 					local element = screen:CreateElement(className, properties)
 					windowframe:AddChild(element)
@@ -1123,6 +1161,9 @@ local success, errorcode = pcall(function()
 					return cursorsProcessed
 				end
 				function windowframemet:Close()
+					if windowframemet.closeBehavior ~= nil and typeof(windowframemet.closeBehavior) == "function" then
+						windowframemet.closeBehavior()
+					end
 					if titlebar ~= nil then
 						titlebar:Destroy()
 						windows[windowID] = nil
@@ -1150,6 +1191,11 @@ local success, errorcode = pcall(function()
 						ClipsDescendants = true;
 					})
 					windowframeContainer:AddChild(windowframe)
+				end
+				function windowframemet:Connect(event, func)
+					if eventsConnected[event] and typeof(func) == "function" then
+						eventsConnected[event][#eventsConnected[event] + 1] = func
+					end
 				end
 				if titlebar == nil then
 					titlebar = screen:CreateElement("TextLabel", {
