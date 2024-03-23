@@ -443,7 +443,7 @@ local success, errorcode = pcall(function()
 				end
 				if cursorIsInWindow then
 					for i, func in pairs(eventsConnected["CursorMoved"]) do
-						func(cursor)
+						func({X = cursor.X - posx, Y = cursor.Y - posy - 25})
 					end
 				end
 			end)
