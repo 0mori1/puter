@@ -1377,7 +1377,7 @@ local success, errorcode = pcall(function()
 			CreateSelfTestOutput("Warning: Can't detect power stored", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,255,0))
 		end
 	end, "Power Check")
-	local function tableRepilicate(tableToCopy)
+	local function tableReplicate(tableToCopy)
 		local newTable = {}
 		for i, v in pairs(tableToCopy) do
 			newTable[i] = v
@@ -4317,7 +4317,7 @@ local success, errorcode = pcall(function()
 		end)
 		--main loop
 		while true do
-			local tempCursorPositions = tableRepilicate(cursorPositions)
+			local tempCursorPositions = tableReplicate(cursorPositions)
 			wait(2.5)
 			for plrName, cursor in pairs(cursors) do
 				if tempCursorPositions[plrName] == cursorPositions[plrName] then
