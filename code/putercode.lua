@@ -156,8 +156,14 @@ local success, errorcode = pcall(function()
 					for i, v in pairs(connections[part][eventname]) do
 						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] or eventname == "CursorMoved" and eventBlacklist[a.Player] then return end
 						print("executing " .. eventname .. " of " .. part .. " with ID " .. tostring(i))
-						v(a, b, c, d, e, f)
-						print("execution end")
+						local success, err = pcall(function()
+							v(a, b, c, d, e, f)
+						end)
+						if success then
+							print("execution end")
+						else
+							print("process ID " .. tostring(i) .. " failed with error " .. err)
+						end
 					end
 				end)
 			end
@@ -4126,7 +4132,7 @@ local success, errorcode = pcall(function()
 						end
 					end
 				end
-			end)
+			end, "postomatic")
 		end
 		postomatic.MouseButton1Click:Connect(function()
 			if postomaticOpen ~= true then
