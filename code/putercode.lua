@@ -464,7 +464,11 @@ local success, errorcode = pcall(function()
 				windowframe:AddChild(element)
 			end
 			function windowframemet:IsActive()
-				return windows[windowID].active
+				local active = false
+				if windows[windowID] ~= nil then
+					active = windows[windowID]:IsActive()
+				end
+				return active
 			end
 			local add = 0
 			if titlebar ~= nil then
