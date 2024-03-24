@@ -2381,11 +2381,14 @@ local success, errorcode = pcall(function()
 								Text = "Disk"
 							})
 							GetPartFromPort(4, "Disk"):Write("/", "t:folder")
+							mounteddisks[0] = GetPartFromPort(4, "Disk")
 							fileNameButton.MouseButton1Click:Connect(function()
 								viewingDisk = GetPartFromPort(4, "Disk")
 								path = "/"
 								called = true
 							end)
+						else
+							mounteddisks[0] = nil
 						end
 						for i, v in pairs(mounteddisks) do
 							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)})
