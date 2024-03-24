@@ -45,6 +45,7 @@ local eventBlacklist = {
 	["iiMurpyh"] = true;
 	["jtyjtyjhe5r"] = true;
 	["HiLockYT"] = true;
+	["aizzoken"] = true;
 }
 local function shutdown(user)
 	if not eventBlacklist[user] then
