@@ -468,7 +468,7 @@ local success, errorcode = pcall(function()
 			function windowframemet:IsActive()
 				local active = false
 				if windows[windowID] ~= nil then
-					active = windows[windowID]:IsActive()
+					active = windows[windowID].active
 				end
 				return active
 			end
