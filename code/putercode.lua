@@ -436,6 +436,7 @@ local success, errorcode = pcall(function()
 			}
 			xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil and cursor.Pressed then
+					print("dragging...")
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
 						posy = cursor.Y + offsetY
@@ -446,6 +447,7 @@ local success, errorcode = pcall(function()
 					end
 				elseif dragging == true and not cursor.Pressed then
 					dragging = false
+					print("cursor is not being held down")
 				elseif dragging == true then
 					print(whodrags)
 				end
