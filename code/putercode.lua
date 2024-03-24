@@ -434,6 +434,7 @@ local success, errorcode = pcall(function()
 				["CursorMoved"] = {};
 				["WindowDragged"] = {};
 			}
+			local waitForNextTick = false
 			xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil and cursor.Pressed then
 					print("dragging...")
@@ -446,8 +447,16 @@ local success, errorcode = pcall(function()
 						end
 					end
 				elseif dragging == true and not cursor.Pressed then
-					dragging = false
-					print("cursor is not being held down")
+					local currentTick = false
+					if waitForNextTick == false then
+						waitForNextTick = true
+						currentTick = true
+					end
+					if waitForNextTick and not currentTick then
+						dragging = false
+						print("cursor is not being held down")
+						waitForNextTick = false
+					end
 				elseif dragging == true then
 					print(whodrags)
 				end
