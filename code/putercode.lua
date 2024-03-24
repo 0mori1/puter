@@ -435,15 +435,17 @@ local success, errorcode = pcall(function()
 				["WindowDragged"] = {};
 			}
 			xConnect("screen", "CursorMoved", function(cursor)
-				if dragging == true and whodrags ~= nil then
+				if dragging == true and whodrags ~= nil and cursor.Pressed then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
 						posy = cursor.Y + offsetY
 						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
 						for i, func in pairs(eventsConnected["WindowDragged"]) do
-							func(whodrags, cursor.X, cursor.Y)
+							func(whodrags, posx, posy)
 						end
 					end
+				elseif dragging == true and not cursor.Pressed then
+					dragging = false
 				elseif dragging == true then
 					print(whodrags)
 				end
