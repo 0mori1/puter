@@ -527,7 +527,7 @@ local success, errorcode = pcall(function()
 			return windowframemet, closebutton, titlebar
 		end;
 		createSecureTextButton = function(properties, blacklist)
-			
+
 		end;
 	}
 	local puterutils = {
@@ -2391,40 +2391,42 @@ local success, errorcode = pcall(function()
 							mounteddisks[0] = nil
 						end
 						for i, v in pairs(mounteddisks) do
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)})
-							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
-								Size = UDim2.fromOffset(498, 25);
-								Position = UDim2.fromOffset(0, (i - 1 + diskExists) * 25);
-								BorderSizePixel = 0;
-								BackgroundTransparency = 1;
-							})
-							local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
-								Size = UDim2.fromOffset(300, 25);
-								Position = UDim2.fromOffset(0,0);
-								BackgroundColor3 = Color3.fromRGB(100,100,100);
-								BorderSizePixel = 0;
-								TextColor3 = Color3.fromRGB(255,255,255);
-								TextScaled = true;
-								Text = "Disk " ..  tostring(i)
-							})
-							local text = "Disk"
-							if i == foundPrimary then
-								text = "Primary Disk"
+							if i > 0 then
+								mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)})
+								local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
+									Size = UDim2.fromOffset(498, 25);
+									Position = UDim2.fromOffset(0, (i - 1 + diskExists) * 25);
+									BorderSizePixel = 0;
+									BackgroundTransparency = 1;
+								})
+								local fileNameButton = puter.AddElement(parentFrame, "TextButton", {
+									Size = UDim2.fromOffset(300, 25);
+									Position = UDim2.fromOffset(0,0);
+									BackgroundColor3 = Color3.fromRGB(100,100,100);
+									BorderSizePixel = 0;
+									TextColor3 = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = "Disk " ..  tostring(i)
+								})
+								local text = "Disk"
+								if i == foundPrimary then
+									text = "Primary Disk"
+								end
+								puter.AddElement(parentFrame, "TextLabel", {
+									Size = UDim2.fromOffset(198, 25);
+									Position = UDim2.fromOffset(300,0);
+									BackgroundColor3 = Color3.fromRGB(100,100,100);
+									BorderSizePixel = 0;
+									TextColor3 = Color3.fromRGB(255,255,255);
+									TextScaled = true;
+									Text = text
+								})
+								fileNameButton.MouseButton1Click:Connect(function()
+									viewingDisk = v
+									path = "/"
+									called = true
+								end)
 							end
-							puter.AddElement(parentFrame, "TextLabel", {
-								Size = UDim2.fromOffset(198, 25);
-								Position = UDim2.fromOffset(300,0);
-								BackgroundColor3 = Color3.fromRGB(100,100,100);
-								BorderSizePixel = 0;
-								TextColor3 = Color3.fromRGB(255,255,255);
-								TextScaled = true;
-								Text = text
-							})
-							fileNameButton.MouseButton1Click:Connect(function()
-								viewingDisk = v
-								path = "/"
-								called = true
-							end)
 						end
 					end
 					local director = newCoroutine(function()
