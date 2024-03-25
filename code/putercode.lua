@@ -1731,9 +1731,9 @@ local success, errorcode = pcall(function()
 						scrollingFrame:AddChild(newEntry)
 					end
 				end
+				repeat wait() until returnTowOS or not detectedAnEntry
 			end
 			bootLoader()
-			repeat wait() until returnTowOS or not detectedAnEntry
 		end
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		local function errorPopup(errorMessage)
