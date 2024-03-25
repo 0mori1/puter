@@ -1585,7 +1585,7 @@ local success, errorcode = pcall(function()
 					local file = filesystem.read(path .. v, disk)
 					if file ~= nil then
 						if string.sub(file.data, 1, 6) == "t:lua/" then
-							bootEntries[v] = file.data
+							bootEntries[v] = string.sub(file.data, 7, #file.data)
 						end
 					end
 				end
