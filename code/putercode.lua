@@ -1600,6 +1600,7 @@ local success, errorcode = pcall(function()
 				for i, v in pairs(bootEntries) do
 					if not detectedAnEntry and i ~= "wOS" then
 						print("no entries found, proceeding with the creation of the bootloader menu")
+						detectedAnEntry = true
 						screen:ClearElements()
 						local background = screen:CreateElement("Frame", {
 							Size = UDim2.fromOffset(800, 450);
