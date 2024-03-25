@@ -1577,98 +1577,100 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
-		local bootEntries = {}
-		local function getFiles(path, disk)
-			local files = filesystem.scanPath(path, disk)
-			for i, v in pairs(files) do
-				local file = filesystem.read(path .. v, disk)
-				if file ~= nil then
-					if string.sub(file.data, 1, 6) == "t:lua/" then
-						bootEntries[v] = file.data
+		if foundPrimary then
+			local bootEntries = {}
+			local function getFiles(path, disk)
+				local files = filesystem.scanPath(path, disk)
+				for i, v in pairs(files) do
+					local file = filesystem.read(path .. v, disk)
+					if file ~= nil then
+						if string.sub(file.data, 1, 6) == "t:lua/" then
+							bootEntries[v] = file.data
+						end
 					end
 				end
 			end
-		end
-		getFiles("/Boot/", mounteddisks[foundPrimary])
-		local detectedAnEntry = false
-		local returnTowOS
-		local function bootLoader()
-			local entries = 0
-			local scrollingFrame
-			for i, v in pairs(bootEntries) do
-				if not detectedAnEntry and i ~= "wOS" then
-					print("no entries found, proceeding with the creation of the bootloader menu")
-					screen:ClearElements()
-					local background = screen:CreateElement("Frame", {
-						Size = UDim2.fromOffset(800, 450);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						BorderSizePixel = 0;
-						Position = UDim2.fromOffset(0,0);
-					})
-					local header = screen:CreateElement("TextLabel", {
-						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-						BorderSizePixel = 0;
-						Size = UDim2.fromOffset(800, 50);
-						Position = UDim2.fromOffset(0, 0);
-						Text = "wOS Bootloader";
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(0,0,0);
-						Font = Enum.Font.RobotoMono;
-					})
-					background:AddChild(header)
-					local prompt = screen:CreateElement("TextLabel", {
-						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-						BorderSizePixel = 0;
-						Size = UDim2.fromOffset(780, 50);
-						Position = UDim2.fromOffset(10, 60);
-						Text = "Select a file you want to load.";
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(0,0,0);
-						Font = Enum.Font.RobotoMono;
-						TextXAlignment = Enum.TextXAlignment.Left;
-					})
-					background:AddChild(prompt)
-					scrollingFrame = screen:CreateElement("ScrollingFrame", {
-						Size = UDim2.fromOffset(800, 275);
-						Position = UDim2.fromOffset(0, 165);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						ScrollBarThickness = 3;
-						BorderSizePixel = 0;
-					})
-					background:AddChild(scrollingFrame)
-					local wOSEntry = screen:CreateElement("TextButton", {
-						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-						BorderSizePixel = 0;
-						Size = UDim2.fromOffset(780, 50);
-						Position = UDim2.fromOffset(10, 0);
-						Text = "wOS";
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(0,0,0);
-						Font = Enum.Font.RobotoMono;
-						TextXAlignment = Enum.TextXAlignment.Left;
-					})
-					entries = entries + 1
-					wOSEntry.MouseButton1Click:Connect(function()
-						returnTowOS = true
-					end)
-					scrollingFrame:AddChild(wOSEntry)
-					local newEntry = screen:CreateElement("TextButton", {
-						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-						BorderSizePixel = 0;
-						Size = UDim2.fromOffset(780, 50);
-						Position = UDim2.fromOffset(10, entries * 50);
-						Text = i;
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(0,0,0);
-						Font = Enum.Font.RobotoMono;
-						TextXAlignment = Enum.TextXAlignment.Left;
-					})
-					entries = entries + 1
-					newEntry.MouseButton1Click:Connect(function()
+			getFiles("/Boot/", mounteddisks[foundPrimary])
+			local detectedAnEntry = false
+			local returnTowOS
+			local function bootLoader()
+				print("starting the bootloader")
+				local entries = 0
+				local scrollingFrame
+				for i, v in pairs(bootEntries) do
+					if not detectedAnEntry and i ~= "wOS" then
+						print("no entries found, proceeding with the creation of the bootloader menu")
 						screen:ClearElements()
-						local bootload = GetPartFromPort(4, "Microcontroller")
-						local bootloadpoly = GetPartFromPort(4, "Polysilicon")
-						local bootloadcode = [[
+						local background = screen:CreateElement("Frame", {
+							Size = UDim2.fromOffset(800, 450);
+							BackgroundColor3 = Color3.fromRGB(0,0,0);
+							BorderSizePixel = 0;
+							Position = UDim2.fromOffset(0,0);
+						})
+						local header = screen:CreateElement("TextLabel", {
+							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(800, 50);
+							Position = UDim2.fromOffset(0, 0);
+							Text = "wOS Bootloader";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							Font = Enum.Font.RobotoMono;
+						})
+						background:AddChild(header)
+						local prompt = screen:CreateElement("TextLabel", {
+							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(780, 50);
+							Position = UDim2.fromOffset(10, 60);
+							Text = "Select a file you want to load.";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							Font = Enum.Font.RobotoMono;
+							TextXAlignment = Enum.TextXAlignment.Left;
+						})
+						background:AddChild(prompt)
+						scrollingFrame = screen:CreateElement("ScrollingFrame", {
+							Size = UDim2.fromOffset(800, 275);
+							Position = UDim2.fromOffset(0, 165);
+							BackgroundColor3 = Color3.fromRGB(0,0,0);
+							ScrollBarThickness = 3;
+							BorderSizePixel = 0;
+						})
+						background:AddChild(scrollingFrame)
+						local wOSEntry = screen:CreateElement("TextButton", {
+							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(780, 50);
+							Position = UDim2.fromOffset(10, 0);
+							Text = "wOS";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							Font = Enum.Font.RobotoMono;
+							TextXAlignment = Enum.TextXAlignment.Left;
+						})
+						entries = entries + 1
+						wOSEntry.MouseButton1Click:Connect(function()
+							returnTowOS = true
+						end)
+						scrollingFrame:AddChild(wOSEntry)
+						local newEntry = screen:CreateElement("TextButton", {
+							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(780, 50);
+							Position = UDim2.fromOffset(10, entries * 50);
+							Text = i;
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							Font = Enum.Font.RobotoMono;
+							TextXAlignment = Enum.TextXAlignment.Left;
+						})
+						entries = entries + 1
+						newEntry.MouseButton1Click:Connect(function()
+							screen:ClearElements()
+							local bootload = GetPartFromPort(4, "Microcontroller")
+							local bootloadpoly = GetPartFromPort(4, "Polysilicon")
+							local bootloadcode = [[
 						local mainMicrocontroller = GetPartFromPort(1, "Microcontroller")
 						local powerController = GetPartFromPort(2, "Microcontroller")
 						local screen = GetPartFromPort(1, "TouchScreen")
@@ -1680,34 +1682,34 @@ local success, errorcode = pcall(function()
 						wait(0.5)
 						polysilicon:Configure({PolysiliconMode = 0})
 						TriggerPort(1)]]
-						print("configuring to " .. bootloadcode)
-						bootload:Configure({Code = bootloadcode})
-						bootloadpoly:Configure({PolysiliconMode = 1})
-						TriggerPort(4)
-						wait(0.5)
-						bootloadpoly:Configure({PolysiliconMode = 0})
-						TriggerPort(4)
-					end)
-					scrollingFrame:AddChild(newEntry)
-				elseif i ~= "wOS" then
-					print("creating a new entry")
-					local newEntry = screen:CreateElement("TextButton", {
-						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
-						BorderSizePixel = 0;
-						Size = UDim2.fromOffset(780, 50);
-						Position = UDim2.fromOffset(10, entries * 50);
-						Text = i;
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(0,0,0);
-						Font = Enum.Font.RobotoMono;
-						TextXAlignment = Enum.TextXAlignment.Left;
-					})
-					entries = entries + 1
-					newEntry.MouseButton1Click:Connect(function()
-						screen:ClearElements()
-						local bootload = GetPartFromPort(4, "Microcontroller")
-						local bootloadpoly = GetPartFromPort(4, "Polysilicon")
-						local bootloadcode = [[
+							print("configuring to " .. bootloadcode)
+							bootload:Configure({Code = bootloadcode})
+							bootloadpoly:Configure({PolysiliconMode = 1})
+							TriggerPort(4)
+							wait(0.5)
+							bootloadpoly:Configure({PolysiliconMode = 0})
+							TriggerPort(4)
+						end)
+						scrollingFrame:AddChild(newEntry)
+					elseif i ~= "wOS" then
+						print("creating a new entry")
+						local newEntry = screen:CreateElement("TextButton", {
+							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(780, 50);
+							Position = UDim2.fromOffset(10, entries * 50);
+							Text = i;
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							Font = Enum.Font.RobotoMono;
+							TextXAlignment = Enum.TextXAlignment.Left;
+						})
+						entries = entries + 1
+						newEntry.MouseButton1Click:Connect(function()
+							screen:ClearElements()
+							local bootload = GetPartFromPort(4, "Microcontroller")
+							local bootloadpoly = GetPartFromPort(4, "Polysilicon")
+							local bootloadcode = [[
 						local mainMicrocontroller = GetPartFromPort(1, "Microcontroller")
 						local powerController = GetPartFromPort(2, "Microcontroller")
 						local screen = GetPartFromPort(1, "TouchScreen")
@@ -1719,19 +1721,20 @@ local success, errorcode = pcall(function()
 						wait(0.5)
 						polysilicon:Configure({PolysiliconMode = 0})
 						TriggerPort(1)]]
-						bootload:Configure({Code = bootloadcode})
-						bootloadpoly:Configure({PolysiliconMode = 1})
-						TriggerPort(4)
-						wait(0.5)
-						bootloadpoly:Configure({PolysiliconMode = 0})
-						TriggerPort(4)
-					end)
-					scrollingFrame:AddChild(newEntry)
+							bootload:Configure({Code = bootloadcode})
+							bootloadpoly:Configure({PolysiliconMode = 1})
+							TriggerPort(4)
+							wait(0.5)
+							bootloadpoly:Configure({PolysiliconMode = 0})
+							TriggerPort(4)
+						end)
+						scrollingFrame:AddChild(newEntry)
+					end
 				end
 			end
+			bootLoader()
+			repeat wait() until returnTowOS or not detectedAnEntry
 		end
-		bootLoader()
-		repeat wait() until returnTowOS or not detectedAnEntry
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
