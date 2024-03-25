@@ -1733,6 +1733,11 @@ local success, errorcode = pcall(function()
 					end
 				end
 				repeat wait() until returnTowOS or not detectedAnEntry
+				if not detectedAnEntry then
+					print("returning to wOS because there were no entries")
+				else
+					print("returning to wOS...")
+				end
 			end
 			bootLoader()
 		end
