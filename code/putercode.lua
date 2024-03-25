@@ -1564,6 +1564,7 @@ local success, errorcode = pcall(function()
 			if mounteddisks[1] ~= nil then
 				mounteddisks[1]:Write("primary", "yea")
 				filesystem.createDirectory("/Desktop/", mounteddisks[1])
+				filesystem.createDirectory("/Boot/", mounteddisks[foundPrimary])
 				foundPrimary = 1
 			end
 		else
@@ -1596,6 +1597,7 @@ local success, errorcode = pcall(function()
 			local scrollingFrame
 			for i, v in pairs(bootEntries) do
 				if not detectedAnEntry and i ~= "wOS" then
+					print("no entries found, proceeding with the creation of the bootloader menu")
 					screen:ClearElements()
 					local background = screen:CreateElement("Frame", {
 						Size = UDim2.fromOffset(800, 450);
@@ -1678,6 +1680,7 @@ local success, errorcode = pcall(function()
 						wait(0.5)
 						polysilicon:Configure({PolysiliconMode = 0})
 						TriggerPort(1)]]
+						print("configuring to " .. bootloadcode)
 						bootload:Configure({Code = bootloadcode})
 						bootloadpoly:Configure({PolysiliconMode = 1})
 						TriggerPort(4)
@@ -1687,6 +1690,7 @@ local success, errorcode = pcall(function()
 					end)
 					scrollingFrame:AddChild(newEntry)
 				elseif i ~= "wOS" then
+					print("creating a new entry")
 					local newEntry = screen:CreateElement("TextButton", {
 						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
 						BorderSizePixel = 0;
@@ -1726,6 +1730,7 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
+		bootLoader()
 		repeat wait() until returnTowOS or not detectedAnEntry
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		local function errorPopup(errorMessage)
