@@ -1611,7 +1611,7 @@ local success, errorcode = pcall(function()
 						local header = screen:CreateElement("TextLabel", {
 							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
 							BorderSizePixel = 0;
-							Size = UDim2.fromOffset(800, 50);
+							Size = UDim2.fromOffset(800, 25);
 							Position = UDim2.fromOffset(0, 0);
 							Text = "wOS Bootloader";
 							TextScaled = true;
@@ -1620,20 +1620,20 @@ local success, errorcode = pcall(function()
 						})
 						background:AddChild(header)
 						local prompt = screen:CreateElement("TextLabel", {
-							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+							BackgroundColor3 = Color3.fromRGB(0,0,0);
 							BorderSizePixel = 0;
-							Size = UDim2.fromOffset(780, 50);
-							Position = UDim2.fromOffset(10, 60);
+							Size = UDim2.fromOffset(780, 25);
+							Position = UDim2.fromOffset(10, 35);
 							Text = "Select a file you want to load.";
 							TextScaled = true;
-							TextColor3 = Color3.fromRGB(0,0,0);
+							TextColor3 = Color3.fromRGB(255,255,255);
 							Font = Enum.Font.RobotoMono;
 							TextXAlignment = Enum.TextXAlignment.Left;
 						})
 						background:AddChild(prompt)
 						scrollingFrame = screen:CreateElement("ScrollingFrame", {
-							Size = UDim2.fromOffset(800, 275);
-							Position = UDim2.fromOffset(0, 165);
+							Size = UDim2.fromOffset(800, 350);
+							Position = UDim2.fromOffset(0, 90);
 							BackgroundColor3 = Color3.fromRGB(0,0,0);
 							ScrollBarThickness = 3;
 							BorderSizePixel = 0;
@@ -1642,7 +1642,7 @@ local success, errorcode = pcall(function()
 						local wOSEntry = screen:CreateElement("TextButton", {
 							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
 							BorderSizePixel = 0;
-							Size = UDim2.fromOffset(780, 50);
+							Size = UDim2.fromOffset(780, 25);
 							Position = UDim2.fromOffset(10, 0);
 							Text = "wOS";
 							TextScaled = true;
@@ -1655,11 +1655,12 @@ local success, errorcode = pcall(function()
 							returnTowOS = true
 						end)
 						scrollingFrame:AddChild(wOSEntry)
+						scrollingFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(800, entries * 25)})
 						local newEntry = screen:CreateElement("TextButton", {
 							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
 							BorderSizePixel = 0;
-							Size = UDim2.fromOffset(780, 50);
-							Position = UDim2.fromOffset(10, entries * 50);
+							Size = UDim2.fromOffset(780, 25);
+							Position = UDim2.fromOffset(10, entries * 25);
 							Text = i;
 							TextScaled = true;
 							TextColor3 = Color3.fromRGB(0,0,0);
@@ -1676,7 +1677,7 @@ local success, errorcode = pcall(function()
 						local powerController = GetPartFromPort(2, "Microcontroller")
 						local screen = GetPartFromPort(1, "TouchScreen")
 						local polysilicon = GetPartFromPort(1, "Polysilicon")
-						mainMicrocontroller:Configure({Code = "]] .. v .. [[})
+						mainMicrocontroller:Configure({Code = "]] .. v .. [["})
 						screen:ClearElements()
 						polysilicon:Configure({PolysiliconMode = 1})
 						TriggerPort(1)
@@ -1692,13 +1693,14 @@ local success, errorcode = pcall(function()
 							TriggerPort(4)
 						end)
 						scrollingFrame:AddChild(newEntry)
+						scrollingFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(800, entries * 25)})
 					elseif i ~= "wOS" then
 						print("creating a new entry")
 						local newEntry = screen:CreateElement("TextButton", {
 							BackgroundColor3 = Color3.fromRGB(150, 150, 150);
 							BorderSizePixel = 0;
-							Size = UDim2.fromOffset(780, 50);
-							Position = UDim2.fromOffset(10, entries * 50);
+							Size = UDim2.fromOffset(780, 25);
+							Position = UDim2.fromOffset(10, entries * 25);
 							Text = i;
 							TextScaled = true;
 							TextColor3 = Color3.fromRGB(0,0,0);
@@ -1730,6 +1732,7 @@ local success, errorcode = pcall(function()
 							TriggerPort(4)
 						end)
 						scrollingFrame:AddChild(newEntry)
+						scrollingFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(800, entries * 25)})
 					end
 				end
 				repeat wait() until returnTowOS or not detectedAnEntry
