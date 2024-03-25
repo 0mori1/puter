@@ -131,7 +131,6 @@ local function ReturnError(errorcode, errortype)
 	end
 end
 local success, errorcode = pcall(function()
-	TriggerPort(4)
 	local cliblacklist = {
 		["bredisgudok"] = true;
 	}
@@ -436,8 +435,7 @@ local success, errorcode = pcall(function()
 			}
 			local waitForNextTick = false
 			xConnect("screen", "CursorMoved", function(cursor)
-				if dragging == true and whodrags ~= nil and cursor.Pressed then
-					print("dragging...")
+				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
 						posy = cursor.Y + offsetY
@@ -445,17 +443,6 @@ local success, errorcode = pcall(function()
 						for i, func in pairs(eventsConnected["WindowDragged"]) do
 							func(whodrags, posx, posy)
 						end
-					end
-				elseif dragging == true and not cursor.Pressed then
-					local currentTick = false
-					if waitForNextTick == false then
-						waitForNextTick = true
-						currentTick = true
-					end
-					if waitForNextTick and not currentTick then
-						dragging = false
-						print("cursor is not being held down")
-						waitForNextTick = false
 					end
 				elseif dragging == true then
 					print(whodrags)
@@ -744,6 +731,18 @@ local success, errorcode = pcall(function()
 				end
 				return createIcon
 			end
+		end;
+	}
+	local puterGeometry = {
+		getStraightTriangle = function(a, c)
+			--   c
+			--  /|
+			-- / | the structure of the triangle
+			--a--b
+			local ab = c[1] - a[1]
+			local bc = a[2] - c[2]
+			local acb = ab / bc * 45
+			local cab = 180 - (acb)
 		end;
 	}
 	local filesystem = {
@@ -1549,7 +1548,6 @@ local success, errorcode = pcall(function()
 		closeCoroutine(loadBarRoutine)
 		Beep()
 		-- this funny thing does funny defining with the InitializeDesktop() function
-		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		for i, v in pairs(mounteddisks) do
 			v:Write("/", "t:folder")
 		end
@@ -1573,8 +1571,163 @@ local success, errorcode = pcall(function()
 				if not filesystem.read("/Desktop/", mounteddisks[foundPrimary]) then
 					filesystem.createDirectory("/Desktop/", mounteddisks[foundPrimary])
 				end
+				if not filesystem.read("/Boot/", mounteddisks[foundPrimary]) then
+					filesystem.createDirectory("/Boot/", mounteddisks[foundPrimary])
+				end
 			end
 		end
+		local bootEntries = {}
+		local function getFiles(path, disk)
+			local files = filesystem.scanPath(path, disk)
+			for i, v in pairs(files) do
+				local file = filesystem.read(path .. v, disk)
+				if file ~= nil then
+					if string.sub(file.data, 1, 6) == "t:lua/" then
+						bootEntries[v] = file.data
+					end
+				end
+			end
+		end
+		getFiles("/Boot/", mounteddisks[foundPrimary])
+		local detectedAnEntry = false
+		local returnTowOS
+		local function bootLoader()
+			local entries = 0
+			local scrollingFrame
+			for i, v in pairs(bootEntries) do
+				if not detectedAnEntry and i ~= "wOS" then
+					screen:ClearElements()
+					local background = screen:CreateElement("Frame", {
+						Size = UDim2.fromOffset(800, 450);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset(0,0);
+					})
+					local header = screen:CreateElement("TextLabel", {
+						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+						BorderSizePixel = 0;
+						Size = UDim2.fromOffset(800, 50);
+						Position = UDim2.fromOffset(0, 0);
+						Text = "wOS Bootloader";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						Font = Enum.Font.RobotoMono;
+					})
+					background:AddChild(header)
+					local prompt = screen:CreateElement("TextLabel", {
+						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+						BorderSizePixel = 0;
+						Size = UDim2.fromOffset(780, 50);
+						Position = UDim2.fromOffset(10, 60);
+						Text = "Select a file you want to load.";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						Font = Enum.Font.RobotoMono;
+						TextXAlignment = Enum.TextXAlignment.Left;
+					})
+					background:AddChild(prompt)
+					scrollingFrame = screen:CreateElement("ScrollingFrame", {
+						Size = UDim2.fromOffset(800, 275);
+						Position = UDim2.fromOffset(0, 165);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						ScrollBarThickness = 3;
+						BorderSizePixel = 0;
+					})
+					background:AddChild(scrollingFrame)
+					local wOSEntry = screen:CreateElement("TextButton", {
+						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+						BorderSizePixel = 0;
+						Size = UDim2.fromOffset(780, 50);
+						Position = UDim2.fromOffset(10, 0);
+						Text = "wOS";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						Font = Enum.Font.RobotoMono;
+						TextXAlignment = Enum.TextXAlignment.Left;
+					})
+					entries = entries + 1
+					wOSEntry.MouseButton1Click:Connect(function()
+						returnTowOS = true
+					end)
+					scrollingFrame:AddChild(wOSEntry)
+					local newEntry = screen:CreateElement("TextButton", {
+						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+						BorderSizePixel = 0;
+						Size = UDim2.fromOffset(780, 50);
+						Position = UDim2.fromOffset(10, entries * 50);
+						Text = i;
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						Font = Enum.Font.RobotoMono;
+						TextXAlignment = Enum.TextXAlignment.Left;
+					})
+					entries = entries + 1
+					newEntry.MouseButton1Click:Connect(function()
+						screen:ClearElements()
+						local bootload = GetPartFromPort(4, "Microcontroller")
+						local bootloadpoly = GetPartFromPort(4, "Polysilicon")
+						local bootloadcode = [[
+						local mainMicrocontroller = GetPartFromPort(1, "Microcontroller")
+						local powerController = GetPartFromPort(2, "Microcontroller")
+						local screen = GetPartFromPort(1, "TouchScreen")
+						local polysilicon = GetPartFromPort(1, "Polysilicon")
+						mainMicrocontroller:Configure({Code = "]] .. v .. [[})
+						screen:ClearElements()
+						polysilicon:Configure({PolysiliconMode = 1})
+						TriggerPort(1)
+						wait(0.5)
+						polysilicon:Configure({PolysiliconMode = 0})
+						TriggerPort(1)]]
+						bootload:Configure({Code = bootloadcode})
+						bootloadpoly:Configure({PolysiliconMode = 1})
+						TriggerPort(4)
+						wait(0.5)
+						bootloadpoly:Configure({PolysiliconMode = 0})
+						TriggerPort(4)
+					end)
+					scrollingFrame:AddChild(newEntry)
+				elseif i ~= "wOS" then
+					local newEntry = screen:CreateElement("TextButton", {
+						BackgroundColor3 = Color3.fromRGB(150, 150, 150);
+						BorderSizePixel = 0;
+						Size = UDim2.fromOffset(780, 50);
+						Position = UDim2.fromOffset(10, entries * 50);
+						Text = i;
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						Font = Enum.Font.RobotoMono;
+						TextXAlignment = Enum.TextXAlignment.Left;
+					})
+					entries = entries + 1
+					newEntry.MouseButton1Click:Connect(function()
+						screen:ClearElements()
+						local bootload = GetPartFromPort(4, "Microcontroller")
+						local bootloadpoly = GetPartFromPort(4, "Polysilicon")
+						local bootloadcode = [[
+						local mainMicrocontroller = GetPartFromPort(1, "Microcontroller")
+						local powerController = GetPartFromPort(2, "Microcontroller")
+						local screen = GetPartFromPort(1, "TouchScreen")
+						local polysilicon = GetPartFromPort(1, "Polysilicon")
+						mainMicrocontroller:Configure({Code = "]] .. v .. [[})
+						screen:ClearElements()
+						polysilicon:Configure({PolysiliconMode = 1})
+						TriggerPort(1)
+						wait(0.5)
+						polysilicon:Configure({PolysiliconMode = 0})
+						TriggerPort(1)]]
+						bootload:Configure({Code = bootloadcode})
+						bootloadpoly:Configure({PolysiliconMode = 1})
+						TriggerPort(4)
+						wait(0.5)
+						bootloadpoly:Configure({PolysiliconMode = 0})
+						TriggerPort(4)
+					end)
+					scrollingFrame:AddChild(newEntry)
+				end
+			end
+		end
+		repeat wait() until returnTowOS or not detectedAnEntry
+		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
 			puter.AddWindowElement(window, "TextLabel", {
