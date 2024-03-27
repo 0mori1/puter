@@ -1564,7 +1564,7 @@ local success, errorcode = pcall(function()
 			if mounteddisks[1] ~= nil then
 				mounteddisks[1]:Write("primary", "yea")
 				filesystem.createDirectory("/Desktop/", mounteddisks[1])
-				filesystem.createDirectory("/Boot/", mounteddisks[foundPrimary])
+				filesystem.createDirectory("/Boot/", mounteddisks[1])
 				foundPrimary = 1
 			end
 		else
