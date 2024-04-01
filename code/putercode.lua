@@ -3193,22 +3193,26 @@ local success, errorcode = pcall(function()
 			getFolders("/Desktop/", mounteddisks[foundPrimary])
 			for i, v in pairs(filesToDisplay) do
 				local fileIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				fileIcon.MouseButton1Click:Connect(function()
-					local fileType, data, trueType = typeParser(v.data)
-					local thingToDo = knownFileTypes[fileType]
-					printL(fileType)
-					if thingToDo ~= nil then
-						thingToDo(data)
-					else
-						errorPopup("Unknown file type")
-					end
-				end)
+				if fileIcon ~= nil then
+					fileIcon.MouseButton1Click:Connect(function()
+						local fileType, data, trueType = typeParser(v.data)
+						local thingToDo = knownFileTypes[fileType]
+						printL(fileType)
+						if thingToDo ~= nil then
+							thingToDo(data)
+						else
+							errorPopup("Unknown file type")
+						end
+					end)
+				end
 			end
 			for i, v in pairs(foldersToDisplay) do
 				local folderIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				folderIcon.MouseButton1Click:Connect(function()
-					explorer(i, mounteddisks[foundPrimary])
-				end)
+				if folderIcon ~= nil then
+					folderIcon.MouseButton1Click:Connect(function()
+						explorer(i, mounteddisks[foundPrimary])
+					end)
+				end
 			end
 		end
 		local function lagometer()
