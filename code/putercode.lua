@@ -5,6 +5,7 @@ local function print(text)
 	eventLog[#eventLog + 1] = {"info", text, tick()}
 end
 local function warn(text)
+	error("i WARNED you")
 	eventLog[#eventLog + 1] = {"warn", text, tick()}
 end
 local function newCoroutine(func, name)
