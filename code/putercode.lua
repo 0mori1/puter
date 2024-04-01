@@ -69,8 +69,8 @@ local function shutdown(user)
 	end
 end
 local function ReturnError(errorcode, errortype)
-	warn("An error has occured")
-	warn(errorcode)
+	print("An error has occured")
+	print(errorcode)
 	if screen ~= nil then
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
