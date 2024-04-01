@@ -1564,7 +1564,11 @@ local success, errorcode = pcall(function()
 	local canOpenEventViewer = true
 	local function eventViewer()
 		if canOpenEventViewer then
+			canOpenEventViewer = false
 			local window, closebutton, titlebar = puter.CreateWindow(400, 300, "Event Viewer", Color3.fromRGB(0,0,0))
+			closebutton.MouseButton1Click:Connect(function()
+				canOpenEventViewer = true
+			end)
 			local scrollingFrame = window:CreateElement("ScrollingFrame", {
 				BackgroundColor3 = Color3.fromRGB(0, 0, 0);
 				BorderSizePixel = 0;
@@ -2256,8 +2260,8 @@ local success, errorcode = pcall(function()
 				elseif text == "flush events" then
 					connections = {}
 					terminalout("Events flushed, please restart every app.")
-				elseif text == "show log" then
-					 
+				elseif text == "show logs" then
+					eventViewer()
 				else
 					return true, "no such command"
 				end
