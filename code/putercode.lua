@@ -163,16 +163,11 @@ local success, errorcode = pcall(function()
 				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
 					for i, v in pairs(connections[part][eventname]) do
 						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] or eventname == "CursorMoved" and eventBlacklist[a.Player] then return end
-						if eventname ~= "CursorMoved" then
-							print("executing " .. eventname .. " of " .. part .. " with ID " .. tostring(i))
-						end
 						local success, err = pcall(function()
 							v(a, b, c, d, e, f)
 						end)
-						if success and eventname ~= "CursorMoved" then
-							print("execution end")
-						elseif not success then
-							print("process ID " .. tostring(i) .. " failed with error " .. err)
+						if not success then
+							warn("process ID " .. tostring(i) .. " failed with error " .. err)
 						end
 					end
 				end)
@@ -2261,6 +2256,8 @@ local success, errorcode = pcall(function()
 				elseif text == "flush events" then
 					connections = {}
 					terminalout("Events flushed, please restart every app.")
+				elseif text == "show log" then
+					 
 				else
 					return true, "no such command"
 				end
