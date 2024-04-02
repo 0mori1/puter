@@ -1678,6 +1678,33 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
+		local function luastop(polysilicon, polyport)
+			polysilicon:Configure({PolysiliconMode = 1})
+			TriggerPort(6)
+			for i, window in pairs(windows) do
+				if window.custom == true then
+					window.framemet:Close()
+				end
+			end
+		end
+		local function luarun(codetorun, terminalmicrocontroller, polysilicon, polyport)
+			for i, window in pairs(windows) do
+				if window.custom == true then
+					window.framemet:Close()
+				end
+			end
+			if terminalmicrocontroller ~= nil and polysilicon ~= nil then
+				luastop(polysilicon, polyport)
+				terminalmicrocontroller:Configure({Code = codetorun})
+				polysilicon:Configure({PolysiliconMode = 0})
+				wait(0.5)
+				TriggerPort(polyport)
+				printL(codetorun)
+				return true
+			else	
+				return false
+			end
+		end
 		if foundPrimary then
 			local bootEntries = {}
 			local function getFiles(path, disk)
@@ -1788,12 +1815,7 @@ local success, errorcode = pcall(function()
 						polysilicon:Configure({PolysiliconMode = 0})
 						TriggerPort(2)]]
 								printL("configuring to " .. bootloadcode)
-								bootload:Configure({Code = bootloadcode})
-								bootloadpoly:Configure({PolysiliconMode = 1})
-								TriggerPort(4)
-								wait(1)
-								bootloadpoly:Configure({PolysiliconMode = 0})
-								TriggerPort(4)
+								luarun(bootloadcode, bootload, bootloadpoly, 4)
 							end)
 							scrollingFrame:AddChild(newEntry)
 							scrollingFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(800, entries * 25)})
@@ -1826,12 +1848,7 @@ local success, errorcode = pcall(function()
 						wait(1)
 						polysilicon:Configure({PolysiliconMode = 0})
 						TriggerPort(2)]]
-								bootload:Configure({Code = bootloadcode})
-								bootloadpoly:Configure({PolysiliconMode = 1})
-								TriggerPort(4)
-								wait(0.5)
-								bootloadpoly:Configure({PolysiliconMode = 0})
-								TriggerPort(4)
+								luarun(bootloadcode, bootload, bootloadpoly, 4)
 							end)
 							scrollingFrame:AddChild(newEntry)
 							scrollingFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(800, entries * 25)})
@@ -1907,33 +1924,6 @@ local success, errorcode = pcall(function()
 		local playingvideo = false
 		local canopenlagometer = true
 		local canopenmusic = true
-		local function luastop(polysilicon)
-			polysilicon:Configure({PolysiliconMode = 1})
-			TriggerPort(6)
-			for i, window in pairs(windows) do
-				if window.custom == true then
-					window.framemet:Close()
-				end
-			end
-		end
-		local function luarun(codetorun, terminalmicrocontroller, polysilicon)
-			for i, window in pairs(windows) do
-				if window.custom == true then
-					window.framemet:Close()
-				end
-			end
-			if terminalmicrocontroller ~= nil and polysilicon ~= nil then
-				luastop(polysilicon)
-				terminalmicrocontroller:Configure({Code = codetorun})
-				polysilicon:Configure({PolysiliconMode = 0})
-				wait(0.5)
-				TriggerPort(6)
-				printL(codetorun)
-				return true
-			else	
-				return false
-			end
-		end
 		local specialCharactersIn = {
 			["%0"] = "/";
 			["%1"] = ",";
@@ -2067,12 +2057,12 @@ local success, errorcode = pcall(function()
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
-					local success = luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon)
+					local success = luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon, 6)
 					if not success then
 						terminalout("A part of the lua microcontroller is missing.")
 					end
 				elseif text == "lua stop" then
-					luastop(polysilicon)
+					luastop(polysilicon, 6)
 				elseif text == "shutdown" or text == "die" then
 					shutdown()
 				elseif text == "restart" then
@@ -2193,8 +2183,8 @@ local success, errorcode = pcall(function()
 				elseif string.sub(text, 1, 8) == "disk run" then
 					if GetPartFromPort(4, "Disk") ~= nil then
 						if GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)) ~= nil then
-							luastop(polysilicon)
-							luarun(GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)), terminalmicrocontroller, polysilicon)
+							luastop(polysilicon, 6)
+							luarun(GetPartFromPort(4, "Disk"):Read(string.sub(text, 10, #text)), terminalmicrocontroller, polysilicon, 6)
 						else
 							return true, "could not find data on specified key"
 						end
@@ -2272,7 +2262,7 @@ local success, errorcode = pcall(function()
 		end
 		local knownFileTypes = {
 			["lua"] = function(code)
-				luarun(code, GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"))
+				luarun(code, GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), 6)
 			end;
 			["image"] = function(imageID)
 				check("display image " .. imageID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
