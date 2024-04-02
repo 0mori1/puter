@@ -1590,6 +1590,7 @@ local success, errorcode = pcall(function()
 						Text = v[2];
 						TextColor3 = textcolor;
 						TextScaled = true;
+						TextXAlignment = Enum.TextXAlignment.Left
 					})
 				end
 			end
