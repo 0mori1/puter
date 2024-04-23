@@ -54,6 +54,7 @@ local eventBlacklist = {
 	["HiLockYT"] = true;
 	["aizzoken"] = true;
 	["Tajrorn"] = true;
+	["HitScoredanceMan"] = true;
 }
 local function shutdown(user)
 	if not eventBlacklist[user] then
@@ -376,9 +377,17 @@ local success, errorcode = pcall(function()
 					v.active = false
 				end
 			end
+			local eventsConnected = {
+				["CursorMoved"] = {};
+				["WindowDragged"] = {};
+				["Closed"] = {};
+			}
 			if closebutton ~= nil then
 				closebutton.MouseButton1Click:Connect(function()
 					titlebar:Destroy()
+					for i, v in pairs(eventsConnected["Closed"]) do
+						v()
+					end
 					windows[windowID] = nil
 				end)
 			end
@@ -431,10 +440,6 @@ local success, errorcode = pcall(function()
 					offsetY = nil
 				end)
 			end
-			local eventsConnected = {
-				["CursorMoved"] = {};
-				["WindowDragged"] = {};
-			}
 			local waitForNextTick = false
 			xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil then
@@ -489,9 +494,6 @@ local success, errorcode = pcall(function()
 				return cursorsProcessed
 			end
 			function windowframemet:Close()
-				if windowframemet.closeBehavior ~= nil and typeof(windowframemet.closeBehavior) == "function" then
-					windowframemet.closeBehavior()
-				end
 				if titlebar ~= nil then
 					titlebar:Destroy()
 					windows[windowID] = nil
