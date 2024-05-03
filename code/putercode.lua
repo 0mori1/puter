@@ -178,6 +178,30 @@ local success, errorcode = pcall(function()
 			error("attempted to connect to event " .. eventname .. " of nil component " .. part)
 		end
 	end
+	local function xAssert(asserted, ifdoesntexist)
+		if not asserted then
+			error(ifdoesntexist)
+		end
+	end
+	local function specialAssert(asserted, mustbe, ifnot, invert)
+		if not invert then
+			if asserted ~= mustbe and typeof(asserted) ~= "function" then
+				error(ifnot)
+			elseif typeof(asserted) == "function" then
+				if asserted() ~= mustbe then
+					error(ifnot)
+				end
+			end
+		else
+			if asserted == mustbe and typeof(asserted) ~= "function" then
+				error(ifnot)
+			elseif typeof(asserted) == "function" then
+				if asserted() == mustbe then
+					error(ifnot)
+				end
+			end
+		end
+	end
 	local cursors = {}
 	local cursorPositions = {}
 	local function CreateSelfTestOutput(text, position, color)
@@ -2700,43 +2724,20 @@ local success, errorcode = pcall(function()
 										end
 										local goodjob, uhoh = pcall(function()
 											printL("time to check")
-											if mounteddisks[disk] ~= nil then
-												if path ~= nil then
-													if string.sub(path, #path, #path) ~= "/" then
-														path = path .. "/"
-														printL("glued a / to the path")
+											xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
+											xAssert(path, "input a path")
+											specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
+											xAssert(name, "input a name")
+											specialAssert(function()
+												local badName = false
+												for i = 1, #name, 1 do
+													if string.sub(name, i, i) == "/" then
+														return true
 													end
-													if filesystem.read(path, mounteddisks[disk]).data == "t:folder" then
-														if name ~= nil then
-															local badName = false
-															for i = 1, #name, 1 do
-																if string.sub(name, i, i) == "/" then
-																	badName = true
-																end
-															end
-															if badName == false then
-																filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
-																called = true
-															else
-																printL("you're an idiot")
-																throwError("dont put a / in the name you doofus")
-															end
-														else
-															printL("me when the untitled")
-															throwError("please input a name")
-														end
-													else
-														printL("dawg that aint a folder")
-														throwError("path specified is not a folder")
-													end
-												else
-													printL("wheres da path")
-													throwError("please input a path")
 												end
-											else
-												printL("disk where?")
-												throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
-											end
+											end, false, "dont put a / in the name you doofus", true)
+											filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
+											called = true
 											printL("back to my 1 millisecond break")
 										end)
 										if goodjob == false then
@@ -2900,59 +2901,28 @@ local success, errorcode = pcall(function()
 											end
 											local goodjob, uhoh = pcall(function()
 												printL("time to check")
-												if mounteddisks[disk] ~= nil then
-													if path ~= nil then
-														if string.sub(path, #path, #path) ~= "/" then
-															path = path .. "/"
-															printL("glued a / to the path")
+												xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
+												xAssert(path, "input a path")
+												specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
+												xAssert(name, "input a name")
+												specialAssert(function()
+													local badName = false
+													for i = 1, #name, 1 do
+														if string.sub(name, i, i) == "/" then
+															return true
 														end
-														if filesystem.read(path, mounteddisks[disk]).data == "t:folder" then
-															if name ~= nil then
-																local badName = false
-																for i = 1, #name, 1 do
-																	if string.sub(name, i, i) == "/" then
-																		badName = true
-																	end
-																end
-																if badName == false then
-																	if fileType ~= nil then
-																		if data ~= nil then
-																			if fileType ~= "folder" then
-																				filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
-																				note("written... i think")
-																				called = true
-																			else
-																				filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
-																				note("a folder was created, did you think you could break me?")
-																				called = true
-																			end
-																		else
-																			throwError("input some data")
-																			printL("dont make a useless file")
-																		end
-																	else
-																		printL("type in a type")
-																		throwError("please input a type")
-																	end
-																else
-																	printL("you're an idiot")
-																	throwError("dont put a / in the name you doofus")
-																end
-															else
-																printL("me when the untitled")
-																throwError("please input a name")
-															end
-														else
-															printL("dawg that aint a folder")
-															throwError("path specified is not a folder")
-														end
-													else
-														printL("wheres da path")
-														throwError("please input a path")
 													end
+												end, false, "dont put a / in the name you doofus", true)
+												xAssert(fileType, "please input a type")
+												xAssert(data, "input some data")
+												if fileType ~= "folder" then
+													filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
+													note("written... i think")
+													called = true
 												else
-													printL("disk where?")
-													throwError("invalid disk, make sure that you didnt accidentally type in anything other than a number")
+													filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
+													note("a folder was created, did you think you could break me?")
+													called = true
 												end
 												printL("back to my 1 millisecond break")
 											end)
