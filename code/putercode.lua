@@ -1,4 +1,6 @@
-local screen
+local screens
+local screens = {}
+local screenInterfaces = {}
 local coroutines = {}
 local eventLog = {}
 local function printL(text)
@@ -154,6 +156,30 @@ local success, errorcode = pcall(function()
 	local outAmount = 0
 	local voicecommands = true
 	local connections = {}
+	local function xAssert(asserted, ifdoesntexist)
+		if not asserted then
+			error(ifdoesntexist)
+		end
+	end
+	local function specialAssert(asserted, mustbe, ifnot, invert)
+		if not invert then
+			if asserted ~= mustbe and typeof(asserted) ~= "function" then
+				error(ifnot)
+			elseif typeof(asserted) == "function" then
+				if asserted() ~= mustbe then
+					error(ifnot)
+				end
+			end
+		else
+			if asserted == mustbe and typeof(asserted) ~= "function" then
+				error(ifnot)
+			elseif typeof(asserted) == "function" then
+				if asserted() == mustbe then
+					error(ifnot)
+				end
+			end
+		end
+	end
 	local function xConnect(part, eventname, func, ID)
 		if availableComponents[part] ~= nil then
 			if connections[part] == nil then
@@ -178,29 +204,43 @@ local success, errorcode = pcall(function()
 			error("attempted to connect to event " .. eventname .. " of nil component " .. part)
 		end
 	end
-	local function xAssert(asserted, ifdoesntexist)
-		if not asserted then
-			error(ifdoesntexist)
-		end
-	end
-	local function specialAssert(asserted, mustbe, ifnot, invert)
-		if not invert then
-			if asserted ~= mustbe and typeof(asserted) ~= "function" then
-				error(ifnot)
-			elseif typeof(asserted) == "function" then
-				if asserted() ~= mustbe then
-					error(ifnot)
+	local multiConnections = {}
+	local function multiConnect(parts, eventname, func)
+		pcall(function()
+			xAssert(parts)
+			xAssert(eventname)
+			xAssert(func)
+			if multiConnections[eventname] ~= nil then
+				for i, v in pairs(parts) do
+					if not multiConnections[eventname]["parts"][v.GUID] then
+						multiConnections[eventname]["parts"][v.GUID] = v
+						v:Connect(eventname, function(a,b,c,d,e,f)
+							for n, fnc in pairs(multiConnections[eventname]["functions"]) do
+								fnc(a,b,c,d,e,f,v.GUID)
+							end
+						end)
+					end
 				end
-			end
-		else
-			if asserted == mustbe and typeof(asserted) ~= "function" then
-				error(ifnot)
-			elseif typeof(asserted) == "function" then
-				if asserted() == mustbe then
-					error(ifnot)
+				local functionTable = multiConnections[eventname]["functions"]
+				functionTable[#functionTable + 1] = func
+			else
+				multiConnections[eventname] = {}
+				multiConnections[eventname]["parts"] = {}
+				multiConnections[eventname]["functions"] = {}
+				for i, v in pairs(parts) do
+					if not multiConnections[eventname]["parts"][v.GUID] then
+						multiConnections[eventname]["parts"][v.GUID] = v
+						v:Connect(eventname, function(a,b,c,d,e,f)
+							for n, fnc in pairs(multiConnections[eventname]["functions"]) do
+								fnc(a,b,c,d,e,f,v.GUID)
+							end
+						end)
+					end
 				end
+				local functionTable = multiConnections[eventname]["functions"]
+				functionTable[#functionTable + 1] = func
 			end
-		end
+		end)
 	end
 	local cursors = {}
 	local cursorPositions = {}
@@ -405,6 +445,7 @@ local success, errorcode = pcall(function()
 				["CursorMoved"] = {};
 				["WindowDragged"] = {};
 				["Closed"] = {};
+				["ScreenTravelled"] = {};
 			}
 			if closebutton ~= nil then
 				closebutton.MouseButton1Click:Connect(function()
@@ -464,8 +505,19 @@ local success, errorcode = pcall(function()
 					offsetY = nil
 				end)
 			end
-			local waitForNextTick = false
-			xConnect("screen", "CursorMoved", function(cursor)
+			local onScreen = screen.GUID
+			multiConnect(screens, "CursorMoved", function(cursor, b, r, u, h, g, GUID)
+				if GUID ~= onScreen then
+					onScreen = GUID
+					if titlebar ~= nil then
+						screenInterfaces[GUID]:AddChild(titlebar)
+					else
+						screenInterfaces[GUID]:AddChild(windowframeContainerContainer)
+					end
+					for i, v in pairs(eventsConnected["ScreenTravelled"]) do
+						v(GUID)
+					end
+				end
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
@@ -564,7 +616,8 @@ local success, errorcode = pcall(function()
 				["titlebarcolor"] = titlebarcolor;
 				["forced"] = forced;
 				["custom"] = false;
-				["framemet"] = windowframemet
+				["framemet"] = windowframemet;
+				["onScreen"] = onScreen;
 			}
 			return windowframemet, closebutton, titlebar
 		end;
@@ -1170,9 +1223,18 @@ local success, errorcode = pcall(function()
 						v.active = false
 					end
 				end
+				local eventsConnected = {
+					["CursorMoved"] = {};
+					["WindowDragged"] = {};
+					["Closed"] = {};
+					["ScreenTravelled"] = {};
+				}
 				if closebutton ~= nil then
 					closebutton.MouseButton1Click:Connect(function()
 						titlebar:Destroy()
+						for i, v in pairs(eventsConnected["Closed"]) do
+							v()
+						end
 						windows[windowID] = nil
 					end)
 				end
@@ -1225,18 +1287,26 @@ local success, errorcode = pcall(function()
 						offsetY = nil
 					end)
 				end
-				local eventsConnected = {
-					["CursorMoved"] = {};
-					["WindowDragged"] = {};
-				}
-				xConnect("screen", "CursorMoved", function(cursor)
+				local onScreen = screen.GUID
+				multiConnect(screens, "CursorMoved", function(cursor, b, r, u, h, g, GUID)
+					if GUID ~= onScreen then
+						onScreen = GUID
+						if titlebar ~= nil then
+							screenInterfaces[GUID]:AddChild(titlebar)
+						else
+							screenInterfaces[GUID]:AddChild(windowframeContainerContainer)
+						end
+						for i, v in pairs(eventsConnected["ScreenTravelled"]) do
+							v(GUID)
+						end
+					end
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
 							posx = cursor.X + offsetX
 							posy = cursor.Y + offsetY
 							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
 							for i, func in pairs(eventsConnected["WindowDragged"]) do
-								func(whodrags, cursor.X, cursor.Y)
+								func(whodrags, posx, posy)
 							end
 						end
 					elseif dragging == true then
@@ -1261,7 +1331,11 @@ local success, errorcode = pcall(function()
 					windowframe:AddChild(element)
 				end
 				function windowframemet:IsActive()
-					return windows[windowID].active
+					local active = false
+					if windows[windowID] ~= nil then
+						active = windows[windowID].active
+					end
+					return active
 				end
 				local add = 0
 				if titlebar ~= nil then
@@ -1278,9 +1352,6 @@ local success, errorcode = pcall(function()
 					return cursorsProcessed
 				end
 				function windowframemet:Close()
-					if windowframemet.closeBehavior ~= nil and typeof(windowframemet.closeBehavior) == "function" then
-						windowframemet.closeBehavior()
-					end
 					if titlebar ~= nil then
 						titlebar:Destroy()
 						windows[windowID] = nil
@@ -1327,7 +1398,8 @@ local success, errorcode = pcall(function()
 					["titlebarcolor"] = titlebarcolor;
 					["forced"] = forced;
 					["custom"] = true;
-					["framemet"] = windowframemet
+					["framemet"] = windowframemet;
+					["onScreen"] = onScreen;
 				}
 				return windowframemet, closebutton, titlebar
 			end;
@@ -1384,6 +1456,12 @@ local success, errorcode = pcall(function()
 			Image = wallpaper;
 			Size = UDim2.fromOffset(800, 450);
 			ZIndex = 2;
+		})
+		screenInterfaces[screen.GUID] = screen:CreateElement("Frame", {
+			Size = UDim2.fromScale(1, 1);
+			Position = UDim2.fromScale(0, 0);
+			BackgroundColor3 = Color3.fromRGB(0,0,0);
+			BorderSizePixel = 0;
 		})
 		local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
 		local explorerApp = createIcon("Explorer", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
@@ -1518,7 +1596,13 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			BackgroundColor3 = Color3.fromRGB(0,0,0);
 		})
-		createwOSboot()
+		screens[screen.GUID] = screen
+		screenInterfaces[screen.GUID] = screen:CreateElement("Frame", {
+			Size = UDim2.fromScale(1, 1);
+			Position = UDim2.fromScale(0, 0);
+			BackgroundColor3 = Color3.fromRGB(0,0,0);
+			BorderSizePixel = 0;
+		})
 		loadBarRoutine = newCoroutine(function()
 			local loadingbar = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(75, 15);
@@ -1571,6 +1655,15 @@ local success, errorcode = pcall(function()
 			Beep()
 			shutdown()
 		end
+	end
+	for i, v in pairs(GetPartsFromPort(1, "TouchScreen")) do
+		screens[v.GUID] = v
+		screenInterfaces[v.GUID] = v:CreateElement("Frame", {
+			Size = UDim2.fromScale(1, 1);
+			Position = UDim2.fromScale(0, 0);
+			BackgroundColor3 = Color3.fromRGB(0,0,0);
+			BorderSizePixel = 0;
+		})
 	end
 	-- Detect the rom and check if it exists
 	rom = GetPartFromPort(6, "Disk")
