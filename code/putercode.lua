@@ -221,8 +221,13 @@ local success, errorcode = pcall(function()
 					if not multiConnections[eventname]["parts"][v.GUID] then
 						multiConnections[eventname]["parts"][v.GUID] = v
 						v:Connect(eventname, function(a,b,c,d,e,f)
-							for n, fnc in pairs(multiConnections[eventname]["functions"]) do
-								fnc(a,b,c,d,e,f,v.GUID)
+							local suces, failure = pcall(function()
+								for n, fnc in pairs(multiConnections[eventname]["functions"]) do
+									fnc(a,b,c,d,e,f,v.GUID)
+								end
+							end)
+							if not suces then
+								ReturnError(failure)
 							end
 						end)
 					end
@@ -237,8 +242,13 @@ local success, errorcode = pcall(function()
 					if not multiConnections[eventname]["parts"][v.GUID] then
 						multiConnections[eventname]["parts"][v.GUID] = v
 						v:Connect(eventname, function(a,b,c,d,e,f)
-							for n, fnc in pairs(multiConnections[eventname]["functions"]) do
-								fnc(a,b,c,d,e,f,v.GUID)
+							local success, fail = pcall(function()
+								for n, fnc in pairs(multiConnections[eventname]["functions"]) do
+									fnc(a,b,c,d,e,f,v.GUID)
+								end
+							end)
+							if not success then
+								ReturnError(fail)
 							end
 						end)
 					end
