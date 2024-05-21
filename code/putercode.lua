@@ -39,7 +39,7 @@ local function go(tbl)
 		if typeof(v) == "table" then
 			go(v)
 		else
-			printL(tostring(v))
+			printL(tostring(i) .. ": " .. tostring(v))
 		end 
 	end
 end
