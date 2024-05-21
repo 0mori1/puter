@@ -273,6 +273,7 @@ local success, errorcode = pcall(function()
 	end
 	local cursors = {}
 	local cursorPositions = {}
+	local cursorScreens = {}
 	local function CreateSelfTestOutput(text, position, color)
 		if color == nil then
 			color = Color3.fromRGB(255,255,255)
@@ -2291,8 +2292,16 @@ local success, errorcode = pcall(function()
 				return "Unknown", input, "unknown"
 			end
 		end
-		xConnect("screen", "CursorMoved", function(cursor)
+		multiConnect(screens, "CursorMoved", function(cursor, b, r, u, h, g, GUID)
 			if cursors[cursor.Player] ~= nil then
+				if GUID ~= cursorScreens[cursor.Player] then
+					cursorScreens[cursor.Player] = GUID
+					if cursors[cursor.Player] ~= nil then
+						screenInterfaces[GUID]:AddChild(cursors[cursor.Player])
+					else
+						screenInterfaces[GUID]:AddChild(cursors[cursor.Player])
+					end	
+				end
 				cursorPositions[cursor.Player] = {X = cursor.X, Y = cursor.Y}
 				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
 			else
@@ -2317,6 +2326,7 @@ local success, errorcode = pcall(function()
 				})
 				newCursor:AddChild(playerName)
 				cursors[cursor.Player] = newCursor
+				cursorScreens[cursor.Player] = screen.GUID
 			end
 		end)
 		local canuseapp = {}
@@ -4603,6 +4613,7 @@ local success, errorcode = pcall(function()
 					cursor:Destroy()
 					cursors[plrName] = nil
 					cursorPositions[plrName] = nil
+					cursorScreens[plrName] = nil
 				end
 			end
 			go(multiConnections)
