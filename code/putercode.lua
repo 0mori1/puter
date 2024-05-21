@@ -36,7 +36,7 @@ end
 local function go(tbl)
 	for i, v in pairs(tbl) do
 		if typeof(v) == "table" then
-			go(tbl)
+			go(v)
 		else
 			printL(tostring(v))
 		end 
