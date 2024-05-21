@@ -4,6 +4,7 @@ local screenInterfaces = {}
 local coroutines = {}
 local eventLog = {}
 local function printL(text)
+	print(text)
 	eventLog[#eventLog + 1] = {"info", text, tick()}
 end
 local function warnL(text)
