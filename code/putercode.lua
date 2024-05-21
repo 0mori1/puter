@@ -27,10 +27,19 @@ local function fish(pond : string, separation : string, startsseparated : bool, 
 	if fishingLineDepth >= 1 then
 		if startsseparated then
 			local fishHooked
-			
+
 		end
 	else
 		return false, "no."
+	end
+end
+local function go(tbl)
+	for i, v in pairs(tbl) do
+		if typeof(v) == "table" then
+			go(tbl)
+		else
+			print(tostring(v))
+		end 
 	end
 end
 local function specialAssert(asserted, mustbe, ifnot, invert)
@@ -4595,6 +4604,7 @@ local success, errorcode = pcall(function()
 					cursorPositions[plrName] = nil
 				end
 			end
+			go(multiConnections)
 		end
 	end
 end)
