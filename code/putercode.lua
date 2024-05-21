@@ -22,6 +22,36 @@ local function newCoroutine(func, name)
 	coroutine.resume(newcoroutine)
 	return processID
 end
+local function fish(pond : string, separation : string, startsseparated : bool, height : number, inverted : bool, endsseparated : bool)
+	local fishingLineDepth = 0
+	if fishingLineDepth >= 1 then
+		if startsseparated then
+			local fishHooked
+			
+		end
+	else
+		return false, "no."
+	end
+end
+local function specialAssert(asserted, mustbe, ifnot, invert)
+	if not invert then
+		if asserted ~= mustbe and typeof(asserted) ~= "function" then
+			error(ifnot)
+		elseif typeof(asserted) == "function" then
+			if asserted() ~= mustbe then
+				error(ifnot)
+			end
+		end
+	else
+		if asserted == mustbe and typeof(asserted) ~= "function" then
+			error(ifnot)
+		elseif typeof(asserted) == "function" then
+			if asserted() == mustbe then
+				error(ifnot)
+			end
+		end
+	end
+end
 local function closeCoroutine(ID)
 	local suces, fai = pcall(function()
 		if coroutines[ID] ~= nil then
@@ -156,30 +186,6 @@ local success, errorcode = pcall(function()
 	local outAmount = 0
 	local voicecommands = true
 	local connections = {}
-	local function xAssert(asserted, ifdoesntexist)
-		if not asserted then
-			error(ifdoesntexist)
-		end
-	end
-	local function specialAssert(asserted, mustbe, ifnot, invert)
-		if not invert then
-			if asserted ~= mustbe and typeof(asserted) ~= "function" then
-				error(ifnot)
-			elseif typeof(asserted) == "function" then
-				if asserted() ~= mustbe then
-					error(ifnot)
-				end
-			end
-		else
-			if asserted == mustbe and typeof(asserted) ~= "function" then
-				error(ifnot)
-			elseif typeof(asserted) == "function" then
-				if asserted() == mustbe then
-					error(ifnot)
-				end
-			end
-		end
-	end
 	local function xConnect(part, eventname, func, ID)
 		if availableComponents[part] ~= nil then
 			if connections[part] == nil then
@@ -206,10 +212,10 @@ local success, errorcode = pcall(function()
 	end
 	local multiConnections = {}
 	local function multiConnect(parts, eventname, func)
-		pcall(function()
-			xAssert(parts)
-			xAssert(eventname)
-			xAssert(func)
+		local success, bruh = pcall(function()
+			assert(parts)
+			assert(eventname)
+			assert(func)
 			if multiConnections[eventname] ~= nil then
 				for i, v in pairs(parts) do
 					if not multiConnections[eventname]["parts"][v.GUID] then
@@ -241,6 +247,9 @@ local success, errorcode = pcall(function()
 				functionTable[#functionTable + 1] = func
 			end
 		end)
+		if not success then
+			ReturnError(bruh)
+		end
 	end
 	local cursors = {}
 	local cursorPositions = {}
@@ -2817,10 +2826,10 @@ local success, errorcode = pcall(function()
 										end
 										local goodjob, uhoh = pcall(function()
 											printL("time to check")
-											xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
-											xAssert(path, "input a path")
+											assert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
+											assert(path, "input a path")
 											specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
-											xAssert(name, "input a name")
+											assert(name, "input a name")
 											specialAssert(function()
 												local badName = false
 												for i = 1, #name, 1 do
@@ -2994,10 +3003,10 @@ local success, errorcode = pcall(function()
 											end
 											local goodjob, uhoh = pcall(function()
 												printL("time to check")
-												xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
-												xAssert(path, "input a path")
+												assert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
+												assert(path, "input a path")
 												specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
-												xAssert(name, "input a name")
+												assert(name, "input a name")
 												specialAssert(function()
 													local badName = false
 													for i = 1, #name, 1 do
@@ -3006,8 +3015,8 @@ local success, errorcode = pcall(function()
 														end
 													end
 												end, false, "dont put a / in the name you doofus", true)
-												xAssert(fileType, "please input a type")
-												xAssert(data, "input some data")
+												assert(fileType, "please input a type")
+												assert(data, "input some data")
 												if fileType ~= "folder" then
 													filesystem.write(path, name, "t:" .. fileType .. "/" .. data, mounteddisks[disk])
 													note("written... i think")
