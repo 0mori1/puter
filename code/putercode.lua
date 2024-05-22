@@ -1626,19 +1626,14 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			BackgroundColor3 = Color3.fromRGB(0,0,0);
 		})
-		screens[screen.GUID] = screen
-		screenInterfaces[screen.GUID] = screen:CreateElement("Frame", {
-			Size = UDim2.fromScale(1, 1);
-			Position = UDim2.fromScale(0, 0);
-			BackgroundColor3 = Color3.fromRGB(0,0,0);
-			BorderSizePixel = 0;
-		})
+		createwOSboot()
 		loadBarRoutine = newCoroutine(function()
 			local loadingbar = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(75, 15);
 				Position = UDim2.fromOffset(0, 5);
 				BackgroundColor3 = Color3.fromRGB(255,255,255);
 				BorderSizePixel = 0;
+				ZIndex = 2;
 			})
 			local loadFrameOut = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(210, 27);
@@ -1647,6 +1642,7 @@ local success, errorcode = pcall(function()
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 				ClipsDescendants = true;
 				BorderColor3 = Color3.fromRGB(255,255,255);
+				ZIndex = 2;
 			})
 			local loadFrameIn = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(200, 25);
@@ -1655,6 +1651,7 @@ local success, errorcode = pcall(function()
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 				ClipsDescendants = true;
 				BorderColor3 = Color3.fromRGB(0,0,0);
+				ZIndex = 2;
 			})
 			loadFrameOut:AddChild(loadFrameIn)
 			loadFrameIn:AddChild(loadingbar)
@@ -1687,13 +1684,17 @@ local success, errorcode = pcall(function()
 		end
 	end
 	for i, v in pairs(GetPartsFromPort(1, "TouchScreen")) do
-		screens[v.GUID] = v
-		screenInterfaces[v.GUID] = v:CreateElement("Frame", {
-			Size = UDim2.fromScale(1, 1);
-			Position = UDim2.fromScale(0, 0);
-			BackgroundColor3 = Color3.fromRGB(0,0,0);
-			BorderSizePixel = 0;
-		})
+		if not screens[v.GUID] then
+			screens[v.GUID] = v
+		end
+		if not screenInterfaces[v.GUID] then
+			screenInterfaces[v.GUID] = v:CreateElement("Frame", {
+				Size = UDim2.fromScale(1, 1);
+				Position = UDim2.fromScale(0, 0);
+				BackgroundColor3 = Color3.fromRGB(0,0,0);
+				BorderSizePixel = 0;
+			})
+		end
 	end
 	-- Detect the rom and check if it exists
 	rom = GetPartFromPort(6, "Disk")
@@ -1855,6 +1856,8 @@ local success, errorcode = pcall(function()
 			end
 		end
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
+		screens[screen.GUID] = screen
+		screenInterfaces[screen.GUID] = background
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
 			puter.AddWindowElement(window, "TextLabel", {
