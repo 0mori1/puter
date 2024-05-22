@@ -537,19 +537,19 @@ local success, errorcode = pcall(function()
 			end
 			local onScreen = screen.GUID
 			multiConnect(screens, "CursorMoved", function(cursor, b, r, u, h, g, GUID)
-				if GUID ~= onScreen then
-					onScreen = GUID
-					if titlebar ~= nil then
-						screenInterfaces[GUID]:AddChild(titlebar)
-					else
-						screenInterfaces[GUID]:AddChild(windowframeContainerContainer)
-					end
-					for i, v in pairs(eventsConnected["ScreenTravelled"]) do
-						v(GUID)
-					end
-				end
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
+						if GUID ~= onScreen then
+							onScreen = GUID
+							if titlebar ~= nil then
+								screenInterfaces[GUID]:AddChild(titlebar)
+							else
+								screenInterfaces[GUID]:AddChild(windowframeContainerContainer)
+							end
+							for i, v in pairs(eventsConnected["ScreenTravelled"]) do
+								v(GUID)
+							end
+						end
 						posx = cursor.X + offsetX
 						posy = cursor.Y + offsetY
 						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
