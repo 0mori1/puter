@@ -384,6 +384,7 @@ local success, errorcode = pcall(function()
 					AutoButtonColor = false;
 					ZIndex = zindex;
 				})
+				screenInterfaces[screen.GUID]["slave"]:AddChild(titlebar)
 			end
 			if featuresonoff.closebutton ~= false and titlebar ~= nil then
 				closebutton = screen:CreateElement("TextButton", {
@@ -450,6 +451,7 @@ local success, errorcode = pcall(function()
 				local posy = overrideY or (400 - y) / 2 - 24
 				local posx = overrideX or (800 - x) / 2
 				windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+				screenInterfaces[screen.GUID]["slave"]:AddChild(windowframeContainerContainer)
 			end
 			local collapsed = false
 			if collapseButton ~= nil then
@@ -542,9 +544,9 @@ local success, errorcode = pcall(function()
 						if GUID ~= onScreen then
 							onScreen = GUID
 							if titlebar ~= nil then
-								screenInterfaces[GUID]:AddChild(titlebar)
+								screenInterfaces[GUID]["slave"]:AddChild(titlebar)
 							else
-								screenInterfaces[GUID]:AddChild(windowframeContainerContainer)
+								screenInterfaces[GUID]["slave"]:AddChild(windowframeContainerContainer)
 							end
 							for i, v in pairs(eventsConnected["ScreenTravelled"]) do
 								v(GUID)
@@ -1166,6 +1168,7 @@ local success, errorcode = pcall(function()
 						AutoButtonColor = false;
 						ZIndex = zindex;
 					})
+					screenInterfaces[screen.GUID]["slave"]:AddChild(titlebar)
 				end
 				if featuresonoff.closebutton ~= false and titlebar ~= nil then
 					closebutton = screen:CreateElement("TextButton", {
@@ -1232,6 +1235,7 @@ local success, errorcode = pcall(function()
 					local posy = overrideY or (400 - y) / 2 - 24
 					local posx = overrideX or (800 - x) / 2
 					windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+					screenInterfaces[screen.GUID]["slave"]:AddChild(windowframeContainerContainer)
 				end
 				local collapsed = false
 				if collapseButton ~= nil then
@@ -1319,19 +1323,19 @@ local success, errorcode = pcall(function()
 				end
 				local onScreen = screen.GUID
 				multiConnect(screens, "CursorMoved", function(cursor, b, r, u, h, g, GUID)
-					if GUID ~= onScreen then
-						onScreen = GUID
-						if titlebar ~= nil then
-							screenInterfaces[GUID]:AddChild(titlebar)
-						else
-							screenInterfaces[GUID]:AddChild(windowframeContainerContainer)
-						end
-						for i, v in pairs(eventsConnected["ScreenTravelled"]) do
-							v(GUID)
-						end
-					end
 					if dragging == true and whodrags ~= nil then
 						if cursor.Player == whodrags then
+							if GUID ~= onScreen then
+								onScreen = GUID
+								if titlebar ~= nil then
+									screenInterfaces[GUID]["slave"]:AddChild(titlebar)
+								else
+									screenInterfaces[GUID]["slave"]:AddChild(windowframeContainerContainer)
+								end
+								for i, v in pairs(eventsConnected["ScreenTravelled"]) do
+									v(GUID)
+								end
+							end
 							posx = cursor.X + offsetX
 							posy = cursor.Y + offsetY
 							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
@@ -1487,11 +1491,20 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			ZIndex = 2;
 		})
-		screenInterfaces[screen.GUID] = screen:CreateElement("Frame", {
+		screenInterfaces[screen.GUID] = {}
+		screenInterfaces[screen.GUID]["slave"] = screen:CreateElement("Frame", {
 			Size = UDim2.fromScale(1, 1);
 			Position = UDim2.fromScale(0, 0);
-			BackgroundColor3 = Color3.fromRGB(0,0,0);
+			BackgroundTransparency = 1;
 			BorderSizePixel = 0;
+			ZIndex = 3
+		})
+		screenInterfaces[screen.GUID]["master"] = screen:CreateElement("Frame", {
+			Size = UDim2.fromScale(1, 1);
+			Position = UDim2.fromScale(0, 0);
+			BackgroundTransparency = 1;
+			BorderSizePixel = 0;
+			ZIndex = 9
 		})
 		local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
 		local explorerApp = createIcon("Explorer", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
@@ -1683,19 +1696,6 @@ local success, errorcode = pcall(function()
 			shutdown()
 		end
 	end
-	for i, v in pairs(GetPartsFromPort(1, "TouchScreen")) do
-		if not screens[v.GUID] then
-			screens[v.GUID] = v
-		end
-		if not screenInterfaces[v.GUID] then
-			screenInterfaces[v.GUID] = v:CreateElement("Frame", {
-				Size = UDim2.fromScale(1, 1);
-				Position = UDim2.fromScale(0, 0);
-				BackgroundColor3 = Color3.fromRGB(0,0,0);
-				BorderSizePixel = 0;
-			})
-		end
-	end
 	-- Detect the rom and check if it exists
 	rom = GetPartFromPort(6, "Disk")
 	if rom ~= nil then
@@ -1857,7 +1857,28 @@ local success, errorcode = pcall(function()
 		end
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		screens[screen.GUID] = screen
-		screenInterfaces[screen.GUID] = background
+		for i, v in pairs(GetPartsFromPort(1, "TouchScreen")) do
+			if not screens[v.GUID] then
+				screens[v.GUID] = v
+			end
+			if not screenInterfaces[v.GUID] then
+				screenInterfaces[v.GUID] = {}
+				screenInterfaces[v.GUID]["slave"] = v:CreateElement("Frame", {
+					Size = UDim2.fromScale(1, 1);
+					Position = UDim2.fromScale(0, 0);
+					BackgroundColor3 = Color3.fromRGB(255,255,0);
+					BorderSizePixel = 0;
+					ZIndex = 3
+				})
+				screenInterfaces[v.GUID]["master"] = v:CreateElement("Frame", {
+					Size = UDim2.fromScale(1, 1);
+					Position = UDim2.fromScale(0, 0);
+					BackgroundTransparency = 1;
+					BorderSizePixel = 0;
+					ZIndex = 9
+				})
+			end
+		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
 			puter.AddWindowElement(window, "TextLabel", {
@@ -2014,8 +2035,8 @@ local success, errorcode = pcall(function()
 			[2] = {
 				"Page 2 out of 4";
 				"setwallpaper [ImageID]: Sets the wallpaper";
-				"to the specified image. [Marketplace IDs don't]";
-				"work";
+				"to the specified image. [Marketplace IDs don't";
+				"work]";
 				"play all messages: Displays all recorded";
 				"messages on an another window";
 				"clear recorded: Clears all recorded messages";
@@ -2300,9 +2321,9 @@ local success, errorcode = pcall(function()
 				if GUID ~= cursorScreens[cursor.Player] then
 					cursorScreens[cursor.Player] = GUID
 					if cursors[cursor.Player] ~= nil then
-						screenInterfaces[GUID]:AddChild(cursors[cursor.Player])
+						screenInterfaces[GUID]["master"]:AddChild(cursors[cursor.Player])
 					else
-						screenInterfaces[GUID]:AddChild(cursors[cursor.Player])
+						screenInterfaces[GUID]["master"]:AddChild(cursors[cursor.Player])
 					end	
 				end
 				cursorPositions[cursor.Player] = {X = cursor.X, Y = cursor.Y}
@@ -2328,6 +2349,7 @@ local success, errorcode = pcall(function()
 					ZIndex = 9;
 				})
 				newCursor:AddChild(playerName)
+				screenInterfaces[GUID]["master"]:AddChild(newCursor)
 				cursors[cursor.Player] = newCursor
 				cursorScreens[cursor.Player] = screen.GUID
 			end
