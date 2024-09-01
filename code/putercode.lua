@@ -1,6 +1,7 @@
 local screen
 local coroutines = {}
 local eventLog = {}
+local running = true
 local function printL(text)
 	eventLog[#eventLog + 1] = {"info", text, tick()}
 end
@@ -11,7 +12,12 @@ local function newCoroutine(func, name)
 	if name == nil then
 		name = "Undefined"
 	end
-	local newcoroutine = coroutine.create(func)
+	local newcoroutine = coroutine.create(function()
+		local success, fail = pcall(func())
+		if not success then
+			print("ka-BOOM!")
+		end
+	end)
 	local processID = #coroutines + 1
 	coroutines[processID] = {
 		["name"] = name;
@@ -57,6 +63,7 @@ local eventBlacklist = {
 	["HitScoredanceMan"] = true;
 }
 local function shutdown(user)
+	running = false
 	if not eventBlacklist[user] then
 		Beep()
 		for i, v in pairs(coroutines) do
@@ -132,7 +139,7 @@ local function ReturnError(errorcode, errortype)
 			ZIndex = 10;
 		})
 		for i = 0, 5, 1 do
-			complete:ChangeProperties({Text = tostring(i * 20) .. "% Complete"})
+			complete.Text = tostring(i * 20) .. "% Complete"
 			wait(1)
 		end
 		shutdown()
@@ -161,7 +168,7 @@ local success, errorcode = pcall(function()
 			end
 			if connections[part][eventname] == nil then
 				connections[part][eventname] = {}
-				availableComponents[part]:Connect(eventname, function(a, b, c, d, e, f)
+				availableComponents[part][eventname]:Connect(function(a, b, c, d, e, f)
 					for i, v in pairs(connections[part][eventname]) do
 						if eventname == "TextInputted" and eventBlacklist[b] or eventname == "Chatted" and eventBlacklist[a] or eventname == "CursorMoved" and eventBlacklist[a.Player] then return end
 						local success, err = pcall(function()
@@ -237,17 +244,14 @@ local success, errorcode = pcall(function()
 			wait()
 			for i, v in pairs(windows) do
 				if v.active == false then
-					v.titlebar:ChangeProperties({
-						ZIndex = 3;
-						BackgroundColor3 = Color3.fromRGB(255,255,255);
-						TextColor3 = Color3.fromRGB(0,0,0)
-					})
+
+					v.titlebar.ZIndex = 3
+					v.titlebar.BackgroundColor3 = Color3.fromRGB(255,255,255)
+					v.titlebar.TextColor3 = Color3.fromRGB(0,0,0)
 				elseif v.active == true or v.forced == true then
-					v.titlebar:ChangeProperties({
-						ZIndex = 4;
-						BackgroundColor3 = v.titlebarcolor;
-						TextColor3 = v.textcolor;
-					})
+					v.titlebar.ZIndex = 4
+					v.titlebar.BackgroundColor3 = v.titlebarcolor
+					v.titlebar.TextColor3 = v.textcolor
 				end
 			end
 		end
@@ -255,12 +259,12 @@ local success, errorcode = pcall(function()
 	local puter = {
 		AddWindowElement = function(Window, Element, ElementProperties)
 			local element = screen:CreateElement(Element, ElementProperties)
-			Window:AddChild(element)
+			element.Parent = Window
 			return element
 		end;
 		AddElement = function(Parent, Element, Properties)
 			local element = screen:CreateElement(Element, Properties)
-			Parent:AddChild(element)
+			element.Parent = Parent
 			return element
 		end;
 		PlayAudio = function(audioInputted, Speaker)
@@ -302,19 +306,17 @@ local success, errorcode = pcall(function()
 				titlebarsize = UDim2.fromOffset(x - 25, 25)
 				closebuttonoffset = UDim2.fromOffset(x - 50, 0)
 			end
-			if featuresonoff.titlebar ~= false then
-				titlebar = screen:CreateElement("TextButton", {
-					Size = titlebarsize;
-					Position = UDim2.fromOffset(posx, posy);
-					Text = title;
-					TextColor3 = textcolor;
-					BackgroundColor3 = titlebarcolor;
-					BorderSizePixel = 0;
-					TextScaled = true;
-					AutoButtonColor = false;
-					ZIndex = zindex;
-				})
-			end
+			local titlebar = screen:CreateElement("TextButton", {
+				Size = titlebarsize;
+				Position = UDim2.fromOffset(posx, posy);
+				Text = title;
+				TextColor3 = textcolor;
+				BackgroundColor3 = titlebarcolor;
+				BorderSizePixel = 0;
+				TextScaled = true;
+				AutoButtonColor = false;
+				ZIndex = 1;
+			})
 			if featuresonoff.closebutton ~= false and titlebar ~= nil then
 				closebutton = screen:CreateElement("TextButton", {
 					Position = UDim2.fromOffset(x - 25, 0);
@@ -366,31 +368,25 @@ local success, errorcode = pcall(function()
 				ZIndex = 3;
 				ClipsDescendants = true;
 			})
-			windowframeContainerContainer:AddChild(windowframeContainer)
-			windowframeContainer:AddChild(windowframe)
-			if titlebar ~= nil then
-				if closebutton ~= nil then
-					titlebar:AddChild(closebutton)
-				end
-				if collapseButton ~= nil then
-					titlebar:AddChild(collapseButton)
-				end
-				titlebar:AddChild(windowframeContainerContainer)
-			else
-				local posy = overrideY or (400 - y) / 2 - 24
-				local posx = overrideX or (800 - x) / 2
-				windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+			windowframeContainer.Parent = windowframeContainerContainer
+			windowframe.Parent = windowframeContainer
+			if closebutton ~= nil then
+				closebutton.Parent = titlebar
 			end
+			if collapseButton ~= nil then
+				collapseButton.Parent = titlebar
+			end
+			windowframeContainerContainer.Parent = titlebar
 			local collapsed = false
 			if collapseButton ~= nil then
 				collapseButton.MouseButton1Click:Connect(function()
 					if collapsed == false then
-						collapseButton:ChangeProperties({Text = "+"})
-						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+						collapseButton.Text = "+"
+						windowframeContainer.Position = UDim2.fromOffset(0, -y)
 						collapsed = true
 					else
-						collapseButton:ChangeProperties({Text = "-"})
-						windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+						collapseButton.Text = "-"
+						windowframeContainer.Position = UDim2.fromOffset(0, 0)
 						collapsed = false
 					end
 				end)
@@ -419,58 +415,55 @@ local success, errorcode = pcall(function()
 			local offsetY
 			local dragging
 			local whodrags
-			if titlebar ~= nil then
-				titlebar.MouseButton1Down:Connect(function(x, y)
-					for i, v in pairs(windows) do
-						if v.forced ~= true then
-							v.active = false
+			titlebar.MouseButton1Down:Connect(function(x, y)
+				for i, v in pairs(windows) do
+					if v.forced ~= true then
+						v.active = false
+					end
+				end
+				windows[windowID].active = true
+				local succ, fail = pcall(function()
+					offsetX = posx - x
+					offsetY = posy - y
+					for i, v in pairs(cursorPositions) do
+						printL(i)
+						printL(v.X .. ", " ..  v.Y)
+						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
+							whodrags = i
+							printL(whodrags .. " is gonna be dragging")
 						end
 					end
-					windows[windowID].active = true
-					local succ, fail = pcall(function()
-						offsetX = posx - x
-						offsetY = posy - y
-						for i, v in pairs(cursorPositions) do
-							printL(i)
-							printL(v.X .. ", " ..  v.Y)
-							if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
-								whodrags = i
-								printL(whodrags .. " is gonna be dragging")
-							end
+					if whodrags ~= nil then
+						dragging = true
+						titlebar.ZIndex = 4
+						titlebar.ZIndex = 3
+						if string.sub(tostring(offsetX), 1, 1) ~= "-" then
+							dragging = false
 						end
-						if whodrags ~= nil then
-							dragging = true
-							titlebar:ChangeProperties({ZIndex = 4})
-							titlebar:ChangeProperties({ZIndex = 3})
-							if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-								dragging = false
-							end
-							if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-								dragging = false
-							end
-							printL("someone's draggin")
-						else
-							printL("how the hell")
+						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
+							dragging = false
 						end
-					end)
-					if succ == false then
-						printL(fail)
+						printL("someone's draggin")
+					else
+						printL("how the hell")
 					end
 				end)
-				titlebar.MouseButton1Up:Connect(function()
-					dragging = false
-					whodrags = nil
-					offsetX = nil
-					offsetY = nil
-				end)
-			end
-			local waitForNextTick = false
+				if succ == false then
+					printL(fail)
+				end
+			end)
+			titlebar.MouseButton1Up:Connect(function()
+				dragging = false
+				whodrags = nil
+				offsetX = nil
+				offsetY = nil
+			end)
 			xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
 						posy = cursor.Y + offsetY
-						titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
+						titlebar.Position = UDim2.fromOffset(posx, posy)
 						for i, func in pairs(eventsConnected["WindowDragged"]) do
 							func(whodrags, posx, posy)
 						end
@@ -490,11 +483,11 @@ local success, errorcode = pcall(function()
 			end)
 			function windowframemet:CreateElement(className, properties)
 				local element = screen:CreateElement(className, properties)
-				windowframe:AddChild(element)
+				element.Parent = windowframe
 				return element
 			end
 			function windowframemet:AddChild(element)
-				windowframe:AddChild(element)
+				element.Parent = windowframe
 			end
 			function windowframemet:IsActive()
 				local active = false
@@ -527,11 +520,11 @@ local success, errorcode = pcall(function()
 				end
 			end
 			function windowframemet:Restore()
-				windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
+				windowframeContainer.Position = UDim2.fromOffset(0, 0)
 				collapsed = false
 			end
 			function windowframemet:Collapse()
-				windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
+				windowframeContainer.Position = UDim2.fromOffset(0, -y)
 				collapsed = true
 			end
 			function windowframemet:ClearElements()
@@ -544,18 +537,12 @@ local success, errorcode = pcall(function()
 					ZIndex = 3;
 					ClipsDescendants = true;
 				})
-				windowframeContainer:AddChild(windowframe)
+				windowframe.Parent = windowframeContainer
 			end
 			function windowframemet:Connect(event, func)
 				if eventsConnected[event] and typeof(func) == "function" then
 					eventsConnected[event][#eventsConnected[event] + 1] = func
 				end
-			end
-			if titlebar == nil then
-				titlebar = screen:CreateElement("TextLabel", {
-					BackgroundTransparency = 1;
-				})
-				windowframeContainerContainer:AddChild(titlebar)
 			end
 			windows[windowID] = {
 				["active"] = true;
@@ -566,10 +553,8 @@ local success, errorcode = pcall(function()
 				["custom"] = false;
 				["framemet"] = windowframemet
 			}
+			titlebar.ZIndex = 3
 			return windowframemet, closebutton, titlebar
-		end;
-		createSecureTextButton = function(properties, blacklist)
-
 		end;
 	}
 	local puterutils = {
@@ -616,7 +601,7 @@ local success, errorcode = pcall(function()
 						TextScaled = true;
 						Font = Enum.Font.RobotoMono
 					})
-					frame:AddChild(textlabel)
+					textlabel.Parent = frame
 				end
 			end
 			local function output(Out)
@@ -789,11 +774,11 @@ local success, errorcode = pcall(function()
 			end)
 			function windowframemet:CreateElement(className, properties)
 				local element = screen:CreateElement(className, properties)
-				windowframe:AddChild(element)
+				element.Parent = windowframe
 				return element
 			end
 			function windowframemet:AddChild(element)
-				windowframe:AddChild(element)
+				element.Parent = windowframe
 			end
 			function windowframemet:GetCursors()
 				local cursorsProcessed = {}
@@ -1018,323 +1003,6 @@ local success, errorcode = pcall(function()
 			end
 		end;
 	}
-	local function InitializeROM()
-		rom:Write("PuterLibrary", {
-			AddWindowElement = function(Window, Element, ElementProperties)
-				local element = screen:CreateElement(Element, ElementProperties)
-				Window:AddChild(element)
-				return element
-			end;
-			AddElement = function(Parent, Element, Properties)
-				local element = screen:CreateElement(Element, Properties)
-				Parent:AddChild(element)
-				return element
-			end;
-			PlayAudio = function(audioInputted, Speaker)
-				if Speaker ~= nil then
-					Speaker:Configure({Audio = audioInputted})
-					Speaker:Trigger()
-				end
-			end;
-			CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY, forced, featuresonoff)
-				local backgrndcolor = tempbackgrndcolor or Color3.fromHex("#646464")
-				local title = temptitle or "App"
-				local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
-				local textcolor = temptextcolor or Color3.fromHex("#FFFFFF")
-				--centers the window if the override positions are nil
-				local posy = overrideY or (450 - y) / 2 - 36
-				local posx = overrideX or (800 - x) / 2
-				local titlebar
-				local closebutton
-				local collapseButton
-				local zindex
-				local windowframemet = {}
-				if forced == true then
-					zindex = 4
-				else
-					zindex = 3
-				end
-				if featuresonoff == nil then
-					featuresonoff = {}
-				end
-				local titlebarsize
-				local closebuttonoffset
-				local collapseoffset
-				if featuresonoff.collapse ~= false and featuresonoff.closebutton ~= false then
-					titlebarsize = UDim2.fromOffset(x - 50, 25)
-					closebuttonoffset = UDim2.fromOffset(x - 25, 0)
-					collapseoffset = UDim2.fromOffset(x - 50, 0)
-				elseif featuresonoff.collapse ~= false then
-					titlebarsize = UDim2.fromOffset(x - 25, 25)
-					collapseoffset = UDim2.fromOffset(x - 50, 0)
-				elseif featuresonoff.closebutton ~= false then
-					titlebarsize = UDim2.fromOffset(x - 25, 25)
-					closebuttonoffset = UDim2.fromOffset(x - 50, 0)
-				end
-				if featuresonoff.titlebar ~= false then
-					titlebar = screen:CreateElement("TextButton", {
-						Size = titlebarsize;
-						Position = UDim2.fromOffset(posx, posy);
-						Text = title;
-						TextColor3 = textcolor;
-						BackgroundColor3 = titlebarcolor;
-						BorderSizePixel = 0;
-						TextScaled = true;
-						AutoButtonColor = false;
-						ZIndex = zindex;
-					})
-				end
-				if featuresonoff.closebutton ~= false and titlebar ~= nil then
-					closebutton = screen:CreateElement("TextButton", {
-						Position = UDim2.fromOffset(x - 25, 0);
-						Size = UDim2.fromOffset(25, 25);
-						Text = "X";
-						TextColor3 = Color3.fromRGB(0,0,0);
-						BackgroundColor3 = Color3.fromRGB(255,0,0);
-						TextScaled = true;
-						BorderSizePixel = 0;
-						ZIndex = 3;
-					})
-				end
-				if featuresonoff.collapse ~= false and titlebar ~= nil then
-					collapseButton = screen:CreateElement("TextButton", {
-						Position = UDim2.fromOffset(x - 50, 0);
-						Size = UDim2.fromOffset(25, 25);
-						Text = "-";
-						TextColor3 = Color3.fromRGB(0,0,0);
-						BackgroundColor3 = Color3.fromRGB(99, 99, 99);
-						TextScaled = true;
-						BorderSizePixel = 0;
-						ZIndex = 3;
-					})
-				end
-				local windowframeContainerContainer = screen:CreateElement("Frame", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 25);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 3;
-					ClipsDescendants = true;
-					BackgroundTransparency = 1;
-				}) 
-				local windowframeContainer = screen:CreateElement("TextButton", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 0);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 3;
-					ClipsDescendants = true;
-					BackgroundTransparency = 1;
-					TextTransparency = 1;
-				}) 
-				local windowframe = screen:CreateElement("Frame", {
-					Size = UDim2.fromOffset(x, y);
-					Position = UDim2.fromOffset(0, 0);
-					BorderSizePixel = 0;
-					BackgroundColor3 = backgrndcolor;
-					ZIndex = 3;
-					ClipsDescendants = true;
-				})
-				windowframeContainerContainer:AddChild(windowframeContainer)
-				windowframeContainer:AddChild(windowframe)
-				if titlebar ~= nil then
-					if closebutton ~= nil then
-						titlebar:AddChild(closebutton)
-					end
-					if collapseButton ~= nil then
-						titlebar:AddChild(collapseButton)
-					end
-					titlebar:AddChild(windowframeContainerContainer)
-				else
-					local posy = overrideY or (400 - y) / 2 - 24
-					local posx = overrideX or (800 - x) / 2
-					windowframeContainerContainer:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
-				end
-				local collapsed = false
-				if collapseButton ~= nil then
-					collapseButton.MouseButton1Click:Connect(function()
-						if collapsed == false then
-							collapseButton:ChangeProperties({Text = "+"})
-							windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-							collapsed = true
-						else
-							collapseButton:ChangeProperties({Text = "-"})
-							windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-							collapsed = false
-						end
-					end)
-				end
-				local windowID = #windows + 1
-				for i, v in pairs(windows) do
-					if v.forced ~= true then
-						v.active = false
-					end
-				end
-				if closebutton ~= nil then
-					closebutton.MouseButton1Click:Connect(function()
-						titlebar:Destroy()
-						windows[windowID] = nil
-					end)
-				end
-				local offsetX
-				local offsetY
-				local dragging
-				local whodrags
-				if titlebar ~= nil then
-					titlebar.MouseButton1Down:Connect(function(x, y)
-						for i, v in pairs(windows) do
-							if v.forced ~= true then
-								v.active = false
-							end
-						end
-						windows[windowID].active = true
-						local succ, fail = pcall(function()
-							offsetX = posx - x
-							offsetY = posy - y
-							for i, v in pairs(cursorPositions) do
-								printL(i)
-								printL(v.X .. ", " ..  v.Y)
-								if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
-									whodrags = i
-									printL(whodrags .. " is gonna be dragging")
-								end
-							end
-							if whodrags ~= nil then
-								dragging = true
-								titlebar:ChangeProperties({ZIndex = 4})
-								titlebar:ChangeProperties({ZIndex = 3})
-								if string.sub(tostring(offsetX), 1, 1) ~= "-" then
-									dragging = false
-								end
-								if string.sub(tostring(offsetY), 1, 1) ~= "-" then
-									dragging = false
-								end
-								printL("someone's draggin")
-							else
-								printL("how the hell")
-							end
-						end)
-						if succ == false then
-							printL(fail)
-						end
-					end)
-					titlebar.MouseButton1Up:Connect(function()
-						dragging = false
-						whodrags = nil
-						offsetX = nil
-						offsetY = nil
-					end)
-				end
-				local eventsConnected = {
-					["CursorMoved"] = {};
-					["WindowDragged"] = {};
-				}
-				xConnect("screen", "CursorMoved", function(cursor)
-					if dragging == true and whodrags ~= nil then
-						if cursor.Player == whodrags then
-							posx = cursor.X + offsetX
-							posy = cursor.Y + offsetY
-							titlebar:ChangeProperties({Position = UDim2.fromOffset(posx, posy)})
-							for i, func in pairs(eventsConnected["WindowDragged"]) do
-								func(whodrags, cursor.X, cursor.Y)
-							end
-						end
-					elseif dragging == true then
-						printL(whodrags)
-					end
-					local cursorIsInWindow
-					if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
-						cursorIsInWindow = true
-					end
-					if cursorIsInWindow then
-						for i, func in pairs(eventsConnected["CursorMoved"]) do
-							func({X = cursor.X - posx, Y = cursor.Y - posy - 25, Player = cursor.Player, Pressed = cursor.Pressed})
-						end
-					end
-				end)
-				function windowframemet:CreateElement(className, properties)
-					local element = screen:CreateElement(className, properties)
-					windowframe:AddChild(element)
-					return element
-				end
-				function windowframemet:AddChild(element)
-					windowframe:AddChild(element)
-				end
-				function windowframemet:IsActive()
-					return windows[windowID].active
-				end
-				local add = 0
-				if titlebar ~= nil then
-					add = 25
-				end
-				function windowframemet:GetCursors()
-					local cursorsProcessed = {}
-					local cursors = screen:GetCursors()
-					for i, v in pairs(cursors) do
-						if v.X - posx >= 0 and v.Y - posy + add >= 0 then
-							cursorsProcessed[#cursorsProcessed + 1] = v
-						end
-					end
-					return cursorsProcessed
-				end
-				function windowframemet:Close()
-					if windowframemet.closeBehavior ~= nil and typeof(windowframemet.closeBehavior) == "function" then
-						windowframemet.closeBehavior()
-					end
-					if titlebar ~= nil then
-						titlebar:Destroy()
-						windows[windowID] = nil
-					else
-						windowframeContainerContainer:Destroy()
-						windows[windowID] = nil
-					end
-				end
-				function windowframemet:Restore()
-					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, 0)})
-					collapsed = false
-				end
-				function windowframemet:Collapse()
-					windowframeContainer:ChangeProperties({Position = UDim2.fromOffset(0, -y)})
-					collapsed = true
-				end
-				function windowframemet:ClearElements()
-					windowframe:Destroy()
-					windowframe = screen:CreateElement("Frame", {
-						Size = UDim2.fromOffset(x, y);
-						Position = UDim2.fromOffset(0, 0);
-						BorderSizePixel = 0;
-						BackgroundColor3 = backgrndcolor;
-						ZIndex = 3;
-						ClipsDescendants = true;
-					})
-					windowframeContainer:AddChild(windowframe)
-				end
-				function windowframemet:Connect(event, func)
-					if eventsConnected[event] and typeof(func) == "function" then
-						eventsConnected[event][#eventsConnected[event] + 1] = func
-					end
-				end
-				if titlebar == nil then
-					titlebar = screen:CreateElement("TextLabel", {
-						BackgroundTransparency = 1;
-					})
-					windowframeContainerContainer:AddChild(titlebar)
-				end
-				windows[windowID] = {
-					["active"] = true;
-					["titlebar"] = titlebar;
-					["textcolor"] = textcolor;
-					["titlebarcolor"] = titlebarcolor;
-					["forced"] = forced;
-					["custom"] = true;
-					["framemet"] = windowframemet
-				}
-				return windowframemet, closebutton, titlebar
-			end;
-		})
-		rom:Write("puterutils", puterutils)
-		rom:Write("filesystem", filesystem)
-	end
 	local function createwOSboot()
 		screen:CreateElement("TextLabel", {
 			Position = UDim2.fromOffset(350, 225);
@@ -1461,20 +1129,20 @@ local success, errorcode = pcall(function()
 			ZIndex = 5
 		})
 		-- Add all of these items to their specific locations
-		taskbar:AddChild(startbutton)
-		brazil:AddChild(startmenu)
-		startmenu:AddChild(shutdownbutton)
-		startmenu:AddChild(restartbutton)
-		startmenu:AddChild(settingsbutton)
-		startmenu:AddChild(terminal)
-		startmenu:AddChild(postomatic)
+		startbutton.Parent = taskbar
+		startmenu.Parent = brazil
+		shutdownbutton.Parent = startmenu
+		restartbutton.Parent = startmenu
+		settingsbutton.Parent = startmenu
+		terminal.Parent = startmenu
+		postomatic.Parent = startmenu
 		-- Assign the start button to open up the start menu
 		startbutton.MouseButton1Click:Connect(function()
 			if startmenustatus == true then
-				brazil:AddChild(startmenu)
+				startmenu.Parent = brazil
 				startmenustatus = false
 			else
-				startbutton:AddChild(startmenu)
+				startmenu.Parent = startbutton
 				startmenustatus = true
 			end
 		end)
@@ -1504,7 +1172,6 @@ local success, errorcode = pcall(function()
 	-- Continue the init process
 	-- Set some variables (for self testing)
 	local importantselftest1passed = false
-	local importantselftest2passed = false
 	local loadBarRoutine
 	-- Get the touch screen
 	screen = GetPartFromPort(1, "TouchScreen")
@@ -1542,11 +1209,11 @@ local success, errorcode = pcall(function()
 				ClipsDescendants = true;
 				BorderColor3 = Color3.fromRGB(0,0,0);
 			})
-			loadFrameOut:AddChild(loadFrameIn)
-			loadFrameIn:AddChild(loadingbar)
+			loadFrameIn.Parent = loadFrameOut
+			loadingbar.Parent = loadFrameIn
 			while true do
 				for i = -75, 200, 25 do
-					loadingbar:ChangeProperties({Position = UDim2.fromOffset(i, 5)})
+					loadingbar.Position = UDim2.fromOffset(i, 5)
 					wait(0.25)
 				end
 			end
@@ -1572,20 +1239,6 @@ local success, errorcode = pcall(function()
 			shutdown()
 		end
 	end
-	-- Detect the rom and check if it exists
-	rom = GetPartFromPort(6, "Disk")
-	if rom ~= nil then
-		InitializeROM()
-		importantselftest2passed = true
-	else
-		Beep()
-		wait(0.5)
-		Beep()
-		wait(0.5)
-		Beep()
-		CreateSelfTestOutput("Error: ROM Disk not found on port 6", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
-		CreateSelfTestOutput("Error: Can't boot!", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,0,0))
-	end
 	--this thing executes if the ROM disk and the TouchScreen are detected
 	local canOpenEventViewer = true
 	local function eventViewer()
@@ -1602,7 +1255,7 @@ local success, errorcode = pcall(function()
 				Position = UDim2.fromOffset(0, 0);
 			})
 			local function refresh()
-				scrollingFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(400, #eventLog * 25)})
+				scrollingFrame.CanvasSize = UDim2.fromOffset(400, #eventLog * 25)
 				for i, v in pairs(eventLog) do
 					local textcolor = Color3.fromRGB(255,255,255)
 					if v[1] == "warn" then
@@ -1623,7 +1276,7 @@ local success, errorcode = pcall(function()
 			refresh()
 		end
 	end
-	if importantselftest1passed == true and importantselftest2passed then
+	if importantselftest1passed == true then
 		wait(1)
 		for i, v in pairs(componentsToFind) do
 			if v == "Disk" then
@@ -1713,23 +1366,40 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
-		local function luarun(codetorun, terminalmicrocontroller, polysilicon, polyport)
-			for i, window in pairs(windows) do
-				if window.custom == true then
-					window.framemet:Close()
-				end
+		local allowedPorts = {
+			[1] = {1, "Main"};
+			[2] = {1, "Main", "You don't need to use port 2 anymore, use port 1."};
+			[4] = {4, "Expansion"}
+		}
+		local function secureGetPartFromPort(port, part)
+			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
+				return puter.CreateWindow(250, 250, part)
+			elseif allowedPorts[port] then
+				local success, fail = pcall(function()
+					return GetPartFromPort(port, part)
+				end)
+				return nil
 			end
-			if terminalmicrocontroller ~= nil and polysilicon ~= nil then
-				luastop(polysilicon, polyport)
-				terminalmicrocontroller:Configure({Code = codetorun})
-				polysilicon:Configure({PolysiliconMode = 0})
-				wait(0.5)
-				TriggerPort(polyport)
-				printL(codetorun)
-				return true
-			else	
-				return false
+		end
+		local function secureGetPartsFromPort(port, part)
+			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
+				return {puter.CreateWindow(250, 250, part)}
+			elseif allowedPorts[port] then
+				local success, fail = pcall(function()
+					return GetPartsFromPort(port, part)
+				end)
+				return nil
 			end
+		end
+		local function luarun(codetorun)
+			local process = loadstring(codetorun)
+			local PID
+			setfenv(process, {puter = puter, puterutils = puterutils, filesystem = filesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
+				repeat wait() until PID
+				closeCoroutine(PID)
+			end})
+			PID = newCoroutine(process)
+			return PID
 		end
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		local function errorPopup(errorMessage)
@@ -1879,7 +1549,7 @@ local success, errorcode = pcall(function()
 				"Page 1 out of 4";
 				"lua run [Code]: Runs the code on an";
 				"another microcontroller";
-				"lua stop: Stops running code";
+				"lua stop: Deprecated.";
 				"shutdown: Shuts down the puter";
 				"restart: Restarts the puter";
 				"record: Starts recording chat messages";
@@ -1924,15 +1594,14 @@ local success, errorcode = pcall(function()
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
-					local success = luarun(string.sub(text, 9, #text), terminalmicrocontroller, polysilicon, 6)
-					if not success then
-						terminalout("A part of the lua microcontroller is missing.")
-					end
+					local PID = luarun(string.sub(text, 9, #text))
+					terminalout("Generated process with ID " .. tostring(PID))
 				elseif text == "lua stop" then
-					luastop(polysilicon, 6)
+					terminalout('Functionality deprecated. Use "kill [PID]" to stop programs.')
 				elseif text == "shutdown" or text == "die" then
 					shutdown()
 				elseif text == "restart" then
+					running = false
 					screen:ClearElements()
 					for i, v in pairs(coroutines) do
 						closeCoroutine(i)
@@ -1947,7 +1616,7 @@ local success, errorcode = pcall(function()
 					if storage ~= nil then
 						storage:Write("Wallpaper", image)
 					end
-					background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
+					background.Image = "http://www.roblox.com/asset/?id=" .. image
 				elseif text == "play all messages" then
 					if displayingallmsgs == false then
 						local frame, closebutton = puter.CreateWindow(500, 225, "All Messages")
@@ -1966,8 +1635,8 @@ local success, errorcode = pcall(function()
 								Text = message;
 								TextScaled = true;
 							})
-							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
-							scrollingframe:AddChild(textlabel)
+							scrollingframe.CanvasSize = UDim2.fromOffset(0, i * 25)
+							textlabel.Parent = scrollingframe
 							printL(message)
 						end
 					end
@@ -2002,7 +1671,7 @@ local success, errorcode = pcall(function()
 							if storage ~= nil then
 								storage:Write("Wallpaper", image)
 							end
-							background:ChangeProperties({Image = "http://www.roblox.com/asset/?id=" .. image})
+							background.Image = "http://www.roblox.com/asset/?id=" .. image
 						end)
 					end
 				elseif string.sub(text, 1, 10) == "setmodemid" then
@@ -2034,8 +1703,8 @@ local success, errorcode = pcall(function()
 								Text = message;
 								TextScaled = true;
 							})
-							scrollingframe:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
-							scrollingframe:AddChild(textlabel)
+							scrollingframe.CanvasSize = UDim2.fromOffset(0, i * 25)
+							textlabel.Parent = scrollingframe
 							printL(message)
 						end
 					end
@@ -2082,11 +1751,11 @@ local success, errorcode = pcall(function()
 						})
 						pauseButton.MouseButton1Click:Connect(function()
 							if playing then
-								pauseButton:ChangeProperties({Text = "Play"})
+								pauseButton.Text = "Play"
 								video:Pause()
 								playing = false
 							else
-								pauseButton:ChangeProperties({Text = "Pause"})
+								pauseButton.Text = "Pause"
 								video:Play()
 								playing = true
 							end
@@ -2169,11 +1838,12 @@ local success, errorcode = pcall(function()
 				return "Unknown", input, "unknown"
 			end
 		end
+		local cursorshouldexist = {}
 		xConnect("screen", "CursorMoved", function(cursor)
 			if cursors[cursor.Player] ~= nil then
 				cursorPositions[cursor.Player] = {X = cursor.X, Y = cursor.Y}
-				cursors[cursor.Player]:ChangeProperties({Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)})
-			else
+				cursors[cursor.Player].Position = UDim2.fromOffset(cursor.X - 50, cursor.Y - 50)
+			elseif not cursorshouldexist[cursor.Player] then
 				cursorPositions[cursor.Player] = tostring(cursor.X - 50) .. ", " .. tostring(cursor.Y - 50)
 				local newCursor = screen:CreateElement("ImageLabel", {
 					BackgroundTransparency = 1;
@@ -2182,6 +1852,7 @@ local success, errorcode = pcall(function()
 					Position = UDim2.fromOffset(0, 0);
 					ZIndex = 9;
 				})
+				cursorshouldexist[cursor.Player] = true
 				local playerName = screen:CreateElement("TextLabel", {
 					Text = cursor.Player;
 					Size = UDim2.fromOffset(200, 25);
@@ -2193,7 +1864,7 @@ local success, errorcode = pcall(function()
 					BorderSizePixel = 0;
 					ZIndex = 9;
 				})
-				newCursor:AddChild(playerName)
+				playerName.Parent = newCursor
 				cursors[cursor.Player] = newCursor
 			end
 		end)
@@ -2449,7 +2120,7 @@ local success, errorcode = pcall(function()
 					local function getPath(path, disk)
 						if filesystem.read(path, disk).data == "t:folder" then
 							local yay, noooo = pcall(function()
-								pathLabel:ChangeProperties({Text = path})
+								pathLabel.Text = path
 								mainScrollFrame:Destroy()
 								mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
 									Size = UDim2.fromOffset(500, 225);
@@ -2489,7 +2160,7 @@ local success, errorcode = pcall(function()
 								local files = filesystem.scanPath(path, disk)
 								local offset = getFolders(path, disk)
 								local offsetv2 = getFiles(path, disk, offset)
-								mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset + offsetv2)})
+								mainScrollFrame.CanvasSize = UDim2.fromOffset(0, offset + offsetv2)
 							end)
 							if yay == false then
 								printL(noooo)
@@ -2501,7 +2172,7 @@ local success, errorcode = pcall(function()
 						end
 					end
 					local function displayDisks()
-						pathLabel:ChangeProperties({Text = "Disk View"})
+						pathLabel.Text = "Disk View"
 						mainScrollFrame:Destroy()
 						mainScrollFrame = puter.AddWindowElement(explorerwindow, "ScrollingFrame", {
 							Size = UDim2.fromOffset(500, 225);
@@ -2514,7 +2185,7 @@ local success, errorcode = pcall(function()
 						local diskExists = 0
 						if GetPartFromPort(4, "Disk") ~= nil then
 							diskExists = 1
-							mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, 0 + diskExists * 25)})
+							mainScrollFrame.CanvasSize = UDim2.fromOffset(0, 0 + diskExists * 25)
 							local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 								Size = UDim2.fromOffset(498, 25);
 								Position = UDim2.fromOffset(0, 0);
@@ -2551,7 +2222,7 @@ local success, errorcode = pcall(function()
 						end
 						for i, v in pairs(mounteddisks) do
 							if i > 0 then
-								mainScrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)})
+								mainScrollFrame.CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)
 								local parentFrame = puter.AddElement(mainScrollFrame, "Frame", {
 									Size = UDim2.fromOffset(498, 25);
 									Position = UDim2.fromOffset(0, (i - 1 + diskExists) * 25);
@@ -2690,21 +2361,21 @@ local success, errorcode = pcall(function()
 									})
 									nameButton.MouseButton1Click:Connect(function()
 										focusedOn = "name"
-										nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-										pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										nameButton.BackgroundColor3 = Color3.fromRGB(0,255,0)
+										pathButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+										diskButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 									end)
 									pathButton.MouseButton1Click:Connect(function()
 										focusedOn = "path"
-										nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-										pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+										nameButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+										pathButton.BackgroundColor3 = Color3.fromRGB(0,255,0)
+										diskButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 									end)
 									diskButton.MouseButton1Click:Connect(function()
 										focusedOn = "disk"
-										nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-										pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-										diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+										nameButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+										pathButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+										diskButton.BackgroundColor3 = Color3.fromRGB(0,255,0)
 									end)
 									createButton.MouseButton1Click:Connect(function()
 										Beep()
@@ -2748,13 +2419,13 @@ local success, errorcode = pcall(function()
 										text = string.sub(text, 1, #text - 1)
 										if focusedOn == "name" then
 											name = text
-											nameButton:ChangeProperties({Text = "Name: " .. text})
+											nameButton.Text = "Name: " .. text
 										elseif focusedOn == "path" then
 											path = text
-											pathButton:ChangeProperties({Text = "Path: " .. text})
+											pathButton.Text = "Path: " .. text
 										elseif focusedOn == "disk" then
 											disk = tonumber(text)
-											diskButton:ChangeProperties({Text = "Disk (number): " .. text})
+											diskButton.Text = "Disk (number): " .. text
 										end
 									end, "folderCreator")
 								end
@@ -2831,43 +2502,43 @@ local success, errorcode = pcall(function()
 										})
 										nameButton.MouseButton1Click:Connect(function()
 											focusedOn = "name"
-											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											nameButton.BackgroundColor3 = Color3.fromRGB(0,255,0)
+											pathButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											diskButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											typeButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											dataButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 										end)
 										pathButton.MouseButton1Click:Connect(function()
 											focusedOn = "path"
-											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											nameButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											pathButton.BackgroundColor3 = Color3.fromRGB(0,255,0)
+											diskButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											typeButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											dataButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 										end)
 										diskButton.MouseButton1Click:Connect(function()
 											focusedOn = "disk"
-											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											nameButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											pathButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											diskButton.BackgroundColor3 = Color3.fromRGB(0,255,0)
+											typeButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											dataButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 										end)
 										typeButton.MouseButton1Click:Connect(function()
 											focusedOn = "type"
-											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
-											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+											nameButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											pathButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											diskButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											typeButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+											dataButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 										end)
 										dataButton.MouseButton1Click:Connect(function()
 											focusedOn = "data"
-											nameButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											pathButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											diskButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											typeButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
-											dataButton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0, 255, 0)})
+											nameButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											pathButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											diskButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											typeButton.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+											dataButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 										end)
 										createButton.MouseButton1Click:Connect(function()
 											Beep()
@@ -2934,19 +2605,19 @@ local success, errorcode = pcall(function()
 											text = string.sub(text, 1, #text - 1)
 											if focusedOn == "name" then
 												name = text
-												nameButton:ChangeProperties({Text = "Name: " .. text})
+												nameButton.Text = "Name: " .. text
 											elseif focusedOn == "path" then
 												path = text
-												pathButton:ChangeProperties({Text = "Path: " .. text})
+												pathButton.Text = "Path: " .. text
 											elseif focusedOn == "disk" then
 												disk = tonumber(text)
-												diskButton:ChangeProperties({Text = "Disk (number): " .. text})
+												diskButton.Text = "Disk (number): " .. text
 											elseif focusedOn == "type" then
 												fileType = text
-												typeButton:ChangeProperties({Text = "Type: " .. text})
+												typeButton.Text = "Type: " .. text
 											elseif focusedOn == "data" then
 												data = text
-												dataButton:ChangeProperties({Text = "Data: " .. text})
+												dataButton.Text = "Data: " .. text
 											end
 										end, "fileCreator")
 									else
@@ -3031,6 +2702,16 @@ local success, errorcode = pcall(function()
 					TextScaled = true;
 					Text = "N/A";
 				})
+				local yieldfailWarn = puter.AddWindowElement(window, "TextLabel", {
+					Size = UDim2.fromOffset(25, 100);
+					Position = UDim2.fromOffset(0, 0);
+					TextColor3 = Color3.fromRGB(255,255,0);
+					BackgroundTransparency = 1;
+					TextScaled = true;
+					Text = "YIELDFAIL";
+					TextXAlignment = Enum.TextXAlignment.Left;
+					TextTransparency = 1;
+				})
 				local lagHistoryFrame = puter.AddWindowElement(window, "Frame", {
 					Size = UDim2.fromOffset(350, 85);
 					Position = UDim2.fromOffset(0, 140);
@@ -3051,6 +2732,7 @@ local success, errorcode = pcall(function()
 						lag[14] = framerate
 					end
 				end
+				local updated = false
 				local lagMeasurer = newCoroutine(function()
 					while true do
 						local curTime = tick()
@@ -3070,7 +2752,9 @@ local success, errorcode = pcall(function()
 						else
 							color = Color3.fromRGB(143, 255, 244)
 						end
-						currentFPS:ChangeProperties({Text = tostring(framerate); TextColor3 = color;})
+						currentFPS.Text = tostring(framerate)
+						currentFPS.TextColor3 = color
+						updated = true
 					end
 				end, "Lag Measurer")
 				local lagHistory = newCoroutine(function()
@@ -3114,9 +2798,18 @@ local success, errorcode = pcall(function()
 								lagBars[i]["bar"] = lagBar
 								lagBars[i]["amount"] = lagAmount
 							else
-								lagBars[i]["bar"]:ChangeProperties({Size = size; BackgroundColor3 = color; Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25);})
-								lagBars[i]["amount"]:ChangeProperties({Text = tostring(v); TextColor3 = color;})
+								lagBars[i]["bar"].Size = size
+								lagBars[i]["bar"].BackgroundColor3 = color
+								lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
+								lagBars[i]["amount"].Text = tostring(v)
+								lagBars[i]["bar"].TextColor3 = color
 							end
+							if not updated then
+								yieldfailWarn.TextTransparency = 0
+							else
+								yieldfailWarn.TextTransparency = 1
+							end
+							updated = false
 						end
 					end
 				end, "Lag History")
@@ -3201,7 +2894,7 @@ local success, errorcode = pcall(function()
 					})
 					local function refresh()
 						musicList = decodeRawMusicList(storage:Read("musicList"))
-						space:ChangeProperties({Text = tostring(#musicList) .. " / 70"})
+						space.Text = tostring(#musicList) .. " / 70"
 						scrollFrame:Destroy()
 						scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
 							Size = UDim2.fromOffset(400, 250);
@@ -3217,7 +2910,7 @@ local success, errorcode = pcall(function()
 								Position = UDim2.fromOffset(0, (i - 1) * 25);
 								BackgroundTransparency = 1;
 							})
-							scrollFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, i * 25)})
+							scrollFrame.CanvasSize = UDim2.fromOffset(0, i * 25)
 							for i2, v2 in pairs(v) do
 								if i2 == "name" then
 									puter.AddElement(parentFrame, "TextLabel", {
@@ -3280,11 +2973,11 @@ local success, errorcode = pcall(function()
 											parentFrame:Destroy()
 											refresh()
 										else
-											deleteButton:ChangeProperties({Text  = "Are you sure?"})
+											deleteButton.Text  = "Are you sure?"
 											clickedDelete = true
 											wait(2.5)
 											if deleteButton ~= nil then
-												deleteButton:ChangeProperties({Text = "Delete"})
+												deleteButton.Text = "Delete"
 											end
 											clickedDelete = false
 										end
@@ -3342,13 +3035,13 @@ local success, errorcode = pcall(function()
 							})
 							musicName.MouseButton1Click:Connect(function()
 								focusedon = "name"
-								musicName:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-								musicId:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+								musicName.BackgroundColor3 = Color3.fromRGB(0,255,0)
+								musicId.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 							end)
 							musicId.MouseButton1Click:Connect(function()
 								focusedon = "id"
-								musicId:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-								musicName:ChangeProperties({BackgroundColor3 = Color3.fromRGB(77, 77, 77)})
+								musicId.BackgroundColor3 = Color3.fromRGB(0,255,0)
+								musicName.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
 							end)
 							okbutton.MouseButton1Click:Connect(function()
 								if name ~= nil then
@@ -3421,10 +3114,10 @@ local success, errorcode = pcall(function()
 								text = string.sub(text, 1, #text - 1)
 								if focusedon == "name" then
 									name = text
-									musicName:ChangeProperties({Text = "Music Name: " .. text})
+									musicName.Text = "Music Name: " .. text
 								elseif focusedon == "id" then
 									id = text
-									musicId:ChangeProperties({Text = "Music ID: " .. text})
+									musicId.Text = "Music ID: " .. text
 								end
 							end, "addMusic")
 						end
@@ -3439,6 +3132,7 @@ local success, errorcode = pcall(function()
 			shutdown()
 		end)
 		restartbutton.MouseButton1Click:Connect(function()
+			running = false
 			screen:ClearElements()
 			for i, v in pairs(coroutines) do
 				closeCoroutine(i)
@@ -3486,23 +3180,23 @@ local success, errorcode = pcall(function()
 				})
 				keybutton.MouseButton1Click:Connect(function()
 					focusedon = "key"
-					keybutton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-					databutton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(70, 70, 70)})
+					keybutton.BackgroundColor3 = Color3.fromRGB(0,255,0)
+					databutton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 				end)
 				databutton.MouseButton1Click:Connect(function()
 					focusedon = "data"
-					keybutton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(70, 70, 70)})
-					databutton:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+					keybutton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+					databutton.BackgroundColor3 = Color3.fromRGB(0,255,0)
 				end)
 				xConnect("keyboard", "TextInputted", function(text, plr)
 					if canopendiskutil == false then
 						text = string.sub(text, 1, #text - 1)
 						if focusedon == "key" then
 							key = text
-							keybutton:ChangeProperties({Text = "KEY: " .. key})
+							keybutton.Text = "KEY: " .. key
 						elseif focusedon == "data" then
 							data = text
-							databutton:ChangeProperties({Text = "DATA: " .. data})
+							databutton.Text = "DATA: " .. data
 						end
 					end
 				end, "diskUtil")
@@ -3658,7 +3352,7 @@ local success, errorcode = pcall(function()
 									Position = UDim2.fromOffset(0, (i - 1) * 25);
 								})
 							end
-							chatFrame:AddChild(chatMsg)
+							chatMsg.Parent = chatFrame
 						end
 					end
 					local function sendMessage(plr, text, idconnected, actualPlr, legacymode, isButton)
@@ -3707,7 +3401,7 @@ local success, errorcode = pcall(function()
 							end
 						end
 					end, "chat")
-					chatModem:Connect("MessageSent", function(message)
+					chatModem.MessageSent:Connect(function(message)
 						if canopenchat == false then
 							addMessage(message)
 							renderChat()
@@ -3847,13 +3541,13 @@ local success, errorcode = pcall(function()
 					})
 					system.dataKey.MouseButton1Click:Connect(function()
 						focused = "dataKey"
-						system.dataKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-						system.dataValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
+						system.dataKey.BackgroundColor3 = Color3.fromRGB(0,255,0)
+						system.dataValue.BackgroundColor3 = Color3.fromRGB(100,100,100)
 					end)
 					system.dataValue.MouseButton1Click:Connect(function()
 						focused = "dataValue"
-						system.dataKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
-						system.dataValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+						system.dataKey.BackgroundColor3 = Color3.fromRGB(100,100,100)
+						system.dataValue.BackgroundColor3 = Color3.fromRGB(0,255,0)
 					end)
 					addButton.MouseButton1Click:Connect(function()
 						data[memory.dataKey] = memory.dataValue
@@ -3884,14 +3578,14 @@ local success, errorcode = pcall(function()
 				local offset = 0
 				for i, v in pairs(data) do
 					offset += 1
-					dataFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset * 25)})
+					dataFrame.CanvasSize = UDim2.fromOffset(0, offset * 25)
 					local parent = window:CreateElement("Frame", {
 						Size = UDim2.fromOffset(400, 25);
 						Position = UDim2.fromOffset(0, (offset - 1) * 25);
 						BackgroundTransparency = 1;
 						BorderSizePixel = 0;
 					})
-					dataFrame:AddChild(parent)
+					parent.Parent = dataFrame
 					puter.AddElement(parent, "TextLabel", {
 						Size = UDim2.fromOffset(180, 25);
 						Position = UDim2.fromOffset(0, 0);
@@ -3986,13 +3680,13 @@ local success, errorcode = pcall(function()
 					})
 					system.headerKey.MouseButton1Click:Connect(function()
 						focused = "headerKey"
-						system.headerKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
-						system.headerValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
+						system.headerKey.BackgroundColor3 = Color3.fromRGB(0,255,0)
+						system.headerValue.BackgroundColor3 = Color3.fromRGB(100,100,100)
 					end)
 					system.headerValue.MouseButton1Click:Connect(function()
 						focused = "headerValue"
-						system.headerKey:ChangeProperties({BackgroundColor3 = Color3.fromRGB(100,100,100)})
-						system.headerValue:ChangeProperties({BackgroundColor3 = Color3.fromRGB(0,255,0)})
+						system.headerKey.BackgroundColor3 = Color3.fromRGB(100,100,100)
+						system.headerValue.BackgroundColor3 = Color3.fromRGB(0,255,0)
 					end)
 					backButton.MouseButton1Click:Connect(function()
 						openHeaderMenu()
@@ -4023,14 +3717,14 @@ local success, errorcode = pcall(function()
 				local offset = 0
 				for i, v in pairs(headers) do
 					offset += 1
-					headerFrame:ChangeProperties({CanvasSize = UDim2.fromOffset(0, offset * 25)})
+					headerFrame.CanvasSize = UDim2.fromOffset(0, offset * 25)
 					local parent = window:CreateElement("Frame", {
 						Size = UDim2.fromOffset(400, 25);
 						Position = UDim2.fromOffset(0, (offset - 1) * 25);
 						BackgroundTransparency = 1;
 						BorderSizePixel = 0;
 					})
-					headerFrame:AddChild(parent)
+					parent.Parent = headerFrame
 					puter.AddElement(parent, "TextLabel", {
 						Size = UDim2.fromOffset(180, 25);
 						Position = UDim2.fromOffset(0, 0);
@@ -4231,7 +3925,7 @@ local success, errorcode = pcall(function()
 						if memory[focused] ~= nil then printL("written input to memory") memory[focused] = text end
 						if system[focused] ~= nil then
 							printL("attempting to change the properties of the focused textbox")
-							system[focused]:ChangeProperties({Text = prefixes[focused] .. text})
+							system[focused].Text = prefixes[focused] .. text
 						end
 					end
 				end
@@ -4245,7 +3939,7 @@ local success, errorcode = pcall(function()
 		if mic ~= nil then
 			local listeningto
 			local listening = false
-			mic:Connect("Chatted", function(plr, text)
+			mic.Chatted:Connect(function(plr, text)
 				if voicecommands == true then
 					if text == "hey puter" and listening == false then
 						listeningto = plr
@@ -4440,10 +4134,10 @@ local success, errorcode = pcall(function()
 						voicebutton.MouseButton1Click:Connect(function()
 							if tempvoicecommands == true then
 								tempvoicecommands = false
-								voicebutton:ChangeProperties({Text = "OFF"; BackgroundColor3 = Color3.fromRGB(255,0,0)})
+								voicebutton.Text = "OFF"; voicebutton.BackgroundColor3 = Color3.fromRGB(255,0,0)
 							else
 								tempvoicecommands = true
-								voicebutton:ChangeProperties({Text = "ON"; BackgroundColor3 = Color3.fromRGB(0,255,0)})
+								voicebutton.Text = "ON"; voicebutton.BackgroundColor3 = Color3.fromRGB(0,255,0)
 							end
 						end)
 					end
@@ -4473,7 +4167,7 @@ local success, errorcode = pcall(function()
 			end
 		end)
 		--main loop
-		while true do
+		while running do
 			local tempCursorPositions = tableReplicate(cursorPositions)
 			wait(2.5)
 			for plrName, cursor in pairs(cursors) do
@@ -4481,6 +4175,7 @@ local success, errorcode = pcall(function()
 					cursor:Destroy()
 					cursors[plrName] = nil
 					cursorPositions[plrName] = nil
+					cursorshouldexist[plrName] = nil
 				end
 			end
 		end
