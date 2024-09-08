@@ -13,7 +13,7 @@ local function newCoroutine(func, name)
 		name = "Undefined"
 	end
 	local newcoroutine = coroutine.create(function()
-		local success, fail = pcall(func())
+		local success, fail = pcall(func)
 		if not success then
 			print("ka-BOOM!")
 		end
@@ -583,6 +583,7 @@ local success, errorcode = pcall(function()
 				end
 			end
 			local function updateOutput()
+				local stopInterrupting = setInterrupt()
 				frame:Destroy()
 				frame = puter.AddWindowElement(cliwindow, "Frame", {
 					Size = UDim2.fromOffset(450, 275);
@@ -603,6 +604,7 @@ local success, errorcode = pcall(function()
 					})
 					textlabel.Parent = frame
 				end
+				stopInterrupting()
 			end
 			local function output(Out)
 				addTextToOutput(Out)
@@ -1149,19 +1151,6 @@ local success, errorcode = pcall(function()
 		-- Return all of these items
 		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon
 	end
-	local powerCheck
-	powerCheck = newCoroutine(function()
-		if GetPartFromPort(1, "Instrument") ~= nil then
-			while true do
-				wait(0.25)
-				if tonumber(GetPartFromPort(1, "Instrument"):GetReading(4)) <= 500 then
-					error("Insufficient Power")
-				end
-			end
-		else
-			CreateSelfTestOutput("Warning: Can't detect power stored", UDim2.fromOffset(10, outAmount * 25 + 10), Color3.fromRGB(255,255,0))
-		end
-	end, "Power Check")
 	local function tableReplicate(tableToCopy)
 		local newTable = {}
 		for i, v in pairs(tableToCopy) do
@@ -1397,7 +1386,7 @@ local success, errorcode = pcall(function()
 			setfenv(process, {puter = puter, puterutils = puterutils, filesystem = filesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
 				repeat wait() until PID
 				closeCoroutine(PID)
-			end})
+			end, Beep = Beep, string = string, table = table, task = task})
 			PID = newCoroutine(process)
 			return PID
 		end
