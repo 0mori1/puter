@@ -2,9 +2,6 @@ local screen
 local coroutines = {}
 local eventLog = {}
 local running = true
-local function printL(text)
-	eventLog[#eventLog + 1] = {"info", text, tick()}
-end
 local function warnL(text)
 	eventLog[#eventLog + 1] = {"warn", text, tick()}
 end
@@ -35,7 +32,7 @@ local function closeCoroutine(ID)
 		end
 	end)
 	if suces == false then
-		printL(fai)
+
 	end
 end
 local function closeByName(name)
@@ -426,11 +423,11 @@ local success, errorcode = pcall(function()
 					offsetX = posx - x
 					offsetY = posy - y
 					for i, v in pairs(cursorPositions) do
-						printL(i)
-						printL(v.X .. ", " ..  v.Y)
+
+
 						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
 							whodrags = i
-							printL(whodrags .. " is gonna be dragging")
+
 						end
 					end
 					if whodrags ~= nil then
@@ -443,13 +440,13 @@ local success, errorcode = pcall(function()
 						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
 							dragging = false
 						end
-						printL("someone's draggin")
+
 					else
-						printL("how the hell")
+
 					end
 				end)
 				if succ == false then
-					printL(fail)
+
 				end
 			end)
 			titlebar.MouseButton1Up:Connect(function()
@@ -469,7 +466,7 @@ local success, errorcode = pcall(function()
 						end
 					end
 				elseif dragging == true then
-					printL(whodrags)
+
 				end
 				local cursorIsInWindow
 				if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
@@ -583,7 +580,6 @@ local success, errorcode = pcall(function()
 				end
 			end
 			local function updateOutput()
-				local stopInterrupting = setInterrupt()
 				frame:Destroy()
 				frame = puter.AddWindowElement(cliwindow, "Frame", {
 					Size = UDim2.fromOffset(450, 275);
@@ -604,7 +600,6 @@ local success, errorcode = pcall(function()
 					})
 					textlabel.Parent = frame
 				end
-				stopInterrupting()
 			end
 			local function output(Out)
 				addTextToOutput(Out)
@@ -825,7 +820,7 @@ local success, errorcode = pcall(function()
 	}
 	local filesystem = {
 		createDirectory = function(path, disk)
-			printL(path)
+
 			if string.sub(path, 1, 1) ~= "/" then
 				path = "/" .. path
 			end
@@ -833,7 +828,7 @@ local success, errorcode = pcall(function()
 				path = path .. "/"
 			end
 			disk:Write(path, "t:folder")
-			printL(path)
+
 		end;
 		scanPath = function(path, disk)
 			local buffer1 = {}
@@ -895,11 +890,11 @@ local success, errorcode = pcall(function()
 		read = function(path, disk)
 			if path ~= nil then
 				if disk ~= nil then
-					printL(path)
+
 					local file = {}
 					file.data = disk:Read(path)
 					if file.data ~= nil then
-						printL(file.data)
+
 						function file:delete()
 							if file.data ~= "t:folder" then
 								disk:Write(path, nil)
@@ -985,9 +980,9 @@ local success, errorcode = pcall(function()
 							local name
 							for i = #path, 1, -1 do
 								if string.sub(path, i, i) == "/" and i ~= #path and not name then
-									printL(tostring(i))
+
 									name = string.sub(path, i + 1, #path)
-									printL(name)
+
 									if string.sub(name, #name, #name) == "/" then
 										name = string.sub(name, 1, #name - 1)
 									end
@@ -1438,7 +1433,7 @@ local success, errorcode = pcall(function()
 				end
 			end, "12pink Detector")
 		else
-			printL("raaaa no lifesensor")
+
 		end
 		local recorded = {}
 		local recordedtext = {}
@@ -1478,11 +1473,11 @@ local success, errorcode = pcall(function()
 			local yes, no = pcall(function()
 				for i = 1, #raw, 1 do
 					if skip <= 0 then
-						printL("not skipping")
+
 						if string.sub(raw, i, i) == "%" and specialCharactersIn[string.sub(raw, i, i + 1)] ~= nil then
 							parsedData = parsedData .. specialCharactersIn[string.sub(raw, i, i + 1)]
 							skip = 1
-							printL("setting skip to 1")
+
 						elseif string.sub(raw, i, i) == "/" then
 							name = parsedData
 							parsedData = ""
@@ -1497,14 +1492,14 @@ local success, errorcode = pcall(function()
 						end
 					else
 						skip = skip - 1
-						printL("skipped")
-						printL(tostring(skip))
+
+
 					end
 				end
 			end)
 			if yes == false then
-				printL(no)
-				printL("WAAAAAAAAAAAAAAAAAA")
+
+
 			end
 			return musicList
 		end
@@ -1626,7 +1621,7 @@ local success, errorcode = pcall(function()
 							})
 							scrollingframe.CanvasSize = UDim2.fromOffset(0, i * 25)
 							textlabel.Parent = scrollingframe
-							printL(message)
+
 						end
 					end
 				elseif text == "clear recorded" then
@@ -1694,7 +1689,7 @@ local success, errorcode = pcall(function()
 							})
 							scrollingframe.CanvasSize = UDim2.fromOffset(0, i * 25)
 							textlabel.Parent = scrollingframe
-							printL(message)
+
 						end
 					end
 				elseif text == "clear recorded text" then
@@ -1813,17 +1808,17 @@ local success, errorcode = pcall(function()
 				for i = 1, #input, 1 do
 					if string.sub(input, i, i) == "/" then
 						if knownFileTypes[string.sub(input, 3, i - 1)] ~= nil or string.sub(input, 3, i - 1) == "folder" then
-							printL(string.sub(input, 1, i - 1))
+
 							return string.sub(input, 3, i - 1), string.sub(input, i + 1, #input), string.sub(input, 1, i - 1)
 						else
-							printL(string.sub(input, 1, i - 1))
-							printL("i dont recognize this")
+
+
 							return "Unknown", string.sub(input, i + 1, #input), string.sub(input, 1, i - 1)
 						end
 					end
 				end
 			else
-				printL("theres no header")
+
 				return "Unknown", input, "unknown"
 			end
 		end
@@ -1979,7 +1974,7 @@ local success, errorcode = pcall(function()
 						})
 						fileNameButton.MouseButton1Click:Connect(function()
 							local thingToDo = knownFileTypes[fileType]
-							printL(fileType)
+
 							if thingToDo ~= nil then
 								thingToDo(data)
 							elseif fileType == "folder" then
@@ -2050,7 +2045,7 @@ local success, errorcode = pcall(function()
 									end)
 								end)
 								if yes == false then
-									printL(bruh)
+
 								end
 							end
 						end)
@@ -2061,7 +2056,7 @@ local success, errorcode = pcall(function()
 							for i = #path - 1, 1, -1 do
 								if string.sub(path, i, i) == "/" and set == false then
 									path = string.sub(path, 1, i)
-									printL("i set the path to " .. path .. " because 'i' was " .. tostring(i))
+
 									set = true
 									called = true
 								end
@@ -2076,18 +2071,18 @@ local success, errorcode = pcall(function()
 						local folders = filesystem.scanPath(path, disk)
 						local offset = 0
 						for i, v in pairs(folders) do
-							printL(v)
+
 							local folder = filesystem.read(path .. v .. "/", disk)
-							printL(path .. v .. "/")
+
 							if folder ~= nil then
-								printL(folder.data)
+
 								local fileType, data, trueType = typeParser(folder.data)
 								offset = offset + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, folder.data, folder)
-								printL("i got a folder")
+
 							end
 						end
-						printL(offset * 25)
+
 						return offset * 25
 					end
 					local function getFiles(path, disk, offset)
@@ -2096,14 +2091,14 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
-								printL(file.data)
+
 								local fileType, data, trueType = typeParser(file.data)
 								offsetv2 = offsetv2 + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, file.data, file)
-								printL("i got a file")
+
 							end
 						end
-						printL(offsetv2)
+
 						return offsetv2 * 25
 					end
 					local function getPath(path, disk)
@@ -2152,10 +2147,10 @@ local success, errorcode = pcall(function()
 								mainScrollFrame.CanvasSize = UDim2.fromOffset(0, offset + offsetv2)
 							end)
 							if yay == false then
-								printL(noooo)
-								printL("DEBUG DATA: [KEY: DATA]")
+
+
 								for i, v in pairs(disk:ReadEntireDisk()) do
-									printL(i .. ": " .. v)
+
 								end
 							end
 						end
@@ -2252,23 +2247,23 @@ local success, errorcode = pcall(function()
 						while true do
 							wait(0.1)
 							if called == true then
-								printL("i got called")
+
 								if viewingDisk ~= nil then
-									printL("viewing disk is not nil")
+
 									if path ~= "Disk View" and path ~= nil then
-										printL("getting data at path " .. path)
+
 										getPath(path, viewingDisk)
 									else
-										printL("bad path")
+
 										viewingDisk = nil
 										displayDisks()
 									end
 								else
-									printL("viewing disk is nil, displaying the disk displayer")
+
 									displayDisks()
 								end
 								called = false
-								printL("ending call")
+
 							end
 						end
 					end, "Explorer Director")
@@ -2377,13 +2372,13 @@ local success, errorcode = pcall(function()
 												TextColor3 = Color3.fromRGB(255,0,0);
 												BackgroundTransparency = 1;
 											})
-											printL("threw error " .. text)
+
 											wait(1)
 											err:Destroy()
-											printL("error is GONE :sob:")
+
 										end
 										local goodjob, uhoh = pcall(function()
-											printL("time to check")
+
 											xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
 											xAssert(path, "input a path")
 											specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
@@ -2398,7 +2393,7 @@ local success, errorcode = pcall(function()
 											end, false, "dont put a / in the name you doofus", true)
 											filesystem.createDirectory(path .. name .. "/", mounteddisks[disk])
 											called = true
-											printL("back to my 1 millisecond break")
+
 										end)
 										if goodjob == false then
 											throwError(uhoh)
@@ -2540,10 +2535,10 @@ local success, errorcode = pcall(function()
 													TextColor3 = Color3.fromRGB(255,0,0);
 													BackgroundTransparency = 1;
 												})
-												printL("threw error " .. text)
+
 												wait(1)
 												err:Destroy()
-												printL("error is GONE :sob:")
+
 											end
 											local function note(text)
 												local note = puter.AddWindowElement(window, "TextLabel", {
@@ -2554,13 +2549,13 @@ local success, errorcode = pcall(function()
 													TextColor3 = Color3.fromRGB(0,255,0);
 													BackgroundTransparency = 1;
 												})
-												printL("noted " .. text)
+
 												wait(1)
 												note:Destroy()
-												printL("no note")
+
 											end
 											local goodjob, uhoh = pcall(function()
-												printL("time to check")
+
 												xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
 												xAssert(path, "input a path")
 												specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
@@ -2584,7 +2579,7 @@ local success, errorcode = pcall(function()
 													note("a folder was created, did you think you could break me?")
 													called = true
 												end
-												printL("back to my 1 millisecond break")
+
 											end)
 											if goodjob == false then
 												throwError(uhoh)
@@ -2610,11 +2605,11 @@ local success, errorcode = pcall(function()
 											end
 										end, "fileCreator")
 									else
-										printL("😂😂😂")
+
 									end
 								end)
 								if yay == false then
-									printL(nay)
+
 								end
 							end)
 						else
@@ -2632,13 +2627,13 @@ local success, errorcode = pcall(function()
 			local function getFolders(path, disk)
 				local folders = filesystem.scanPath(path, disk)
 				for i, v in pairs(folders) do
-					printL(v)
+
 					local folder = filesystem.read(path .. v .. "/", disk)
-					printL(path .. v .. "/")
+
 					if folder ~= nil then
-						printL(folder.data)
+
 						foldersToDisplay[path .. v .. "/"] = folder
-						printL("i got a folder")
+
 					end
 				end
 			end
@@ -2647,9 +2642,9 @@ local success, errorcode = pcall(function()
 				for i, v in pairs(files) do
 					local file = filesystem.read(path .. v, disk)
 					if file ~= nil then
-						printL(file.data)
+
 						filesToDisplay[path .. v] = file
-						printL("i got a file")
+
 					end
 				end
 			end
@@ -2661,7 +2656,7 @@ local success, errorcode = pcall(function()
 					fileIcon.MouseButton1Click:Connect(function()
 						local fileType, data, trueType = typeParser(v.data)
 						local thingToDo = knownFileTypes[fileType]
-						printL(fileType)
+
 						if thingToDo ~= nil then
 							thingToDo(data)
 						else
@@ -2813,7 +2808,7 @@ local success, errorcode = pcall(function()
 			lagometer()
 		end)
 		local function musicPlayer()
-			if availableComponents["speaker"] ~= nil then
+			if availableComponents["speaker"] and storage then
 				if canopenmusic == true then
 					local musicList
 					local canopenadd = true
@@ -3112,6 +3107,8 @@ local success, errorcode = pcall(function()
 						end
 					end)
 				end
+			else
+				errorPopup("Missing components")
 			end
 		end
 		musicApp.MouseButton1Click:Connect(function()
@@ -3895,30 +3892,29 @@ local success, errorcode = pcall(function()
 					openDataMenu()
 				end)
 				headerButton.MouseButton1Click:Connect(function()
-					printL("attempting to open headers")
+
 					openHeaderMenu()
 				end)
 				sendButton.MouseButton1Click:Connect(function()
-					printL("attempting to send")
+
 					send()
 				end)
 			end
 			initialize()
-			xConnect("keyboard", "TextInputted", function(text, plr)
-				if window:IsActive() and window ~= nil then
-					text = string.sub(text, 1, #text - 1)
-					Beep()
-					printL("something got inputted")
-					if currentlyOpen == focusLogic[focused] then
-						printL("logic checks out")
-						if memory[focused] ~= nil then printL("written input to memory") memory[focused] = text end
-						if system[focused] ~= nil then
-							printL("attempting to change the properties of the focused textbox")
-							system[focused].Text = prefixes[focused] .. text
+			xConnect("keyboard", "TextInputted", 
+				function(text, plr)
+					if window:IsActive() and window ~= nil then
+						text = string.sub(text, 1, #text - 1)
+						Beep()
+						if currentlyOpen == focusLogic[focused] then
+							if memory[focused] ~= nil then 
+								if system[focused] ~= nil then
+									system[focused].Text = prefixes[focused] .. text
+								end
+							end
 						end
 					end
-				end
-			end, "postomatic")
+				end, "postomatic")
 		end
 		postomatic.MouseButton1Click:Connect(function()
 			if postomaticOpen ~= true then
