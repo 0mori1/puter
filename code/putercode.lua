@@ -2786,7 +2786,7 @@ local success, errorcode = pcall(function()
 								lagBars[i]["bar"].BackgroundColor3 = color
 								lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
 								lagBars[i]["amount"].Text = tostring(v)
-								lagBars[i]["bar"].TextColor3 = color
+								lagBars[i]["bar"].BackgroundColor3 = color
 							end
 							if not updated then
 								yieldfailWarn.TextTransparency = 0
