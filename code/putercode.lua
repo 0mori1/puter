@@ -1378,10 +1378,19 @@ local success, errorcode = pcall(function()
 		local function luarun(codetorun)
 			local process = loadstring(codetorun)
 			local PID
-			setfenv(process, {puter = puter, puterutils = puterutils, filesystem = filesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
+			local env = getfenv()
+			local envAdd = {puter = puter, puterutils = puterutils, filesystem = filesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
 				repeat wait() until PID
 				closeCoroutine(PID)
-			end, Beep = Beep, string = string, table = table, task = task, wait = wait})
+			end}
+			local envRestrict = {"GetPart", "GetParts", "$self"}
+			for i, v in pairs(envAdd) do
+				env[i] = v
+			end
+			for i, v in pairs(envRestrict) do
+				env[v] = nil
+			end
+			setfenv(process, env)
 			PID = newCoroutine(process)
 			return PID
 		end
