@@ -1713,20 +1713,20 @@ local success, errorcode = pcall(function()
 							end
 						end)
 					end
-					local refreshButton = puter.AddWindowElement(window, "TextButton", {
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						Text = "Refresh";
-						TextScaled = true;
-						TextColor3 = Color3.fromRGB(255,255,255);
-						BorderSizePixel = 0;
-						Position = UDim2.fromOffset(0,0);
-						Size = UDim2.fromOffset(400, 25);
-					})
-					refreshButton.MouseButton1Click:Connect(function()
-						refresh()
-					end)
-					refresh()
 				end
+				local refreshButton = puter.AddWindowElement(window, "TextButton", {
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					Text = "Refresh";
+					TextScaled = true;
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BorderSizePixel = 0;
+					Position = UDim2.fromOffset(0,0);
+					Size = UDim2.fromOffset(400, 25);
+				})
+				refreshButton.MouseButton1Click:Connect(function()
+					refresh()
+				end)
+				refresh()
 			end
 		end
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
