@@ -256,7 +256,7 @@ local success, errorcode = pcall(function()
 	local puter = {
 		AddWindowElement = function(Window, Element, ElementProperties)
 			local element = screen:CreateElement(Element, ElementProperties)
-			element.Parent = Window
+			Window:AddChild(element)
 			return element
 		end;
 		AddElement = function(Parent, Element, Properties)
@@ -837,7 +837,7 @@ local success, errorcode = pcall(function()
 			if string.sub(path, #path, #path) ~= "/" then
 				path = path .. "/"
 			end
-			for i, v in pairs(disk:ReadEntireDisk()) do
+			for i, v in pairs(disk:ReadAll()) do
 				if string.sub(i, 1, #path) == path and v ~= nil then
 					buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
 				end
@@ -902,7 +902,7 @@ local success, errorcode = pcall(function()
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
-								for i, v in pairs(disk:ReadEntireDisk()) do
+								for i, v in pairs(disk:ReadAll()) do
 									if string.sub(i, 1, #path) == path then
 										disk:Write(i, nil)
 									end
@@ -915,7 +915,7 @@ local success, errorcode = pcall(function()
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
-								for i, v in pairs(disk:ReadEntireDisk()) do
+								for i, v in pairs(disk:ReadAll()) do
 									if string.sub(i, 1, #path) == path then
 										locationsAndValues[string.sub(i, #path, #i)] = v
 									end
@@ -929,7 +929,7 @@ local success, errorcode = pcall(function()
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
 								end
-								for i, v in pairs(disk:ReadEntireDisk()) do
+								for i, v in pairs(disk:ReadAll()) do
 									if string.sub(i, 1, #path) == path then
 										locationsAndValues[string.sub(i, #path, #i)] = v
 									end
@@ -2149,7 +2149,7 @@ local success, errorcode = pcall(function()
 							if yay == false then
 
 
-								for i, v in pairs(disk:ReadEntireDisk()) do
+								for i, v in pairs(disk:ReadAll()) do
 
 								end
 							end
