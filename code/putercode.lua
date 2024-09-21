@@ -36,6 +36,7 @@ local function closeCoroutine(ID)
 	end
 end
 local function closeByName(name)
+	name = tonumber(name) or name
 	local amountKilled = 0
 	local success, err = pcall(function()
 		for i, v in pairs(coroutines) do
@@ -1383,7 +1384,7 @@ local success, errorcode = pcall(function()
 				repeat wait() until PID
 				closeCoroutine(PID)
 			end}
-			local envRestrict = {"GetPart", "GetParts", "$self"}
+			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network"}
 			for i, v in pairs(envAdd) do
 				env[i] = v
 			end
