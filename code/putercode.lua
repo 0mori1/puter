@@ -12,7 +12,7 @@ local function newCoroutine(func, name)
 	local newcoroutine = coroutine.create(function()
 		local success, fail = pcall(func)
 		if not success then
-			print("ka-BOOM!")
+			print("ka-BOOM!: " .. fail)
 		end
 	end)
 	local processID = #coroutines + 1
@@ -1381,7 +1381,7 @@ local success, errorcode = pcall(function()
 			setfenv(process, {puter = puter, puterutils = puterutils, filesystem = filesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
 				repeat wait() until PID
 				closeCoroutine(PID)
-			end, Beep = Beep, string = string, table = table, task = task})
+			end, Beep = Beep, string = string, table = table, task = task, wait = wait})
 			PID = newCoroutine(process)
 			return PID
 		end
