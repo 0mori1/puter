@@ -1585,6 +1585,150 @@ local success, errorcode = pcall(function()
 				"closecustom: Closes all custom windows.";
 			}
 		}
+		local canOpenProcessManager = true
+		local function processManager()
+			if canOpenProcessManager then
+				canOpenProcessManager = false
+				local window, closebutton = puter.CreateWindow(400, 300, "Process Manager")
+				closebutton.MouseButton1Click:Connect(function()
+					canOpenProcessManager = true
+				end)
+				local nameLabel = puter.AddWindowElement(window, "TextLabel", {
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					Text = "Process ID";
+					TextScaled = true;
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BorderSizePixel = 0;
+					Position = UDim2.fromOffset(0, 25);
+					Size = UDim2.fromOffset(125, 25);
+				})
+				local idlabel = puter.AddWindowElement(window, "TextLabel", {
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					Text = "Status";
+					TextScaled = true;
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BorderSizePixel = 0;
+					Position = UDim2.fromOffset(125,25);
+					Size = UDim2.fromOffset(125, 25);
+				})
+				local actionLabel = puter.AddWindowElement(window, "TextLabel", {
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					Text = "Actions";
+					TextScaled = true;
+					TextColor3 = Color3.fromRGB(255,255,255);
+					BorderSizePixel = 0;
+					Position = UDim2.fromOffset(250,25);
+					Size = UDim2.fromOffset(150, 25);
+				})
+				local scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
+					Size = UDim2.fromOffset(400, 250);
+					Position = UDim2.fromOffset(0, 50);
+					BackgroundColor3 = Color3.fromRGB(86, 86, 86);
+					ScrollBarThickness = 2;
+					ScrollingDirection = Enum.ScrollingDirection.Y;
+					CanvasSize = UDim2.fromOffset(0, 0);
+				})
+				local function refresh()
+					scrollFrame:Destroy()
+					scrollFrame = puter.AddWindowElement(window, "ScrollingFrame", {
+						Size = UDim2.fromOffset(400, 250);
+						Position = UDim2.fromOffset(0, 50);
+						BackgroundColor3 = Color3.fromRGB(86, 86, 86);
+						ScrollBarThickness = 1;
+						ScrollingDirection = Enum.ScrollingDirection.Y;
+						CanvasSize = UDim2.fromOffset(0, 0);
+					})
+					for i, v in pairs(coroutines) do
+						local parentFrame = puter.AddElement(scrollFrame, "Frame", {
+							Size = UDim2.fromOffset(398, 25);
+							Position = UDim2.fromOffset(0, (i - 1) * 25);
+							BackgroundTransparency = 1;
+						})
+						scrollFrame.CanvasSize = UDim2.fromOffset(0, i * 25)
+						local id = puter.AddElement(parentFrame, "TextLabel", {
+							Size = UDim2.fromOffset(125, 25);
+							Position = UDim2.fromOffset(0, 0);
+							Text = i;
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							BackgroundTransparency = 1;
+						})
+						local status = puter.AddElement(parentFrame, "TextLabel", {
+							Size = UDim2.fromOffset(125, 25);
+							Position = UDim2.fromOffset(125, 0);
+							Text = coroutine.status(v.coroutine);
+							TextColor3 = Color3.fromRGB(255,255,255);
+							TextScaled = true;
+							BackgroundTransparency = 1;
+						})
+						local playButton = puter.AddElement(parentFrame, "TextButton", {
+							Text = "Resume";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							BackgroundColor3 = Color3.fromRGB(0,255,0);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(25, 25);
+							Position = UDim2.fromOffset(300, 0);
+						})
+						local pauseButton = puter.AddElement(parentFrame, "TextButton", {
+							Text = "x";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							BackgroundColor3 = Color3.fromRGB(255,255,0);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(25, 25);
+							Position = UDim2.fromOffset(325, 0);
+						})
+						playButton.MouseButton1Click:Connect(function()
+							coroutine.resume(v.coroutine)
+							status.Text = coroutine.status(v.coroutine)
+						end)
+						pauseButton.MouseButton1Click:Connect(function()
+							coroutine.yield(v.coroutine)
+							status.Text = coroutine.status(v.coroutine)
+						end)
+						local clickedDelete = false
+						local deleteButton = puter.AddElement(parentFrame, "TextButton", {
+							Text = "Stop";
+							TextScaled = true;
+							TextColor3 = Color3.fromRGB(0,0,0);
+							BackgroundColor3 = Color3.fromRGB(255,0,0);
+							BorderSizePixel = 0;
+							Size = UDim2.fromOffset(49, 25);
+							Position = UDim2.fromOffset(350, 0);
+						})
+						deleteButton.MouseButton1Click:Connect(function()
+							if clickedDelete == true then
+								coroutine.close(v.coroutine)
+								parentFrame:Destroy()
+								refresh()
+							else
+								deleteButton.Text  = "Are you sure?"
+								clickedDelete = true
+								wait(2.5)
+								if deleteButton ~= nil then
+									deleteButton.Text = "Stop"
+								end
+								clickedDelete = false
+							end
+						end)
+					end
+				end
+			end
+			local refreshButton = puter.AddWindowElement(window, "TextButton", {
+				BackgroundColor3 = Color3.fromRGB(0,0,0);
+				Text = "Refresh";
+				TextScaled = true;
+				TextColor3 = Color3.fromRGB(255,255,255);
+				BorderSizePixel = 0;
+				Position = UDim2.fromOffset(0,0);
+				Size = UDim2.fromOffset(400, 25);
+			})
+			refreshButton.MouseButton1Click:Connect(function()
+				refresh()
+			end)
+			refresh()
+		end
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
@@ -1783,6 +1927,8 @@ local success, errorcode = pcall(function()
 					terminalout("Events flushed, please restart every app.")
 				elseif text == "show logs" then
 					eventViewer()
+				elseif text == "process manager" then
+					processManager()
 				else
 					return true, "no such command"
 				end
