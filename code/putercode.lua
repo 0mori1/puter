@@ -2,15 +2,12 @@ local screen
 local coroutines = {}
 local eventLog = {}
 local running = true
-local function warnL(text)
-	eventLog[#eventLog + 1] = {"warn", text, tick()}
-end
 local function newCoroutine(func, name)
 	if name == nil then
 		name = "Undefined"
 	end
 	local newcoroutine = coroutine.create(function()
-		local success, fail = pcall(func)
+		local success, fail = xpcall(func, debug.traceback)
 		if not success then
 			print("ka-BOOM!: " .. fail)
 		end
@@ -53,7 +50,6 @@ local function closeByName(name)
 end
 local eventBlacklist = {
 	["unblokedrobloxinskol"] = true;
-	["iiMurpyh"] = true;
 	["jtyjtyjhe5r"] = true;
 	["HiLockYT"] = true;
 	["aizzoken"] = true;
@@ -173,7 +169,7 @@ local success, errorcode = pcall(function()
 							v(a, b, c, d, e, f)
 						end)
 						if not success then
-							warnL("process ID " .. tostring(i) .. " failed with error " .. err)
+							
 						end
 					end
 				end)
@@ -239,19 +235,20 @@ local success, errorcode = pcall(function()
 	local windows = {}
 	local windowManager = newCoroutine(function()
 		while true do
-			wait()
-			for i, v in pairs(windows) do
-				if v.active == false then
-
-					v.titlebar.ZIndex = 3
-					v.titlebar.BackgroundColor3 = Color3.fromRGB(255,255,255)
-					v.titlebar.TextColor3 = Color3.fromRGB(0,0,0)
-				elseif v.active == true or v.forced == true then
-					v.titlebar.ZIndex = 4
-					v.titlebar.BackgroundColor3 = v.titlebarcolor
-					v.titlebar.TextColor3 = v.textcolor
+			pcall(function()
+				wait()
+				for i, v in pairs(windows) do
+					if v.active == false then
+						v.titlebar.ZIndex = 3
+						v.titlebar.BackgroundColor3 = Color3.fromRGB(255,255,255)
+						v.titlebar.TextColor3 = Color3.fromRGB(0,0,0)
+					elseif v.active == true or v.forced == true then
+						v.titlebar.ZIndex = 4
+						v.titlebar.BackgroundColor3 = v.titlebarcolor
+						v.titlebar.TextColor3 = v.textcolor
+					end
 				end
-			end
+			end)
 		end
 	end, "Window Manager")
 	local puter = {
@@ -467,7 +464,7 @@ local success, errorcode = pcall(function()
 						end
 					end
 				elseif dragging == true then
-
+					print("😂😂😂")
 				end
 				local cursorIsInWindow
 				if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
@@ -494,15 +491,11 @@ local success, errorcode = pcall(function()
 				end
 				return active
 			end
-			local add = 0
-			if titlebar ~= nil then
-				add = 25
-			end
 			function windowframemet:GetCursors()
 				local cursorsProcessed = {}
 				local cursors = screen:GetCursors()
 				for i, v in pairs(cursors) do
-					if v.X - posx >= 0 and v.Y - posy + add >= 0 then
+					if v.X - posx >= 0 and v.Y - posy + 25 >= 0 then
 						cursorsProcessed[#cursorsProcessed + 1] = v
 					end
 				end
@@ -541,6 +534,9 @@ local success, errorcode = pcall(function()
 				if eventsConnected[event] and typeof(func) == "function" then
 					eventsConnected[event][#eventsConnected[event] + 1] = func
 				end
+			end
+			function windowframemet:GetDimensions()
+				return Vector2.new(x, y)
 			end
 			windows[windowID] = {
 				["active"] = true;
@@ -662,7 +658,7 @@ local success, errorcode = pcall(function()
 							iconsCreated += 1
 							return icon
 						else
-							warnL("maximum amount of icons reached, consider fixing this if this message reaches to you")
+							
 						end
 					else
 						local xOffset = math.floor(iconsCreated / maxIconY)
@@ -680,7 +676,7 @@ local success, errorcode = pcall(function()
 							iconsCreated += 1
 							return icon
 						else
-							warnL("maximum amount of icons reached, consider fixing this if this message reaches to you")
+							
 						end
 					end
 				end
@@ -736,7 +732,7 @@ local success, errorcode = pcall(function()
 							})
 						end
 					else
-						warnL("maximum amount of icons reached, consider fixing this if this message reaches to you")
+						
 						return
 					end
 				end
