@@ -69,6 +69,15 @@ local function shutdown(user)
 		TriggerPort(2)
 	end
 end
+local function go(tbl)
+	for i, v in pairs(tbl) do
+		if typeof(v) == "table" then
+			go(v)
+		else
+			print(tostring(i) .. ": " .. tostring(v))
+		end 
+	end
+end
 local function ReturnError(errorcode, errortype)
 	print("An error has occured")
 	print(errorcode)
@@ -630,8 +639,6 @@ local success, errorcode = pcall(function()
 					end
 					oninput(text, plr, output, clear)
 					requireNewInputBar()
-				else
-					Beep(0.5)
 				end
 			end)
 			return output
@@ -3566,7 +3573,7 @@ local success, errorcode = pcall(function()
 					})
 					xConnect("keyboard", "TextInputted", function(text, plr)
 						if idconnected == nil then
-							idconnected = tonumber(text)
+							idconnected = text
 							chatModem:Configure({NetworkID = idconnected})
 							showChat()
 						end
@@ -3615,6 +3622,7 @@ local success, errorcode = pcall(function()
 			local currentlyOpen = "main"
 			local data = {}
 			local headers = {}
+			go(memory) go(headers) go(data)
 			local focused = ""
 			local busy = false
 			local initialize
@@ -3841,6 +3849,7 @@ local success, errorcode = pcall(function()
 						})
 						wait(1)
 						success:Destroy()
+						go(memory) go(headers) go(data)
 					end)
 				end)
 				local headerFrame = window:CreateElement("ScrollingFrame", {
@@ -3899,11 +3908,22 @@ local success, errorcode = pcall(function()
 			local function send()
 				if busy == false then
 					busy = true
+					local err
+					local function errored(boom)
+						closeByName("ResponseTimeout")
+						err = boom
+						print(boom)
+					end
 					local response
 					local timedout = false
 					local success
 					newCoroutine(function()
-						response, success = modem:RealPostRequest(memory.domain, JSONEncode(data), false, nil, headers)
+						local success, fail = pcall(function()
+							response, success = modem:RealPostRequest(memory.domain, JSONEncode(data), false, nil, headers)
+						end)
+						if not success then
+							
+						end
 					end, "PostRequest")
 					window:ClearElements()
 					window:CreateElement("TextLabel", {
@@ -3917,7 +3937,7 @@ local success, errorcode = pcall(function()
 						wait(10)
 						timedout = true
 					end, "ResponseTimeout")
-					repeat wait() until response or timedout
+					repeat wait() until response or timedout or err
 					closeByName("ResponseTimeout")
 					if response then
 						if GetPartFromPort(4, "Disk") then
@@ -3999,12 +4019,14 @@ local success, errorcode = pcall(function()
 						})
 						okButton.MouseButton1Click:Connect(function()
 							initialize()
+							go(memory) go(headers) go(data)
 						end)
 					end
 					busy = false
 				end
 			end
 			function initialize()
+				go(memory) go(headers) go(data)
 				focused = "domain"
 				currentlyOpen = "main"
 				window:ClearElements()
@@ -4044,11 +4066,9 @@ local success, errorcode = pcall(function()
 					openDataMenu()
 				end)
 				headerButton.MouseButton1Click:Connect(function()
-
 					openHeaderMenu()
 				end)
 				sendButton.MouseButton1Click:Connect(function()
-
 					send()
 				end)
 			end
