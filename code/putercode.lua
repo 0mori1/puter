@@ -3573,7 +3573,7 @@ local success, errorcode = pcall(function()
 					})
 					xConnect("keyboard", "TextInputted", function(text, plr)
 						if idconnected == nil then
-							idconnected = text
+							idconnected = string.sub(text, 1, #text - 1)
 							chatModem:Configure({NetworkID = idconnected})
 							showChat()
 						end
@@ -4082,6 +4082,7 @@ local success, errorcode = pcall(function()
 							if memory[focused] ~= nil then 
 								if system[focused] ~= nil then
 									system[focused].Text = prefixes[focused] .. text
+									memory[focused] = text
 								end
 							end
 						end
