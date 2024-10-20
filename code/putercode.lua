@@ -178,7 +178,7 @@ local success, errorcode = pcall(function()
 							v(a, b, c, d, e, f)
 						end)
 						if not success then
-							
+
 						end
 					end
 				end)
@@ -665,7 +665,7 @@ local success, errorcode = pcall(function()
 							iconsCreated += 1
 							return icon
 						else
-							
+
 						end
 					else
 						local xOffset = math.floor(iconsCreated / maxIconY)
@@ -683,7 +683,7 @@ local success, errorcode = pcall(function()
 							iconsCreated += 1
 							return icon
 						else
-							
+
 						end
 					end
 				end
@@ -739,7 +739,7 @@ local success, errorcode = pcall(function()
 							})
 						end
 					else
-						
+
 						return
 					end
 				end
@@ -1732,7 +1732,41 @@ local success, errorcode = pcall(function()
 				refresh()
 			end
 		end
-		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
+		local commands = {
+			["echo"] = function()
+				stdout(args[1])
+			end,
+		}
+		local function command(text, plr, terminalout, clear)
+			local cmd = nil
+			local args = {}
+			local nxt = 1
+			for i = 1, #text, 1 do
+				if string.sub(text, i, i) == " " then
+					if not cmd then
+						cmd = string.sub(text, nxt, i-1)
+					else
+						args[#args + 1] = string.sub(text, nxt, i-1)
+					end
+					nxt = i + 1
+				end
+			end
+			if commands[cmd] then
+				local excmd = commands[cmd]
+				local env = {}
+				for i, v in pairs(getfenv()) do
+					env[i] = v
+				end
+				env.args = args
+				env.stdout = terminalout
+				setfenv(excmd, env)
+				excmd()
+				return true
+			else
+				return false, "no such command"
+			end
+		end
+		local function check(text, plr, terminalout, clrfnc)
 			if not terminalout then terminalout = function() end end
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
@@ -1945,13 +1979,13 @@ local success, errorcode = pcall(function()
 				luarun(code, GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), 6)
 			end;
 			["image"] = function(imageID)
-				check("display image " .. imageID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
+				check("display image " .. imageID, "explorer")
 			end;
 			["audio"] = function(audioID)
 				puter.PlayAudio(audioID, speaker)
 			end;
 			["video"] = function(videoID)
-				check("play video " .. videoID, "explorer.exe", GetPartFromPort(6, "Microcontroller"), GetPartFromPort(6, "Polysilicon"), function() end)
+				check("play video " .. videoID, "explorer")
 			end;
 		}
 		local fileTypeNames = {
@@ -3447,7 +3481,7 @@ local success, errorcode = pcall(function()
 						})
 						chatLabels[i].MouseButton1Click:Connect(function()
 							if chat[i].executable == true then
-								check(chat[i].actualmessage)
+								check(chat[i].actualmessage, "chat")
 							end
 						end)
 					end
@@ -4228,17 +4262,17 @@ local success, errorcode = pcall(function()
 						listeningto = plr
 						listening = true
 					elseif string.sub(text, 1, 7) == "Jarvis," then
-						local failed, reason = check(string.sub(text, 9, #text), plr, GetPartFromPort(6, "Polysilicon"), GetPartFromPort(6, "Microcontroller"), function() end)
+						local failed, reason = check(string.sub(text, 9, #text), plr)
 						if failed == true then
 							errorPopup(reason)
 						end
 					elseif string.sub(text, 1, 6) == "puter," then
-						local failed, reason = check(string.sub(text, 8, #text), plr, GetPartFromPort(6, "Polysilicon"), GetPartFromPort(6, "Microcontroller"), function() end)
+						local failed, reason = check(string.sub(text, 8, #text), plr)
 						if failed == true then
 							errorPopup(reason)
 						end
 					elseif listening == true and plr == listeningto then
-						local failed, reason = check(text, plr, GetPartFromPort(6, "Polysilicon"), GetPartFromPort(6, "Microcontroller"), function() end)
+						local failed, reason = check(text, plr)
 						if failed == true then
 							errorPopup(reason)
 						end
@@ -4256,15 +4290,28 @@ local success, errorcode = pcall(function()
 				local polysilicon = GetPartFromPort(6, "Polysilicon")
 				local terminalmicrocontroller = GetPartFromPort(6, "Microcontroller")
 				canopenterminal = false
+				local mode = "check"
 				--increment the version each major change
 				local ver = "wOS Codename BasicSystem, Version 12 Revision 2"
 				puterutils.cliengine(function(text, plr, terminalout, clear)
-					local failed, reason = check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clear)
-					if failed == true then
-						terminalout(reason)
-					end
-					if recordingtext == true then
-						recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
+					if mode == "check" then
+						if text ~= "command" then
+							local failed, reason = check(text, plr, terminalout, clear)
+							if failed == true then
+								terminalout(reason)
+							end
+							if recordingtext == true then
+								recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
+							end
+						else
+							mode = "command"
+							terminalout("Switching to command.")
+						end
+					else
+						local success, reason = command(text, plr, terminalout, clear)
+						if not success then
+							terminalout(reason)
+						end
 					end
 				end, "Terminal", ver, function()
 					canopenterminal = true
