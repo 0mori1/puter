@@ -1733,6 +1733,7 @@ local success, errorcode = pcall(function()
 			end
 		end
 		local function check(text, plr, polysilicon, terminalmicrocontroller, terminalout, clrfnc)
+			if not terminalout then terminalout = function() end end
 			if checkBlacklist[plr] == nil then
 				if string.sub(text, 1, 7) == "lua run" then
 					local PID = luarun(string.sub(text, 9, #text))
@@ -3431,73 +3432,78 @@ local success, errorcode = pcall(function()
 						BackgroundColor3 = Color3.fromRGB(121, 121, 121);
 						BorderSizePixel = 0;
 					})
+					local chatLabels = {}
 					local chat = {}
+					for i = 1, 9, 1 do
+						chatLabels[i] = puter.AddWindowElement(window, "TextButton", {
+							Size = UDim2.fromOffset(400, 25);
+							BackgroundTransparency = 1;
+							BorderSizePixel = 0;
+							Text = "";
+							TextXAlignment = Enum.TextXAlignment.Left;
+							TextScaled = true;
+							Position = UDim2.fromOffset(0, (i - 1) * 25);
+							TextColor3 = Color3.fromRGB(85, 85, 255);
+						})
+						chatLabels[i].MouseButton1Click:Connect(function()
+							if chat[i].executable == true then
+								check(chat[i].actualmessage)
+							end
+						end)
+					end
 					local sendname = true
 					local legacymode = false
 					local function addMessage(message)
+						local formatted = {}
+						if string.sub(message, 1, 2) == "b/" then
+							local actualMessage
+							for i = 1, #message, 1 do
+								if string.sub(message, i, i + 1) == "]:" then
+									actualMessage = i + 3
+								end
+							end
+							formatted.actualmessage = actualMessage
+							formatted.message = message
+							formatted.executable = true
+							formatted.exclaim = false
+						elseif string.sub(message, 1, 2) == "t/" then
+							formatted.actualmessage = nil
+							formatted.message = string.sub(message, 3, #message)
+							formatted.executable = false
+							formatted.exclaim = false
+						elseif string.sub(message, 1, 2) == "e/" then
+							formatted.actualmessage = nil
+							formatted.message = string.sub(message, 3, #message)
+							formatted.executable = false
+							formatted.exclaim = true
+						else
+							formatted.actualmessage = nil
+							formatted.message = string.sub(message, 3, #message)
+							formatted.executable = false
+							formatted.exclaim = false
+						end
 						if #chat <= 8 then
-							chat[#chat + 1] = message
+							chat[#chat + 1] = formatted
 						elseif #chat >= 9 then
 							for i, v in pairs(chat) do
 								if i >= 2 then
 									chat[i - 1] = chat[i]
 								end
 							end
-							chat[9] = message
+							chat[9] = formatted
 						end
 					end
 					local function renderChat()
-						chatFrame:Destroy()
-						chatFrame = puter.AddWindowElement(window, "Frame", {
-							Size = UDim2.fromOffset(400, 225);
-							BackgroundColor3 = Color3.fromRGB(121, 121, 121);
-							BorderSizePixel = 0;
-						})
 						Beep()
 						for i, v in pairs(chat) do
-							local chatMsg
-							if string.sub(v, 1, 2) == "b/" then
-								chatMsg = puter.AddWindowElement(window, "TextButton", {
-									Size = UDim2.fromOffset(400, 25);
-									BackgroundTransparency = 1;
-									BorderSizePixel = 0;
-									Text = string.sub(v, 3, #v);
-									TextXAlignment = Enum.TextXAlignment.Left;
-									TextScaled = true;
-									Position = UDim2.fromOffset(0, (i - 1) * 25);
-									TextColor3 = Color3.fromRGB(85, 85, 255);
-								})
-								local actualMessage
-								for i = 1, #v, 1 do
-									if string.sub(v, i, i + 1) == "]:" then
-										actualMessage = i + 3
-									end
-								end
-								chatMsg.MouseButton1Click:Connect(function()
-									local commandNotFound = check(string.sub(v, actualMessage, #v), "chat.lua", GetPartFromPort(6, "Polysilicon"), GetPartFromPort(6, "Microcontroller"), function() end)
-								end)
-							elseif string.sub(v, 1, 2) == "t/" then
-								chatMsg = puter.AddWindowElement(window, "TextLabel", {
-									Size = UDim2.fromOffset(400, 25);
-									BackgroundTransparency = 1;
-									BorderSizePixel = 0;
-									Text = string.sub(v, 3, #v);
-									TextXAlignment = Enum.TextXAlignment.Left;
-									TextScaled = true;
-									Position = UDim2.fromOffset(0, (i - 1) * 25);
-								})
-							else
-								chatMsg = puter.AddWindowElement(window, "TextLabel", {
-									Size = UDim2.fromOffset(400, 25);
-									BackgroundTransparency = 1;
-									BorderSizePixel = 0;
-									Text = v;
-									TextXAlignment = Enum.TextXAlignment.Left;
-									TextScaled = true;
-									Position = UDim2.fromOffset(0, (i - 1) * 25);
-								})
+							local color = Color3.fromRGB(0,0,0)
+							if v.executable then
+								color = Color3.fromRGB(85, 85, 255)
+							elseif v.exclaim then
+								color = Color3.fromRGB(255, 80, 83)
 							end
-							chatMsg.Parent = chatFrame
+							chatLabels[i].Text = v.message
+							chatLabels[i].TextColor3 = color
 						end
 					end
 					local function sendMessage(plr, text, idconnected, actualPlr, legacymode, isButton)
@@ -3905,7 +3911,7 @@ local success, errorcode = pcall(function()
 					end)
 				end
 			end
-			local function send()
+			local function get()
 				if busy == false then
 					busy = true
 					local err
@@ -3919,10 +3925,129 @@ local success, errorcode = pcall(function()
 					local success
 					newCoroutine(function()
 						local success, fail = pcall(function()
-							response, success = modem:RealPostRequest(memory.domain, JSONEncode(data), false, nil, headers)
+							response = modem:GetAsync(memory.domain, true, headers)
 						end)
 						if not success then
-							
+							errored(fail)
+						end
+					end, "GetRequest")
+					window:ClearElements()
+					window:CreateElement("TextLabel", {
+						BackgroundTransparency = 1;
+						TextScaled = true;
+						Text = "Waiting for response...";
+						Size = UDim2.fromOffset(400, 25);
+						TextColor3 = Color3.fromRGB(0,0,0)
+					})
+					newCoroutine(function()
+						wait(10)
+						timedout = true
+					end, "ResponseTimeoutGet")
+					repeat wait() until response or timedout or err
+					closeByName("ResponseTimeoutGet")
+					if response then
+						if GetPartFromPort(4, "Disk") then
+							GetPartFromPort(4, "Disk"):Write("response", response)
+							window:CreateElement("TextLabel", {
+								BackgroundTransparency = 1;
+								TextScaled = true;
+								Text = "Response written to the 'response' key.";
+								Size = UDim2.fromOffset(400, 25);
+								Position = UDim2.fromOffset(0, 25);
+								TextColor3 = Color3.fromRGB(0,0,0);
+							})
+							local okButton = window:CreateElement("TextButton", {
+								Size = UDim2.fromOffset(50, 25);
+								Position = UDim2.fromOffset(175, 175);
+								Text = "OK";
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								TextColor3 = Color3.fromRGB(0,0,0);
+								TextScaled = true;
+							})
+							okButton.MouseButton1Click:Connect(function()
+								initialize()
+							end)
+						else
+							window:CreateElement("TextLabel", {
+								BackgroundTransparency = 1;
+								TextScaled = true;
+								Text = "Insert a... Storage Device on the ethernet cable thats on the left part of your device.";
+								Size = UDim2.fromOffset(400, 50);
+								Position = UDim2.fromOffset(0, 25);
+								TextColor3 = Color3.fromRGB(0,0,0);
+							})
+							local disk
+							newCoroutine(function()
+								while wait(0.5) do
+									if GetPartFromPort(4, "Disk") then
+										disk = GetPartFromPort(4, "Disk")
+									end
+								end
+							end, "DiskWait")
+							repeat wait() until disk
+							disk:Write("response", response)
+							window:CreateElement("TextLabel", {
+								BackgroundTransparency = 1;
+								TextScaled = true;
+								Text = "Response written to the 'response' key.";
+								Size = UDim2.fromOffset(400, 25);
+								Position = UDim2.fromOffset(0, 75);
+								TextColor3 = Color3.fromRGB(0,0,0);
+							})
+							local okButton = window:CreateElement("TextButton", {
+								Size = UDim2.fromOffset(50, 25);
+								Position = UDim2.fromOffset(175, 175);
+								Text = "OK";
+								BackgroundColor3 = Color3.fromRGB(100,100,100);
+								TextColor3 = Color3.fromRGB(0,0,0);
+								TextScaled = true;
+							})
+							okButton.MouseButton1Click:Connect(function()
+								initialize()
+							end)
+						end
+					else
+						window:CreateElement("TextLabel", {
+							BackgroundTransparency = 1;
+							TextScaled = true;
+							Text = "Website took too long to respond.";
+							Size = UDim2.fromOffset(400, 25);
+							Position = UDim2.fromOffset(0, 25);
+							TextColor3 = Color3.fromRGB(0,0,0);
+						})
+						local okButton = window:CreateElement("TextButton", {
+							Size = UDim2.fromOffset(50, 25);
+							Position = UDim2.fromOffset(175, 175);
+							Text = "OK";
+							BackgroundColor3 = Color3.fromRGB(100,100,100);
+							TextColor3 = Color3.fromRGB(0,0,0);
+							TextScaled = true;
+						})
+						okButton.MouseButton1Click:Connect(function()
+							initialize()
+							go(memory) go(headers) go(data)
+						end)
+					end
+				end
+			end
+			local function post()
+				if busy == false then
+					busy = true
+					local err
+					local function errored(boom)
+						closeByName("ResponseTimeout")
+						err = boom
+						print(boom)
+					end
+					local response
+					local timedout = false
+					local success
+					newCoroutine(function()
+						local success, fail = pcall(function()
+							response, success = modem:PostAsync(memory.domain, JSONEncode(data),Enum.HttpContentType.ApplicationJson, false, headers)
+						end)
+						if not success then
+							errored(fail)
 						end
 					end, "PostRequest")
 					window:ClearElements()
