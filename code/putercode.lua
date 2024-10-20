@@ -29,7 +29,7 @@ local function closeCoroutine(ID)
 		end
 	end)
 	if suces == false then
-
+		print(fai)
 	end
 end
 local function closeByName(name)
@@ -1511,8 +1511,7 @@ local success, errorcode = pcall(function()
 				end
 			end)
 			if yes == false then
-
-
+				print(no)
 			end
 			return musicList
 		end
@@ -1765,16 +1764,23 @@ local success, errorcode = pcall(function()
 					nxt = i + 1
 				end
 			end
-			local excmd = commands[cmd].cmd
-			local env = {}
-			for i, v in pairs(getfenv()) do
-				env[i] = v
+			if not cmd then
+				cmd = text
 			end
-			env.args = args
-			env.stdout = terminalout
-			setfenv(excmd, env)
-			excmd()
-			return true
+			if commands[cmd] then
+				local excmd = commands[cmd].cmd
+				local env = {}
+				for i, v in pairs(getfenv()) do
+					env[i] = v
+				end
+				env.args = args
+				env.stdout = terminalout
+				setfenv(excmd, env)
+				excmd()
+				return true
+			else
+				return false, "no such command"
+			end
 		end
 		local function check(text, plr, terminalout, clrfnc)
 			if not terminalout then terminalout = function() end end
@@ -4302,7 +4308,7 @@ local success, errorcode = pcall(function()
 				canopenterminal = false
 				local mode = "check"
 				--increment the version each major change
-				local ver = "wOS Codename BasicSystem, Version 12 Revision 2"
+				local ver = "wOS Codename BasicSystem, made by 0mori2"
 				puterutils.cliengine(function(text, plr, terminalout, clear)
 					if mode == "check" then
 						if text ~= "command" then
