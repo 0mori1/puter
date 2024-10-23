@@ -247,11 +247,11 @@ local success, errorcode = pcall(function()
 			pcall(function()
 				wait()
 				for i, v in pairs(windows) do
-					if v.active == false then
+					if not v.active then
 						v.titlebar.ZIndex = 3
 						v.titlebar.BackgroundColor3 = Color3.fromRGB(255,255,255)
 						v.titlebar.TextColor3 = Color3.fromRGB(0,0,0)
-					elseif v.active == true or v.forced == true then
+					else
 						v.titlebar.ZIndex = 4
 						v.titlebar.BackgroundColor3 = v.titlebarcolor
 						v.titlebar.TextColor3 = v.textcolor
@@ -275,43 +275,21 @@ local success, errorcode = pcall(function()
 			Speaker:Configure({Audio = audioInputted})
 			Speaker:Trigger()
 		end;
-		CreateWindow = function(x, y, temptitle, tempbackgrndcolor, temptitlebarcolor, temptextcolor, overrideX, overrideY, forced, featuresonoff)
-			local backgrndcolor = tempbackgrndcolor or Color3.fromHex("#646464")
-			local title = temptitle or "App"
+		CreateWindow = function(x, y, title, backgrndcolor, temptitlebarcolor, textcolor, overrideX, overrideY)
+			local backgrndcolor = backgrndcolor or Color3.fromHex("#646464")
+			local title = title or "App"
 			local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
-			local textcolor = temptextcolor or Color3.fromHex("#FFFFFF")
+			local textcolor = textcolor or Color3.fromHex("#FFFFFF")
 			--centers the window if the override positions are nil
 			local posy = overrideY or (450 - y) / 2 - 36
 			local posx = overrideX or (800 - x) / 2
 			local titlebar
 			local closebutton
 			local collapseButton
-			local zindex
 			local windowframemet = {}
-			if forced == true then
-				zindex = 4
-			else
-				zindex = 3
-			end
-			if featuresonoff == nil then
-				featuresonoff = {}
-			end
-			local titlebarsize
-			local closebuttonoffset
-			local collapseoffset
-			if featuresonoff.collapse ~= false and featuresonoff.closebutton ~= false then
-				titlebarsize = UDim2.fromOffset(x - 50, 25)
-				closebuttonoffset = UDim2.fromOffset(x - 25, 0)
-				collapseoffset = UDim2.fromOffset(x - 50, 0)
-			elseif featuresonoff.collapse ~= false then
-				titlebarsize = UDim2.fromOffset(x - 25, 25)
-				collapseoffset = UDim2.fromOffset(x - 50, 0)
-			elseif featuresonoff.closebutton ~= false then
-				titlebarsize = UDim2.fromOffset(x - 25, 25)
-				closebuttonoffset = UDim2.fromOffset(x - 50, 0)
-			end
+			local titlebarsize = UDim2.fromOffset(x - 50, 25)
 			local titlebar = screen:CreateElement("TextButton", {
-				Size = titlebarsize;
+				Size = UDim2.fromOffset(x - 50, 25);
 				Position = UDim2.fromOffset(posx, posy);
 				Text = title;
 				TextColor3 = textcolor;
@@ -321,30 +299,26 @@ local success, errorcode = pcall(function()
 				AutoButtonColor = false;
 				ZIndex = 1;
 			})
-			if featuresonoff.closebutton ~= false and titlebar ~= nil then
-				closebutton = screen:CreateElement("TextButton", {
-					Position = UDim2.fromOffset(x - 25, 0);
-					Size = UDim2.fromOffset(25, 25);
-					Text = "X";
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BackgroundColor3 = Color3.fromRGB(255,0,0);
-					TextScaled = true;
-					BorderSizePixel = 0;
-					ZIndex = 3;
-				})
-			end
-			if featuresonoff.collapse ~= false and titlebar ~= nil then
-				collapseButton = screen:CreateElement("TextButton", {
-					Position = UDim2.fromOffset(x - 50, 0);
-					Size = UDim2.fromOffset(25, 25);
-					Text = "-";
-					TextColor3 = Color3.fromRGB(0,0,0);
-					BackgroundColor3 = Color3.fromRGB(99, 99, 99);
-					TextScaled = true;
-					BorderSizePixel = 0;
-					ZIndex = 3;
-				})
-			end
+			closebutton = screen:CreateElement("TextButton", {
+				Position = UDim2.fromOffset(x - 25, 0);
+				Size = UDim2.fromOffset(25, 25);
+				Text = "X";
+				TextColor3 = Color3.fromRGB(0,0,0);
+				BackgroundColor3 = Color3.fromRGB(255,0,0);
+				TextScaled = true;
+				BorderSizePixel = 0;
+				ZIndex = 3;
+			})
+			collapseButton = screen:CreateElement("TextButton", {
+				Position = UDim2.fromOffset(x - 50, 0);
+				Size = UDim2.fromOffset(25, 25);
+				Text = "-";
+				TextColor3 = Color3.fromRGB(0,0,0);
+				BackgroundColor3 = Color3.fromRGB(99, 99, 99);
+				TextScaled = true;
+				BorderSizePixel = 0;
+				ZIndex = 3;
+			})
 			local windowframeContainerContainer = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(x, y);
 				Position = UDim2.fromOffset(0, 25);
@@ -374,47 +348,37 @@ local success, errorcode = pcall(function()
 			})
 			windowframeContainer.Parent = windowframeContainerContainer
 			windowframe.Parent = windowframeContainer
-			if closebutton ~= nil then
-				closebutton.Parent = titlebar
-			end
-			if collapseButton ~= nil then
-				collapseButton.Parent = titlebar
-			end
+			closebutton.Parent = titlebar
+			collapseButton.Parent = titlebar
 			windowframeContainerContainer.Parent = titlebar
 			local collapsed = false
-			if collapseButton ~= nil then
-				collapseButton.MouseButton1Click:Connect(function()
-					if collapsed == false then
-						collapseButton.Text = "+"
-						windowframeContainer.Position = UDim2.fromOffset(0, -y)
-						collapsed = true
-					else
-						collapseButton.Text = "-"
-						windowframeContainer.Position = UDim2.fromOffset(0, 0)
-						collapsed = false
-					end
-				end)
-			end
+			collapseButton.MouseButton1Click:Connect(function()
+				if not collapsed then
+					collapseButton.Text = "+"
+					windowframeContainer.Position = UDim2.fromOffset(0, -y)
+					collapsed = true
+				else
+					collapseButton.Text = "-"
+					windowframeContainer.Position = UDim2.fromOffset(0, 0)
+					collapsed = false
+				end
+			end)
 			local windowID = #windows + 1
 			for i, v in pairs(windows) do
-				if v.forced ~= true then
-					v.active = false
-				end
+				v.active = false
 			end
 			local eventsConnected = {
 				["CursorMoved"] = {};
 				["WindowDragged"] = {};
 				["Closed"] = {};
 			}
-			if closebutton ~= nil then
-				closebutton.MouseButton1Click:Connect(function()
-					titlebar:Destroy()
-					for i, v in pairs(eventsConnected["Closed"]) do
-						v()
-					end
-					windows[windowID] = nil
-				end)
-			end
+			closebutton.MouseButton1Click:Connect(function()
+				titlebar:Destroy()
+				for i, v in pairs(eventsConnected["Closed"]) do
+					v()
+				end
+				windows[windowID] = nil
+			end)
 			local offsetX
 			local offsetY
 			local dragging
@@ -426,35 +390,25 @@ local success, errorcode = pcall(function()
 					end
 				end
 				windows[windowID].active = true
+				titlebar.ZIndex = 4
 				local succ, fail = pcall(function()
 					offsetX = posx - x
 					offsetY = posy - y
 					for i, v in pairs(cursorPositions) do
-
-
 						if v.X - x <= 3 and v.Y - y <= 3 or v.X - x <= -3 and v.Y - y <= -3 then
 							whodrags = i
-
 						end
 					end
 					if whodrags ~= nil then
 						dragging = true
-						titlebar.ZIndex = 4
-						titlebar.ZIndex = 3
 						if string.sub(tostring(offsetX), 1, 1) ~= "-" then
 							dragging = false
 						end
 						if string.sub(tostring(offsetY), 1, 1) ~= "-" then
 							dragging = false
 						end
-
-					else
-
 					end
 				end)
-				if succ == false then
-
-				end
 			end)
 			titlebar.MouseButton1Up:Connect(function()
 				dragging = false
@@ -552,8 +506,6 @@ local success, errorcode = pcall(function()
 				["titlebar"] = titlebar;
 				["textcolor"] = textcolor;
 				["titlebarcolor"] = titlebarcolor;
-				["forced"] = forced;
-				["custom"] = false;
 				["framemet"] = windowframemet
 			}
 			titlebar.ZIndex = 3
@@ -561,18 +513,32 @@ local success, errorcode = pcall(function()
 		end;
 	}
 	local puterutils = {
-		cliengine = function(oninput, name, outOnStart, onClose, prefix)
+		cliengine = function(oninput, name, outOnStart, onClose, prefix, inputbarColor)
 			local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
 			local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
 				Size = UDim2.fromOffset(450, 275);
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 				BorderSizePixel = 0;
 			})
+			local cliLabels = {}
+			for i = 1, 275 / 25, 1 do
+				cliLabels[i] = cliwindow:CreateElement("TextLabel", {
+					Size = UDim2.fromOffset(444, 25);
+					Position = UDim2.fromOffset(0, (i - 1) * 25);
+					Text = "";
+					TextColor3 = Color3.fromRGB(0,0,0);
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+					TextXAlignment = Enum.TextXAlignment.Left;
+					TextScaled = true;
+					Font = Enum.Font.RobotoMono
+				})
+			end
 			closebutton.MouseButton1Click:Connect(onClose)
 			local cliOutput = {}
-			local function addTextToOutput(Out)
+			local function addTextToOutput(Out, color)
 				if #cliOutput <= 10 then
-					cliOutput[#cliOutput + 1] = Out
+					cliOutput[#cliOutput + 1] = {text = Out, color = color or Color3.fromRGB(255,255,255)}
 					return #cliOutput
 				else
 					cliOutput[1] = nil
@@ -581,44 +547,27 @@ local success, errorcode = pcall(function()
 							cliOutput[i - 1] = cliOutput[i]
 						end
 					end
-					cliOutput[11] = Out
+					cliOutput[11] = {text = Out, color = color or Color3.fromRGB(255,255,255)}
 					return 11
 				end
 			end
 			local function updateOutput()
-				frame:Destroy()
-				frame = puter.AddWindowElement(cliwindow, "Frame", {
-					Size = UDim2.fromOffset(450, 275);
-					BackgroundColor3 = Color3.fromRGB(0,0,0);
-					BorderSizePixel = 0;
-				})
 				for i, v in pairs(cliOutput) do
-					local textlabel = puter.AddWindowElement(cliwindow, "TextLabel", {
-						Size = UDim2.fromOffset(444, 25);
-						Position = UDim2.fromOffset(0, (i - 1) * 25);
-						Text = v;
-						TextColor3 = Color3.fromRGB(255,255,255);
-						BackgroundColor3 = Color3.fromRGB(0,0,0);
-						BorderSizePixel = 0;
-						TextXAlignment = Enum.TextXAlignment.Left;
-						TextScaled = true;
-						Font = Enum.Font.RobotoMono
-					})
-					textlabel.Parent = frame
+					cliLabels[i].TextColor3 = v.color
+					cliLabels[i].Text = v.text
 				end
 			end
-			local function output(Out)
-				addTextToOutput(Out)
+			local function output(Out, color)
+				addTextToOutput(Out, color)
 				updateOutput()
 			end
 			local inputbar
-			if prefix ~= nil then
-
-			else
+			inputbarColor = inputbarColor or Color3.fromRGB(255,255,255)
+			if not prefix then
 				prefix = ""
 			end
 			local function requireNewInputBar()
-				inputbar = addTextToOutput(prefix .. "> ")
+				inputbar = addTextToOutput(prefix .. "> ", inputbarColor)
 				updateOutput()
 			end
 			local function clear()
@@ -634,7 +583,7 @@ local success, errorcode = pcall(function()
 						updateOutput()
 					else
 						requireNewInputBar()
-						cliOutput[inputbar] = prefix .. "> " .. text
+						cliOutput[inputbar] = {text = prefix .. "> " .. text, color = inputbarColor}
 						updateOutput()
 					end
 					oninput(text, plr, output, clear)
@@ -1345,15 +1294,6 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
-		local function luastop(polysilicon, polyport)
-			polysilicon:Configure({PolysiliconMode = 1})
-			TriggerPort(6)
-			for i, window in pairs(windows) do
-				if window.custom == true then
-					window.framemet:Close()
-				end
-			end
-		end
 		local allowedPorts = {
 			[1] = {1, "Main"};
 			[2] = {1, "Main", "You don't need to use port 2 anymore, use port 1."};
@@ -1584,7 +1524,6 @@ local success, errorcode = pcall(function()
 				"crash: Causes a crash";
 				"clear: Clears the terminal";
 				"kill [Coroutine]: Kills a coroutine.";
-				"closecustom: Closes all custom windows.";
 			}
 		}
 		local canOpenProcessManager = true
@@ -1734,19 +1673,45 @@ local success, errorcode = pcall(function()
 		local commands = {
 			["echo"] = {cmd = function()
 				stdout(args[1])
-			end, singlearg = true},
-			["run"] = {cmd = function()
-				local pid = luarun(args[1])
-				stdout(pid)
-			end, singlearg = true}
+			end, singlearg = true};
+			["run"] = {
+				cmd = function()
+					local pid = luarun(args[1])
+					stdout(pid)
+				end;
+				singlearg = true};
+			["clear"] = {
+				cmd = function()
+					clear()
+				end;
+			}
 		}
 		local function command(text, plr, terminalout, clear)
+			local splitSpecial = {
+				['"'] = 1;
+				["'"] = 2;
+			}
+			local splitSpecialInverse = {
+				[1] = '"';
+				[2] = "'";
+			}
+			local function stdout(text)
+				terminalout(text, Color3.fromRGB(255,255,255))
+			end
+			local function stderr(text)
+				terminalout(text, Color3.fromRGB(255,0,0))
+			end
+			local function stdwarn(text)
+				terminalout(text, Color3.fromRGB(255,255,0))
+			end
+			local mode
 			local cmd = nil
 			local cmdid = nil
 			local args = {}
 			local nxt = 1
 			for i = 1, #text, 1 do
-				if string.sub(text, i, i) == " " then
+				local curchar = string.sub(text, i, i)
+				if curchar == " " and not mode and i ~= nxt then
 					if not cmd then
 						cmd = string.sub(text, nxt, i-1)
 						cmdid = commands[cmd]
@@ -1762,6 +1727,25 @@ local success, errorcode = pcall(function()
 						end
 					end
 					nxt = i + 1
+				elseif splitSpecial[curchar] and not mode and i ~= nxt then
+					mode = splitSpecial[string.sub(text, i, i)]
+					nxt = i + 1
+				elseif mode and splitSpecialInverse[mode] == string.sub(text, i, i) and i ~= nxt then
+					mode = nil
+					if not cmd then
+						cmd = string.sub(text, nxt, i-1)
+						cmdid = commands[cmd]
+						if not cmdid then
+							return false, "no such command"
+						end
+					else
+						if not cmdid.singlearg and args[#args] ~= cmdid.fflag then
+							args[#args + 1] = string.sub(text, nxt, i-1)
+						else
+							args[#args + 1] = string.sub(text, nxt, #text)
+							break
+						end
+					end
 				end
 			end
 			if not cmd then
@@ -1774,7 +1758,11 @@ local success, errorcode = pcall(function()
 					env[i] = v
 				end
 				env.args = args
-				env.stdout = terminalout
+				env.rawout = terminalout
+				env.stdout = stdout
+				env.stderr = stderr
+				env.stdwarn = stdwarn
+				env.clear = clear
 				setfenv(excmd, env)
 				excmd()
 				return true
@@ -1962,12 +1950,6 @@ local success, errorcode = pcall(function()
 				elseif string.sub(text, 1, 4) == "kill" then
 					local killed = closeByName(string.sub(text, 6, #text))
 					terminalout("Killed " .. tostring(killed) .. " coroutines.")
-				elseif text == "closecustom" then
-					for i, window in pairs(windows) do
-						if window.custom == true then
-							window.framemet:Close()
-						end
-					end
 				elseif string.sub(text, 1, 4) == "help" then
 					if pages[tonumber(string.sub(text, 6, #text))] ~= nil then
 						for i, v in pairs(pages[tonumber(string.sub(text, 6, #text))]) do
@@ -2896,16 +2878,6 @@ local success, errorcode = pcall(function()
 					TextScaled = true;
 					Text = "N/A";
 				})
-				local yieldfailWarn = puter.AddWindowElement(window, "TextLabel", {
-					Size = UDim2.fromOffset(25, 100);
-					Position = UDim2.fromOffset(0, 0);
-					TextColor3 = Color3.fromRGB(255,255,0);
-					BackgroundTransparency = 1;
-					TextScaled = true;
-					Text = "YIELDFAIL";
-					TextXAlignment = Enum.TextXAlignment.Left;
-					TextTransparency = 1;
-				})
 				local lagHistoryFrame = puter.AddWindowElement(window, "Frame", {
 					Size = UDim2.fromOffset(350, 85);
 					Position = UDim2.fromOffset(0, 140);
@@ -2914,6 +2886,25 @@ local success, errorcode = pcall(function()
 				})
 				local lag = {}
 				local lagBars = {}
+				for i = 1, 14, 1 do
+					local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
+						Size = UDim2.fromOffset(0, 0);
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+						Position = UDim2.fromOffset((i - 1) * 25, 85)
+					})
+					local lagAmount = puter.AddElement(lagBar, "TextLabel", {
+						Size = UDim2.fromOffset(15, 15);
+						Position = UDim2.fromOffset(5, -20);
+						Text = "";
+						TextScaled = true;
+						TextColor3 = Color3.fromRGB(0,0,0);
+						BackgroundTransparency = 1;
+					})
+					lagBars[i] = {}
+					lagBars[i]["bar"] = lagBar
+					lagBars[i]["amount"] = lagAmount
+				end
 				local function addFramerate(framerate)
 					if #lag <= 13 then
 						lag[#lag + 1] = framerate
@@ -2973,37 +2964,11 @@ local success, errorcode = pcall(function()
 							else
 								size = UDim2.fromOffset(25, 60)
 							end
-							if lagBars[i] == nil then
-								local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
-									Size = size;
-									BackgroundColor3 = color;
-									BorderSizePixel = 0;
-									Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
-								})
-								local lagAmount = puter.AddElement(lagBar, "TextLabel", {
-									Size = UDim2.fromOffset(15, 15);
-									Position = UDim2.fromOffset(5, -20);
-									Text = tostring(v);
-									TextScaled = true;
-									TextColor3 = color;
-									BackgroundTransparency = 1;
-								})
-								lagBars[i] = {}
-								lagBars[i]["bar"] = lagBar
-								lagBars[i]["amount"] = lagAmount
-							else
-								lagBars[i]["bar"].Size = size
-								lagBars[i]["bar"].BackgroundColor3 = color
-								lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
-								lagBars[i]["amount"].Text = tostring(v)
-								lagBars[i]["bar"].BackgroundColor3 = color
-							end
-							if not updated then
-								yieldfailWarn.TextTransparency = 0
-							else
-								yieldfailWarn.TextTransparency = 1
-							end
-							updated = false
+							lagBars[i]["bar"].Size = size
+							lagBars[i]["bar"].BackgroundColor3 = color
+							lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
+							lagBars[i]["amount"].Text = tostring(v)
+							lagBars[i]["amount"].TextColor3 = color
 						end
 					end
 				end, "Lag History")
@@ -4310,28 +4275,34 @@ local success, errorcode = pcall(function()
 				--increment the version each major change
 				local ver = "wOS Codename BasicSystem, made by 0mori2"
 				puterutils.cliengine(function(text, plr, terminalout, clear)
+					local function outputstd(text)
+						terminalout(text, Color3.fromRGB(255,255,255))
+					end
+					local function outputerr(text)
+						terminalout(text, Color3.fromRGB(255,0,0))
+					end
 					if mode == "check" then
 						if text ~= "command" then
 							local failed, reason = check(text, plr, terminalout, clear)
 							if failed == true then
-								terminalout(reason)
+								outputerr(reason)
 							end
 							if recordingtext == true then
 								recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
 							end
 						else
 							mode = "command"
-							terminalout("Switching to command.")
+							outputstd("Switching to command.")
 						end
 					else
 						local success, reason = command(text, plr, terminalout, clear)
 						if not success then
-							terminalout(reason)
+							outputstd(reason)
 						end
 					end
 				end, "Terminal", ver, function()
 					canopenterminal = true
-				end, "wOS ")
+				end, "wOS ", Color3.fromRGB(85, 170, 255))
 			end
 		end)
 		local canopennetworking = true
