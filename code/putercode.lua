@@ -553,9 +553,11 @@ local success, errorcode = pcall(function()
 			end
 			local function updateOutput()
 				for i, v in pairs(cliLabels) do
-					print("Chunk " .. tostring(i) .. " Text is " .. tostring(cliOutput[i].text) .. ", Color is " .. tostring(cliOutput[i].color))
-					v.TextColor3 = cliOutput[i]
-					v.Text = cliOutput[i]
+					if cliOutput[i] then
+						print("Chunk " .. tostring(i) .. " Text is " .. tostring(cliOutput[i].text) .. ", Color is " .. tostring(cliOutput[i].color))
+						v.TextColor3 = cliOutput[i].Text
+						v.Text = cliOutput[i].Text
+					end
 				end
 			end
 			local function output(Out, color)
@@ -1689,7 +1691,7 @@ local success, errorcode = pcall(function()
 			};
 			["kill"] = {
 				cmd = function()
-					
+
 				end;
 			}
 		}
