@@ -515,7 +515,7 @@ local success, errorcode = pcall(function()
 	local puterutils = {
 		cliengine = function(oninput, name, outOnStart, onClose, prefix, inputbarColor)
 			local cliwindow, closebutton, titlebar, isactive = puter.CreateWindow(450, 275, name or "App", Color3.fromRGB(0,0,0))
-			local frame = puter.AddWindowElement(cliwindow, "ScrollingFrame", {
+			local frame = puter.AddWindowElement(cliwindow, "Frame", {
 				Size = UDim2.fromOffset(450, 275);
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 				BorderSizePixel = 0;
@@ -553,7 +553,10 @@ local success, errorcode = pcall(function()
 			end
 			local function updateOutput()
 				for i, v in pairs(cliOutput) do
+					print("Chunk " .. tostring(i) .. " Text is " .. tostring(v.text) .. ", Color is " .. tostring(v.color))
+					print("Setting text color!")
 					cliLabels[i].TextColor3 = v.color
+					print("Setting text!")
 					cliLabels[i].Text = v.text
 				end
 			end
@@ -579,7 +582,8 @@ local success, errorcode = pcall(function()
 				if cliblacklist[plr] == nil and cliwindow:IsActive() then
 					text = string.sub(text, 1, #text - 1)
 					if inputbar ~= nil then
-						cliOutput[inputbar] = prefix .. "> " .. text
+						print("Inputbar is " .. tostring(inputbar))
+						cliOutput[inputbar].text = prefix .. "> " .. text
 						updateOutput()
 					else
 						requireNewInputBar()
