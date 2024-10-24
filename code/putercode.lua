@@ -583,7 +583,7 @@ local success, errorcode = pcall(function()
 						updateOutput()
 					else
 						requireNewInputBar()
-						cliOutput[inputbar] = {text = prefix .. "> " .. text, color = inputbarColor}
+						cliOutput[inputbar].text = text
 						updateOutput()
 					end
 					oninput(text, plr, output, clear)
@@ -1683,6 +1683,11 @@ local success, errorcode = pcall(function()
 			["clear"] = {
 				cmd = function()
 					clear()
+				end;
+			};
+			["kill"] = {
+				cmd = function()
+					
 				end;
 			}
 		}
