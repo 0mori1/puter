@@ -554,9 +554,7 @@ local success, errorcode = pcall(function()
 			local function updateOutput()
 				for i, v in pairs(cliOutput) do
 					print("Chunk " .. tostring(i) .. " Text is " .. tostring(v.text) .. ", Color is " .. tostring(v.color))
-					print("Setting text color!")
 					cliLabels[i].TextColor3 = v.color
-					print("Setting text!")
 					cliLabels[i].Text = v.text
 				end
 			end
