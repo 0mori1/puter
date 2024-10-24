@@ -555,8 +555,8 @@ local success, errorcode = pcall(function()
 				for i, v in pairs(cliLabels) do
 					if cliOutput[i] then
 						print("Chunk " .. tostring(i) .. " Text is " .. tostring(cliOutput[i].text) .. ", Color is " .. tostring(cliOutput[i].color))
-						v.TextColor3 = cliOutput[i].Text
-						v.Text = cliOutput[i].Text
+						v.TextColor3 = cliOutput[i].color
+						v.Text = cliOutput[i].text
 					end
 				end
 			end
