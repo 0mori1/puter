@@ -552,12 +552,24 @@ local success, errorcode = pcall(function()
 				end
 			end
 			local function updateOutput()
-				for i, v in pairs(cliLabels) do
-					if cliOutput[i] then
-						print("Chunk " .. tostring(i) .. " Text is " .. tostring(cliOutput[i].text) .. ", Color is " .. tostring(cliOutput[i].color))
-						v.TextColor3 = cliOutput[i].color
-						v.Text = cliOutput[i].text
-					end
+				frame:Destroy()
+				frame = cliwindow:CreateElement("Frame", {
+					Size = UDim2.fromOffset(450, 275);
+					BackgroundColor3 = Color3.fromRGB(0,0,0);
+					BorderSizePixel = 0;
+				})
+				for i, v in pairs(cliOutput) do
+					puter.AddElement(frame, "TextLabel", {
+						Size = UDim2.fromOffset(444, 25);
+						Position = UDim2.fromOffset(0, (i - 1) * 25);
+						Text = v.text;
+						TextColor3 = v.color;
+						BackgroundColor3 = Color3.fromRGB(0,0,0);
+						BorderSizePixel = 0;
+						TextXAlignment = Enum.TextXAlignment.Left;
+						TextScaled = true;
+						Font = Enum.Font.RobotoMono
+					})
 				end
 			end
 			local function output(Out, color)
