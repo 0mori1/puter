@@ -2,6 +2,25 @@ local screen
 local coroutines = {}
 local eventLog = {}
 local running = true
+local function tinvert(t)
+	local newt = {}
+	for i, v in pairs(t) do
+		newt[v] = i
+	end
+	return newt
+end
+local function nsrex(pattern, str)
+	local paz = "abcdefghijklmnopqrztuvwxyz"
+	local az = {}
+	for i = 1, #paz, 1 do
+		az[string.sub(paz, i, i)] = true
+	end
+	local matchmode = ""
+	local forcedstring = false
+	for i = 1, #str, 1 do
+		
+	end
+end
 local function newCoroutine(func, name)
 	if name == nil then
 		name = "Undefined"
@@ -164,6 +183,11 @@ local success, errorcode = pcall(function()
 	local outAmount = 0
 	local voicecommands = true
 	local connections = {}
+	local function xLoadstring(code)
+		if string.sub(code, 1, 4) == "http" and availableComponents["Modem"] then
+			
+		end
+	end
 	local function xConnect(part, eventname, func, ID)
 		if availableComponents[part] ~= nil then
 			if connections[part] == nil then
@@ -1126,8 +1150,13 @@ local success, errorcode = pcall(function()
 	-- Set some variables (for self testing)
 	local importantselftest1passed = false
 	local loadBarRoutine
+	local isAR = false
 	-- Get the touch screen
 	screen = GetPartFromPort(1, "TouchScreen")
+	if not screen then
+		screen = GetPartFromPort(1, "ARController")
+		isAR = true
+	end
 	-- Check if the screen is actually existing
 	if screen ~= nil then
 		-- We succeeded (hooray but not yet)
@@ -1316,13 +1345,24 @@ local success, errorcode = pcall(function()
 			[4] = {4, "Expansion"}
 		}
 		local function secureGetPartFromPort(port, part)
+			print("Trying to get a " .. part .. " at port " .. tostring(port))
 			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
+				print("Tried to get a screen!")
 				return puter.CreateWindow(250, 250, part)
 			elseif allowedPorts[port] then
+				print("Port is allowed, Initial ID " .. tostring(port) .. ", alias ID " .. tostring(allowedPorts[port][1]))
+				local par
 				local success, fail = pcall(function()
-					return GetPartFromPort(port, part)
+					par = GetPartFromPort(allowedPorts[port][1], part)
 				end)
-				return nil
+				if not par then
+					print("No part acquired!")
+				else
+					print("Part acquired, GUID " .. par.GUID)
+				end
+				return par
+			else
+				print("Port is not allowed!")
 			end
 		end
 		local function secureGetPartsFromPort(port, part)
@@ -1693,7 +1733,7 @@ local success, errorcode = pcall(function()
 			["run"] = {
 				cmd = function()
 					local pid = luarun(args[1])
-					stdout(pid)
+					stdout("Generated process with ID " .. pid)
 				end;
 				singlearg = true};
 			["clear"] = {
@@ -1703,7 +1743,12 @@ local success, errorcode = pcall(function()
 			};
 			["kill"] = {
 				cmd = function()
-
+					if args[2] == "-n" then
+						closeCoroutine(tonumber(args[1]))
+					else
+						local killed = closeByName(args[1])
+						stdout("Killed " .. tostring(killed) .. " coroutines.")
+					end
 				end;
 			}
 		}
