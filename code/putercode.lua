@@ -1863,7 +1863,7 @@ local success, errorcode = pcall(function()
 									button.MouseButton1Up:Connect(function()
 										if alive and not value.revealed and not value.flagged then
 											value.revealed = true
-											button.Text = value.content
+											button.Text = value.content or ""
 											button.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 											button.TextColor3 = colormap[value.content] or Color3.fromRGB(0,0,0)
 											if value.content == "💥" then
