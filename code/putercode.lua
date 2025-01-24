@@ -1941,17 +1941,21 @@ local success, errorcode = pcall(function()
 					else
 						if not cmdid.singlearg and args[#args] ~= cmdid.fflag then
 							args[#args + 1] = string.sub(text, nxt, i-1)
+							print("command is not single arg and last arg is not the fflag of the command")
 						else
 							args[#args + 1] = string.sub(text, nxt, #text)
+							print("one arg")
 							break
 						end
 					end
 					nxt = i + 1
 				elseif splitSpecial[curchar] and not mode and i ~= nxt then
 					mode = splitSpecial[string.sub(text, i, i)]
+					print("special character, entering mode " .. mode)
 					nxt = i + 1
 				elseif mode and splitSpecialInverse[mode] == string.sub(text, i, i) and i ~= nxt then
 					mode = nil
+					print("end of arg")
 					if not cmd then
 						cmd = string.sub(text, nxt, i-1)
 						cmdid = commands[cmd]
