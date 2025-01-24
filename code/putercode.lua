@@ -1758,6 +1758,9 @@ local success, errorcode = pcall(function()
 			};
 			["minesweeper"] = {
 				cmd = function()
+					for i, v in pairs(args) do
+						print(v)
+					end
 					local width = tonumber(args[1])
 					local height = tonumber(args[2])
 					local mines = tonumber(args[3])
@@ -3188,7 +3191,7 @@ local success, errorcode = pcall(function()
 							lagBars[i]["bar"].Size = size
 							lagBars[i]["bar"].BackgroundColor3 = color
 							lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
-							lagBars[i]["amount"].Text = tostring(v)
+							lagBars[i]["amount"].Text = v
 							lagBars[i]["amount"].TextColor3 = color
 						end
 					end
