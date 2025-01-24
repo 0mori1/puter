@@ -18,7 +18,7 @@ local function nsrex(pattern, str)
 	local matchmode = ""
 	local forcedstring = false
 	for i = 1, #str, 1 do
-		
+
 	end
 end
 local function newCoroutine(func, name)
@@ -185,7 +185,7 @@ local success, errorcode = pcall(function()
 	local connections = {}
 	local function xLoadstring(code)
 		if string.sub(code, 1, 4) == "http" and availableComponents["Modem"] then
-			
+
 		end
 	end
 	local function xConnect(part, eventname, func, ID)
@@ -1344,6 +1344,8 @@ local success, errorcode = pcall(function()
 			[2] = {1, "Main", "You don't need to use port 2 anymore, use port 1."};
 			[4] = {4, "Expansion"}
 		}
+		local gpfp = GetPartFromPort()
+		local gpsfp = GetPartsFromPort()
 		local function secureGetPartFromPort(port, part)
 			print("Trying to get a " .. part .. " at port " .. tostring(port))
 			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
@@ -1353,8 +1355,11 @@ local success, errorcode = pcall(function()
 				print("Port is allowed, Initial ID " .. tostring(port) .. ", alias ID " .. tostring(allowedPorts[port][1]))
 				local par
 				local success, fail = pcall(function()
-					par = GetPartFromPort(allowedPorts[port][1], part)
+					par = gpfp(allowedPorts[port][1], part)
 				end)
+				if not success then
+					print(fail)
+				end
 				if not par then
 					print("No part acquired!")
 				else
@@ -1370,7 +1375,7 @@ local success, errorcode = pcall(function()
 				return {puter.CreateWindow(250, 250, part)}
 			elseif allowedPorts[port] then
 				local success, fail = pcall(function()
-					return GetPartsFromPort(port, part)
+					return gpsfp(port, part)
 				end)
 				return nil
 			end
@@ -1748,6 +1753,149 @@ local success, errorcode = pcall(function()
 					else
 						local killed = closeByName(args[1])
 						stdout("Killed " .. tostring(killed) .. " coroutines.")
+					end
+				end;
+			};
+			["minesweeper"] = {
+				cmd = function()
+					local width = tostring(args[1])
+					local height = tostring(args[2])
+					local mines = tostring(args[3])
+					if width and height and mines then
+						local winsizex = width * 25 + 20
+						local winsizey = height * 25 + 70
+						local field = {}
+						local UIfield
+						local UIfieldmap = {}
+						local minecount = 0
+						local colormap = {
+							Color3.fromRGB(1, 0, 251);
+							Color3.fromRGB(5, 121, 0);
+							Color3.fromRGB(253, 1, 0);
+							Color3.fromRGB(1, 0, 127);
+							Color3.fromRGB(124, 2, 5);
+							Color3.fromRGB(0, 128, 127);
+							Color3.fromRGB(0,0,0);
+							Color3.fromRGB(128, 128, 128)
+						}
+						local window = puter.CreateWindow(winsizex, winsizey, "Minesweeper")
+						local UIfield = window:CreateElement("Frame", {
+							Size = UDim2.fromOffset(width * 25, height * 25);
+							Position = UDim2.fromOffset(10, 60);
+							BorderSizePixel = 0;
+							BackgroundColor3 = Color3.fromRGB(217, 217, 217);
+						})
+						local regen = window:CreateElement("TextButton", {
+							Size = UDim2.fromOffset(30, 30);
+							Position = UDim2.fromOffset((winsizex - 30) / 2, 10);
+							Text = "🙂";
+							BorderSizePixel = 0;
+							BackgroundColor3 = Color3.fromRGB(217, 217, 217);
+							TextScaled = true;
+						})
+						local alive = false
+						local flags = 0
+						local function newBoard()
+							alive = true
+							flags = 0
+							--form the board
+							for i, v in pairs(UIfieldmap) do
+								v:Destroy()
+							end
+							for x = 1, width, 1 do
+								field[x] = {}
+								for y = 1, height, 1 do
+									field[x][y] = {}
+									field[x][y].flagged = false
+									field[x][y].revealed = false
+									field[x][y].content = ""
+								end
+							end
+							--spawn a buncha mines
+							while minecount < mines do
+								for x = 1, width, 1 do
+									for y = 1, height, 1 do
+										if math.random(1, 4) == 3 and field[x][y].content ~= "💥" then
+											if x > 1 and y > 1 or x < width and y < height or x < width and y > 1 or x > 1 and y > height then
+												field[x][y].content = "💥"
+												minecount += 1
+											end
+										end
+									end
+								end
+							end
+							--put mine count cells
+							for x = 1, width, 1 do
+								for y = 1, height, 1 do
+									--for nest my beloved
+									local localminecount = 0
+									for mx = -1, 1, 1 do
+										for my = -1, 1, 1 do
+											if field[x + mx][y + my].content == "💥" then
+												localminecount += 1
+											end
+										end
+									end
+									field[x][y] = localminecount
+								end
+							end
+							--lets go rendering!
+							for x = 1, width, 1 do
+								for y = 1, height, 1 do
+									local value = field[x][y]
+									local button = puter.AddElement(UIfield, "TextButton", {
+										Size = UDim2.fromOffset(25, 25);
+										Position = UDim2.fromOffset((x - 1) * 25, (y - 1) * 25);
+										BorderSizePixel = 0;
+										BackgroundColor3 = Color3.fromRGB(217, 217, 217);
+										Text = "";
+										TextScaled = true;
+									})
+									button.MouseButton1Up:Connect(function()
+										if alive and not value.revealed and not value.flagged then
+											value.revealed = true
+											button.Text = value.content
+											button.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+											button.TextColor3 = colormap[value.content] or Color3.fromRGB(0,0,0)
+											if value.content == "💥" then
+												alive = false
+												regen.Text = "😵"
+											else
+												regen.Text = "🙂"
+											end
+											local completed = true
+											for x = 1, width, 1 do
+												for y = 1, height, 1 do
+													if not field[x][y].revealed and field[x][y].content ~= "💥" then
+														completed = false
+													end
+												end
+											end
+											if completed then
+												alive = false
+												regen.Text = "😎"
+											end
+										end
+									end)
+									button.MouseButton1Down:Connect(function()
+										if alive and not value.revealed and not value.flagged then
+											regen.Text = "😮"
+										end
+									end)
+									button.MouseButton2Click:Connect(function()
+										if not value.flagged and alive then
+											button.Text = "🚩"
+										elseif alive then
+											button.Text = ""
+										end
+									end)
+								end
+							end
+						end
+						newBoard()
+						regen.MouseButton1Click:Connect(function()
+							newBoard()
+						end)
 					end
 				end;
 			}
