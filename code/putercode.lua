@@ -1762,6 +1762,7 @@ local success, errorcode = pcall(function()
 					local height = tostring(args[2])
 					local mines = tostring(args[3])
 					if width and height and mines then
+						stdout("Started a minesweeper game.")
 						local winsizex = width * 25 + 20
 						local winsizey = height * 25 + 70
 						local field = {}
@@ -1896,6 +1897,8 @@ local success, errorcode = pcall(function()
 						regen.MouseButton1Click:Connect(function()
 							newBoard()
 						end)
+					else
+						stderr("Insufficient arguments [3 numbers required]")
 					end
 				end;
 			}
@@ -1978,7 +1981,11 @@ local success, errorcode = pcall(function()
 				env.stdwarn = stdwarn
 				env.clear = clear
 				setfenv(excmd, env)
-				excmd()
+				local success, fail = pcall(excmd)
+				if not success then
+					print(fail)
+					return false, "Internal error occured, See console for details."
+				end
 				return true
 			else
 				return false, "no such command"
