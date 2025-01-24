@@ -1939,7 +1939,7 @@ local success, errorcode = pcall(function()
 							return false, "no such command"
 						end
 					else
-						if not cmdid.singlearg and args[#args] ~= cmdid.fflag then
+						if not cmdid.singlearg and args[#args] ~= cmdid.fflag or not cmdid.singlearg and cmdid.fflag == nil then
 							args[#args + 1] = string.sub(text, nxt, i-1)
 							print("command is not single arg and last arg is not the fflag of the command")
 						else
