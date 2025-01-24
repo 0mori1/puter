@@ -1842,7 +1842,10 @@ local success, errorcode = pcall(function()
 											end
 										end
 									end
-									field[x][y] = localminecount
+									if localminecount == 0 then
+										localminecount = nil
+									end
+									field[x][y].content = localminecount
 								end
 							end
 							--lets go rendering!
