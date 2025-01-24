@@ -1835,8 +1835,10 @@ local success, errorcode = pcall(function()
 									local localminecount = 0
 									for mx = -1, 1, 1 do
 										for my = -1, 1, 1 do
-											if field[x + mx][y + my].content == "💥" then
-												localminecount += 1
+											if x + mx >= 1 and x + mx <= width and y + my >= 1 and y + my <= height then
+												if field[x + mx][y + my].content == "💥" then
+													localminecount += 1
+												end
 											end
 										end
 									end
