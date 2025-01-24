@@ -1931,7 +1931,7 @@ local success, errorcode = pcall(function()
 			local nxt = 1
 			for i = 1, #text, 1 do
 				local curchar = string.sub(text, i, i)
-				if curchar == " " and not mode and i ~= nxt then
+				if curchar == " " and not mode and i ~= nxt or i == #text then
 					if not cmd then
 						cmd = string.sub(text, nxt, i-1)
 						cmdid = commands[cmd]
