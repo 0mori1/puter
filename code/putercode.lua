@@ -1758,9 +1758,9 @@ local success, errorcode = pcall(function()
 			};
 			["minesweeper"] = {
 				cmd = function()
-					local width = tostring(args[1])
-					local height = tostring(args[2])
-					local mines = tostring(args[3])
+					local width = tonumber(args[1])
+					local height = tonumber(args[2])
+					local mines = tonumber(args[3])
 					if width and height and mines then
 						stdout("Started a minesweeper game.")
 						local winsizex = width * 25 + 20
