@@ -1804,6 +1804,10 @@ local success, errorcode = pcall(function()
 							minecount = 0
 							alive = true
 							flags = 0
+							--build the fieldmap
+							for x = 1, width, 1 do
+								UIfieldmap[x] = {}
+							end
 							--delete the old field
 							for x = 1, width, 1 do
 								for y = 1, height, 1 do
@@ -1891,7 +1895,6 @@ local success, errorcode = pcall(function()
 							end
 							--lets go rendering!
 							for x = 1, width, 1 do
-								UIfieldmap[x] = {}
 								for y = 1, height, 1 do
 									local value = field[x][y]
 									local button = puter.AddElement(UIfield, "TextButton", {
