@@ -1830,7 +1830,7 @@ local success, errorcode = pcall(function()
 							while minecount < mines do
 								for x = 1, width, 1 do
 									for y = 1, height, 1 do
-										if math.random(1, 4) == 3 and field[x][y].content ~= "💥" then
+										if math.random(1, math.floor((width * height) / 5)) == width and field[x][y].content ~= "💥" and minecount < mines then
 											if x > 1 and y > 1 or x < width and y < height or x < width and y > 1 or x > 1 and y > height then
 												local cell = field[x][y]
 												cell.content = "💥"
@@ -1874,7 +1874,7 @@ local success, errorcode = pcall(function()
 											localminecount = nil
 											function cell:reveal()
 												cell.revealed = true
-												UIfieldmap[x][y].Text = cell.content
+												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 												for mx = -1, 1, 1 do
 													for my = -1, 1, 1 do
 														if x + mx >= 1 and x + mx <= width and y + my >= 1 and y + my <= height then
@@ -1887,6 +1887,8 @@ local success, errorcode = pcall(function()
 											function cell:reveal()
 												cell.revealed = true
 												UIfieldmap[x][y].Text = cell.content
+												UIfieldmap[x][y].TextColor3 = Color3.fromRGB(colormap[cell.content])
+												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 											end
 										end
 										field[x][y].content = localminecount
