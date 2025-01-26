@@ -1800,12 +1800,18 @@ local success, errorcode = pcall(function()
 						local alive = false
 						local flags = 0
 						local function newBoard()
+							field = {}
+							minecount = 0
 							alive = true
 							flags = 0
-							--form the board
-							for i, v in pairs(UIfieldmap) do
-								v:Destroy()
+							--delete the old field
+							for x = 1, width, 1 do
+								for y = 1, height, 1 do
+									UIfieldmap[x][y]:Destroy()
+									UIfieldmap[x][y] = nil
+								end
 							end
+							--form the board
 							for x = 1, width, 1 do
 								field[x] = {}
 								for y = 1, height, 1 do
@@ -1821,7 +1827,22 @@ local success, errorcode = pcall(function()
 									for y = 1, height, 1 do
 										if math.random(1, 4) == 3 and field[x][y].content ~= "💥" then
 											if x > 1 and y > 1 or x < width and y < height or x < width and y > 1 or x > 1 and y > height then
-												field[x][y].content = "💥"
+												local cell = field[x][y]
+												cell.content = "💥"
+												function cell:reveal()
+													cell.revealed = true
+													UIfieldmap[x][y].Text = cell.content
+													regen.Text = "😵"
+													alive = false
+													for mx = 1, width, 1 do
+														for my = 1, height, 1 do
+															if field[mx][my].content == "💥" then
+																UIfieldmap[mx][my].BackgroundColor3 = Color3.fromRGB(255,0,0)
+																UIfieldmap[mx][my].Text = "💥"
+															end
+														end
+													end
+												end
 												minecount += 1
 											end
 										end
@@ -1833,23 +1854,43 @@ local success, errorcode = pcall(function()
 								for y = 1, height, 1 do
 									--for nest my beloved
 									local localminecount = 0
-									for mx = -1, 1, 1 do
-										for my = -1, 1, 1 do
-											if x + mx >= 1 and x + mx <= width and y + my >= 1 and y + my <= height then
-												if field[x + mx][y + my].content == "💥" then
-													localminecount += 1
+									local cell = field[x][y]
+									if cell.content ~= "💥" then
+										for mx = -1, 1, 1 do
+											for my = -1, 1, 1 do
+												if x + mx >= 1 and x + mx <= width and y + my >= 1 and y + my <= height then
+													if field[x + mx][y + my].content == "💥" then
+														localminecount += 1
+													end
 												end
 											end
 										end
+										if localminecount == 0 then
+											localminecount = nil
+											function cell:reveal()
+												cell.revealed = true
+												UIfieldmap[x][y].Text = cell.content
+												for mx = -1, 1, 1 do
+													for my = -1, 1, 1 do
+														if x + mx >= 1 and x + mx <= width and y + my >= 1 and y + my <= height then
+															field[x + mx][y + my]:reveal()
+														end
+													end
+												end
+											end
+										else
+											function cell:reveal()
+												cell.revealed = true
+												UIfieldmap[x][y].Text = cell.content
+											end
+										end
+										field[x][y].content = localminecount
 									end
-									if localminecount == 0 then
-										localminecount = nil
-									end
-									field[x][y].content = localminecount
 								end
 							end
 							--lets go rendering!
 							for x = 1, width, 1 do
+								UIfieldmap[x] = {}
 								for y = 1, height, 1 do
 									local value = field[x][y]
 									local button = puter.AddElement(UIfield, "TextButton", {
@@ -1860,31 +1901,25 @@ local success, errorcode = pcall(function()
 										Text = "";
 										TextScaled = true;
 									})
+									UIfieldmap[x][y] = button
 									button.MouseButton1Up:Connect(function()
-										if alive and not value.revealed and not value.flagged then
-											value.revealed = true
-											button.Text = value.content or ""
-											button.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-											button.TextColor3 = colormap[value.content] or Color3.fromRGB(0,0,0)
-											if value.content == "💥" then
-												alive = false
-												regen.Text = "😵"
-											else
-												regen.Text = "🙂"
-											end
-											local completed = true
-											for x = 1, width, 1 do
-												for y = 1, height, 1 do
-													if not field[x][y].revealed and field[x][y].content ~= "💥" then
-														completed = false
+										local success, fail = pcall(function()
+											if alive and not value.revealed and not value.flagged then
+												field[x][y]:reveal()
+												local completed = true
+												for x = 1, width, 1 do
+													for y = 1, height, 1 do
+														if not field[x][y].revealed and field[x][y].content ~= "💥" then
+															completed = false
+														end
 													end
 												end
+												if completed then
+													alive = false
+													regen.Text = "😎"
+												end
 											end
-											if completed then
-												alive = false
-												regen.Text = "😎"
-											end
-										end
+										end)
 									end)
 									button.MouseButton1Down:Connect(function()
 										if alive and not value.revealed and not value.flagged then
@@ -1892,9 +1927,10 @@ local success, errorcode = pcall(function()
 										end
 									end)
 									button.MouseButton2Click:Connect(function()
-										if not value.flagged and alive then
+										if not value.flagged and alive and not value.revealed then
 											button.Text = "🚩"
-										elseif alive then
+											value.flagged = true
+										elseif alive and not value.revealed then
 											button.Text = ""
 										end
 									end)
