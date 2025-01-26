@@ -1807,6 +1807,7 @@ local success, errorcode = pcall(function()
 							--delete the old field
 							for x = 1, width, 1 do
 								for y = 1, height, 1 do
+									if not UIfieldmap[x][y] then break end
 									UIfieldmap[x][y]:Destroy()
 									UIfieldmap[x][y] = nil
 								end
@@ -1972,7 +1973,7 @@ local success, errorcode = pcall(function()
 			local nxt = 1
 			for i = 1, #text, 1 do
 				local curchar = string.sub(text, i, i)
-				if curchar == " " and not mode and i ~= nxt or i == #text then
+				if curchar == " " and not mode and i ~= nxt then
 					if not cmd then
 						cmd = string.sub(text, nxt, i-1)
 						cmdid = commands[cmd]
@@ -1990,6 +1991,23 @@ local success, errorcode = pcall(function()
 						end
 					end
 					nxt = i + 1
+				elseif i == #text then
+					if not cmd then
+						cmd = string.sub(text, nxt, i)
+						cmdid = commands[cmd]
+						if not cmdid then
+							return false, "no such command"
+						end
+					else
+						if not cmdid.singlearg and args[#args] ~= cmdid.fflag or not cmdid.singlearg and cmdid.fflag == nil then
+							args[#args + 1] = string.sub(text, nxt, i)
+							print("command is not single arg and last arg is not the fflag of the command")
+						else
+							args[#args + 1] = string.sub(text, nxt, #text)
+							print("one arg")
+							break
+						end
+					end
 				elseif splitSpecial[curchar] and not mode and i ~= nxt then
 					mode = splitSpecial[string.sub(text, i, i)]
 					print("special character, entering mode " .. mode)
