@@ -1344,9 +1344,23 @@ local success, errorcode = pcall(function()
 			[2] = {1, "Main", "You don't need to use port 2 anymore, use port 1."};
 			[4] = {4, "Expansion"}
 		}
-		local gpfp = GetPartFromPort()
-		local gpsfp = GetPartsFromPort()
+		local queue = {}
+		newCoroutine(function()
+			while true do
+				wait()
+				for i, v in pairs(queue) do
+					if not v.mult then
+						queue[i].response = GetPartFromPort(v.port, v.part)
+					else
+						queue[i].response = GetPartsFromPort(v.port, v.part)
+					end
+				end
+			end
+		end, "interface")
 		local function secureGetPartFromPort(port, part)
+			if allowedPorts[port] and allowedPorts[port][3] then
+				warn(allowedPorts[port][3])
+			end
 			print("Trying to get a " .. part .. " at port " .. tostring(port))
 			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
 				print("Tried to get a screen!")
@@ -1355,7 +1369,11 @@ local success, errorcode = pcall(function()
 				print("Port is allowed, Initial ID " .. tostring(port) .. ", alias ID " .. tostring(allowedPorts[port][1]))
 				local par
 				local success, fail = pcall(function()
-					par = gpfp(allowedPorts[port][1], part)
+					local queueid = #queue + 1
+					queue[queueid] = {port = allowedPorts[port][1], part = part, mult = false}
+					repeat wait() until queue[queueid].response
+					par = queue[queueid].response
+					queue[queueid] = nil
 				end)
 				if not success then
 					print(fail)
@@ -1375,7 +1393,12 @@ local success, errorcode = pcall(function()
 				return {puter.CreateWindow(250, 250, part)}
 			elseif allowedPorts[port] then
 				local success, fail = pcall(function()
-					return gpsfp(port, part)
+					local queueid = #queue + 1
+					queue[queueid] = {port = allowedPorts[port][1], part = part, mult = false}
+					repeat wait() until queue[queueid].response
+					local par = queue[queueid].response
+					queue[queueid] = nil
+					return par
 				end)
 				return nil
 			end
@@ -1800,6 +1823,7 @@ local success, errorcode = pcall(function()
 						local alive = false
 						local flags = 0
 						local function newBoard()
+							regen.Text = "🙂"
 							field = {}
 							minecount = 0
 							alive = true
@@ -1845,6 +1869,10 @@ local success, errorcode = pcall(function()
 																UIfieldmap[mx][my].BackgroundColor3 = Color3.fromRGB(255,0,0)
 																UIfieldmap[mx][my].Text = "💥"
 															end
+															if field[mx][my].flagged == true and field[mx][my] ~= "💥" then
+																UIfieldmap[mx][my].BackgroundColor3 = Color3.fromRGB(255,0,0)
+																UIfieldmap[mx][my].Text = "❌"
+															end
 														end
 													end
 												end
@@ -1877,7 +1905,7 @@ local success, errorcode = pcall(function()
 												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 												for mx = -1, 1, 1 do
 													for my = -1, 1, 1 do
-														if x + mx >= 1 and x + mx <= width and y + my >= 1 and y + my <= height then
+														if field[x + mx] and field[x + mx][y + my] then
 															field[x + mx][y + my]:reveal()
 														end
 													end
@@ -1887,11 +1915,11 @@ local success, errorcode = pcall(function()
 											function cell:reveal()
 												cell.revealed = true
 												UIfieldmap[x][y].Text = cell.content
-												UIfieldmap[x][y].TextColor3 = Color3.fromRGB(colormap[cell.content])
+												UIfieldmap[x][y].TextColor3 = colormap[cell.content]
 												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 											end
 										end
-										field[x][y].content = localminecount
+										cell.content = localminecount
 									end
 								end
 							end
@@ -1911,6 +1939,7 @@ local success, errorcode = pcall(function()
 									button.MouseButton1Up:Connect(function()
 										local success, fail = pcall(function()
 											if alive and not value.revealed and not value.flagged then
+												regen.Text = "🙂"
 												field[x][y]:reveal()
 												local completed = true
 												for x = 1, width, 1 do
@@ -1938,6 +1967,7 @@ local success, errorcode = pcall(function()
 											value.flagged = true
 										elseif alive and not value.revealed then
 											button.Text = ""
+											value.flagged = false
 										end
 									end)
 								end
