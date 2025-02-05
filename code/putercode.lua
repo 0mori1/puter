@@ -1906,6 +1906,7 @@ local success, errorcode = pcall(function()
 												for mx = -1, 1, 1 do
 													for my = -1, 1, 1 do
 														if field[x + mx] and field[x + mx][y + my] then
+															print("Recurse revealed " .. tostring(x + mx) .. ", " .. tostring(y + my))
 															field[x + mx][y + my]:reveal()
 														end
 													end
@@ -1939,6 +1940,7 @@ local success, errorcode = pcall(function()
 									button.MouseButton1Up:Connect(function()
 										local success, fail = pcall(function()
 											if alive and not value.revealed and not value.flagged then
+												print("Click revealed ".. tostring(x), ", " ..tostring(y))
 												regen.Text = "🙂"
 												field[x][y]:reveal()
 												local completed = true
