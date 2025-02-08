@@ -1353,30 +1353,35 @@ local success, errorcode = pcall(function()
 		}
 		local queue = {}
 		newCoroutine(function()
-			while true do
-				wait()
-				for i, v in pairs(queue) do
-					if v.type == "GETPART" then
-						print("Got a request to get a part!")
-						if not v.mult then
-							print("One part")
-							queue[i].response = GetPartFromPort(v.port, v.part)
-							go(GetPartFromPort(v.port, v.part))
-							print("Responded")
-						else
-							print("Multiple parts")
-							queue[i].response = GetPartsFromPort(v.port, v.part)
-							go(GetPartsFromPort(v.port, v.part))
-							print("Responded")
-						end
-					elseif v.type == "FILESYS" then 
-						if v.func ~= "write" then
-							queue[i].response = filesystem[v.func](v.path, v.disk, true, v.PID)
-						else
-							queue[i].response = filesystem[v.func](v.path, v.filename, v.disk, true, v.PID)
+			local success, err = pcall(function()
+				while true do
+					wait()
+					for i, v in pairs(queue) do
+						if v.type == "GETPART" then
+							print("Got a request to get a part!")
+							if not v.mult then
+								print("One part")
+								queue[i].response = GetPartFromPort(v.port, v.part)
+								go(GetPartFromPort(v.port, v.part))
+								print("Responded")
+							else
+								print("Multiple parts")
+								queue[i].response = GetPartsFromPort(v.port, v.part)
+								go(GetPartsFromPort(v.port, v.part))
+								print("Responded")
+							end
+						elseif v.type == "FILESYS" then 
+							if v.func ~= "write" then
+								queue[i].response = filesystem[v.func](v.path, v.disk, true, v.PID)
+							else
+								queue[i].response = filesystem[v.func](v.path, v.filename, v.disk, true, v.PID)
+							end
 						end
 					end
 				end
+			end)
+			if not success then
+				print(err)
 			end
 		end, "LA SYSCALLER", true)
 		local function syscall(call)
@@ -3243,19 +3248,19 @@ local success, errorcode = pcall(function()
 					Text = "N/A";
 				})
 				local lagHistoryFrame = puter.AddWindowElement(window, "Frame", {
-					Size = UDim2.fromOffset(350, 85);
+					Size = UDim2.fromOffset(350, 125);
 					Position = UDim2.fromOffset(0, 140);
 					BackgroundColor3 = Color3.fromRGB(0,0,0);
 					BorderSizePixel = 0;
 				})
 				local lag = {}
 				local lagBars = {}
-				for i = 1, 14, 1 do
+				for i = 1, 16, 1 do
 					local lagBar = puter.AddElement(lagHistoryFrame, "Frame", {
 						Size = UDim2.fromOffset(0, 0);
 						BackgroundColor3 = Color3.fromRGB(0,0,0);
 						BorderSizePixel = 0;
-						Position = UDim2.fromOffset((i - 1) * 25, 85)
+						Position = UDim2.fromOffset((i - 1) * 25, 125)
 					})
 					local lagAmount = puter.AddElement(lagBar, "TextLabel", {
 						Size = UDim2.fromOffset(15, 15);
@@ -3269,16 +3274,16 @@ local success, errorcode = pcall(function()
 					lagBars[i]["bar"] = lagBar
 					lagBars[i]["amount"] = lagAmount
 				end
-				local function addFramerate(framerate)
-					if #lag <= 13 then
-						lag[#lag + 1] = framerate
-					elseif #lag >= 14 then
+				local function addperformance(performance)
+					if #lag <= 15 then
+						lag[#lag + 1] = performance
+					elseif #lag >= 16 then
 						for i, v in pairs(lag) do
 							if i >= 2 then
 								lag[i - 1] = lag[i]
 							end
 						end
-						lag[14] = framerate
+						lag[16] = performance
 					end
 				end
 				local updated = false
@@ -3287,21 +3292,21 @@ local success, errorcode = pcall(function()
 						local curTime = tick()
 						wait(1)
 						local difference = tick() - curTime
-						local framerate = math.floor(60 / difference)
-						addFramerate(framerate)
+						local performance = math.floor(100 / difference)
+						addperformance(performance)
 						local color
-						if framerate >= 45 then
+						if performance >= 75 then
 							color = Color3.fromRGB(0,255,0)
-						elseif framerate >= 30 then
+						elseif performance >= 50 then
 							color = Color3.fromRGB(255,255,0)
-						elseif framerate >= 15 then
+						elseif performance >= 25 then
 							color = Color3.fromRGB(255,126,0)
-						elseif framerate >= 1 then
+						elseif performance >= 10 then
 							color = Color3.fromRGB(255,0,0)
 						else
 							color = Color3.fromRGB(143, 255, 244)
 						end
-						currentFPS.Text = tostring(framerate)
+						currentFPS.Text = performance
 						currentFPS.TextColor3 = color
 						updated = true
 					end
@@ -3312,13 +3317,13 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(lag) do
 							local color
 							local size
-							if v >= 45 then
+							if v >= 75 then
 								color = Color3.fromRGB(0,255,0)
-							elseif v >= 30 then
+							elseif v >= 50 then
 								color = Color3.fromRGB(255,255,0)
-							elseif v >= 15 then
+							elseif v >= 25 then
 								color = Color3.fromRGB(255,126,0)
-							elseif v >= 1 then
+							elseif v >= 10 then
 								color = Color3.fromRGB(255,0,0)
 							else
 								color = Color3.fromRGB(143, 255, 244)
@@ -3326,11 +3331,11 @@ local success, errorcode = pcall(function()
 							if v >= 1 then
 								size = UDim2.fromOffset(25,v)
 							else
-								size = UDim2.fromOffset(25, 60)
+								size = UDim2.fromOffset(25, 100)
 							end
 							lagBars[i]["bar"].Size = size
 							lagBars[i]["bar"].BackgroundColor3 = color
-							lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 60 - v + 25)
+							lagBars[i]["bar"].Position = UDim2.fromOffset((i - 1) * 25, 100 - v + 25)
 							lagBars[i]["amount"].Text = v
 							lagBars[i]["amount"].TextColor3 = color
 						end
