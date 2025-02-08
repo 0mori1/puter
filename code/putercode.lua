@@ -89,6 +89,10 @@ local function shutdown(user)
 	end
 end
 local function go(tbl)
+	if not tbl then
+		print("nil!")
+		return
+	end
 	for i, v in pairs(tbl) do
 		if typeof(v) == "table" then
 			go(v)
@@ -171,6 +175,7 @@ local success, errorcode = pcall(function()
 	local cliblacklist = {
 		["bredisgudok"] = true;
 	}
+	local filelocks = {}
 	local componentsToFind = {"Keyboard", "Modem", "ChatModem", "Microphone", "Speaker", "Disk", "LifeSensor"}
 	local availableComponents = {}
 	local iconAmount = 0
@@ -185,7 +190,7 @@ local success, errorcode = pcall(function()
 	local connections = {}
 	local function xLoadstring(code)
 		if string.sub(code, 1, 4) == "http" and availableComponents["Modem"] then
-
+			availableComponents["Modem"]:GetAsync()
 		end
 	end
 	local function xConnect(part, eventname, func, ID)
@@ -813,7 +818,6 @@ local success, errorcode = pcall(function()
 	}
 	local filesystem = {
 		createDirectory = function(path, disk)
-
 			if string.sub(path, 1, 1) ~= "/" then
 				path = "/" .. path
 			end
@@ -821,7 +825,6 @@ local success, errorcode = pcall(function()
 				path = path .. "/"
 			end
 			disk:Write(path, "t:folder")
-
 		end;
 		scanPath = function(path, disk)
 			local buffer1 = {}
@@ -856,7 +859,7 @@ local success, errorcode = pcall(function()
 			end
 			return buffer3
 		end;
-		write = function(path, filename, data, disk)
+		write = function(path, filename, data, disk, syscalled)
 			if string.sub(path, 1, 1) ~= "/" then
 				path = "/" .. path
 			end
@@ -880,15 +883,14 @@ local success, errorcode = pcall(function()
 				return false, "bad character in name"
 			end
 		end;
-		read = function(path, disk)
+		read = function(path, disk, syscalled, PID)
 			if path ~= nil then
 				if disk ~= nil then
-
-					local file = {}
+					local file = {valid = true}
 					file.data = disk:Read(path)
 					if file.data ~= nil then
-
 						function file:delete()
+							if not file.valid then return false, "Handle invalid." end
 							if file.data ~= "t:folder" then
 								disk:Write(path, nil)
 							else
@@ -904,20 +906,7 @@ local success, errorcode = pcall(function()
 						end
 						if file.data == "t:folder" then
 							function file:getDescendants()
-								local locationsAndValues = {}
-								if string.sub(path, #path, #path) ~= "/" then
-									path = path .. "/"
-								end
-								for i, v in pairs(disk:ReadAll()) do
-									if string.sub(i, 1, #path) == path then
-										locationsAndValues[string.sub(i, #path, #i)] = v
-									end
-								end
-								return locationsAndValues
-							end
-						end
-						if file.data == "t:folder" then
-							function file:getDescendants()
+								if not file.valid then return false, "Handle invalid." end
 								local locationsAndValues = {}
 								if string.sub(path, #path, #path) ~= "/" then
 									path = path .. "/"
@@ -931,6 +920,7 @@ local success, errorcode = pcall(function()
 							end
 						end
 						function file:copy(ddisk, destination)
+							if not file.valid then return false, "Handle invalid." end
 							local name
 							if string.sub(destination, #destination, #destination) ~= "/" then
 								destination = destination .. "/"
@@ -955,6 +945,7 @@ local success, errorcode = pcall(function()
 							end
 						end
 						function file:rename(newName)
+							if not file.valid then return false, "Handle invalid." end
 							local namelessPath
 							if string.sub(newName, #newName, #newName) == "/" and file.data ~= "t:folder" then
 								newName = string.sub(newName, 1, #newName - 1)
@@ -966,16 +957,25 @@ local success, errorcode = pcall(function()
 									namelessPath = string.sub(path, 1, i)
 								end
 							end
+							if file.data == "t:folder" then
+								local data = disk:ReadAll()
+								for i, v in pairs(data) do
+									if string.sub(i, 1, #path) == path then
+										local trim = string.sub(i, #path, #i)
+										disk:Write(namelessPath .. newName .. trim, v)
+										disk:Write(i, nil)
+									end
+								end
+							end
 							disk:Write(namelessPath .. newName, file.data)
 							path = namelessPath .. newName
 						end
 						function file:getName()
+							if not file.valid then return false, "Handle invalid." end
 							local name
 							for i = #path, 1, -1 do
 								if string.sub(path, i, i) == "/" and i ~= #path and not name then
-
 									name = string.sub(path, i + 1, #path)
-
 									if string.sub(name, #name, #name) == "/" then
 										name = string.sub(name, 1, #name - 1)
 									end
@@ -983,13 +983,20 @@ local success, errorcode = pcall(function()
 							end
 							return name
 						end
+						function file:close()
+							if not file.valid then return false, "Handle invalid." end
+							file.valid = false
+							filelocks[path][PID] = nil
+						end
 						return file
+					else
+						return false, "no such file or directory"
 					end
 				else
-					return {data = "whoops the disk is not a thing"}
+					return false, "disk not specified"
 				end
 			else
-				return {data = "whoops the path is missing"}
+				return false, "invalid path"
 			end
 		end;
 	}
@@ -1349,14 +1356,37 @@ local success, errorcode = pcall(function()
 			while true do
 				wait()
 				for i, v in pairs(queue) do
-					if not v.mult then
-						queue[i].response = GetPartFromPort(v.port, v.part)
-					else
-						queue[i].response = GetPartsFromPort(v.port, v.part)
+					if v.type == "GETPART" then
+						print("Got a request to get a part!")
+						if not v.mult then
+							print("One part")
+							queue[i].response = GetPartFromPort(v.port, v.part)
+							go(GetPartFromPort(v.port, v.part))
+							print("Responded")
+						else
+							print("Multiple parts")
+							queue[i].response = GetPartsFromPort(v.port, v.part)
+							go(GetPartsFromPort(v.port, v.part))
+							print("Responded")
+						end
+					elseif v.type == "FILESYS" then 
+						if v.func ~= "write" then
+							queue[i].response = filesystem[v.func](v.path, v.disk, true, v.PID)
+						else
+							queue[i].response = filesystem[v.func](v.path, v.filename, v.disk, true, v.PID)
+						end
 					end
 				end
 			end
-		end, "interface")
+		end, "LA SYSCALLER", true)
+		local function syscall(call)
+			local callid = #queue + 1
+			queue[callid] = call
+			repeat wait() until queue[callid].response
+			local response = queue[callid].response
+			queue[callid] = nil
+			return response
+		end
 		local function secureGetPartFromPort(port, part)
 			if allowedPorts[port] and allowedPorts[port][3] then
 				warn(allowedPorts[port][3])
@@ -1369,11 +1399,7 @@ local success, errorcode = pcall(function()
 				print("Port is allowed, Initial ID " .. tostring(port) .. ", alias ID " .. tostring(allowedPorts[port][1]))
 				local par
 				local success, fail = pcall(function()
-					local queueid = #queue + 1
-					queue[queueid] = {port = allowedPorts[port][1], part = part, mult = false}
-					repeat wait() until queue[queueid].response
-					par = queue[queueid].response
-					queue[queueid] = nil
+					par = syscall({port = allowedPorts[port][1], part = part, mult = false, type = "GETPART"})
 				end)
 				if not success then
 					print(fail)
@@ -1393,12 +1419,7 @@ local success, errorcode = pcall(function()
 				return {puter.CreateWindow(250, 250, part)}
 			elseif allowedPorts[port] then
 				local success, fail = pcall(function()
-					local queueid = #queue + 1
-					queue[queueid] = {port = allowedPorts[port][1], part = part, mult = false}
-					repeat wait() until queue[queueid].response
-					local par = queue[queueid].response
-					queue[queueid] = nil
-					return par
+					return syscall({port = allowedPorts[port][1], part = part, mult = true, type = "GETPART"})
 				end)
 				return nil
 			end
@@ -1407,11 +1428,25 @@ local success, errorcode = pcall(function()
 			local process = loadstring(codetorun)
 			local PID
 			local env = getfenv()
-			local envAdd = {puter = puter, puterutils = puterutils, filesystem = filesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
+			local securefilesystem = {
+				write = function(path, filename, disk)
+					return syscall({type = "FILESYS", path = path, filename = filename, disk = disk, PID = PID, func = "write"})
+				end;
+				read = function(path, disk)
+					return syscall({type = "FILESYS", path = path, disk = disk, PID = PID, func = "read"})
+				end;
+				createDirectory = function(path, disk)
+					return syscall({type = "FILESYS", path = path, disk = disk, PID = PID, func = "createDirectory"})
+				end;
+				scanPath = function(path, disk)
+					return syscall({type = "FILESYS", path = path, disk = disk, PID = PID, func = "scanPath"})
+				end;
+			}
+			local envAdd = {puter = puter, puterutils = puterutils, filesystem = securefilesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
 				repeat wait() until PID
 				closeCoroutine(PID)
 			end}
-			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network"}
+			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines"}
 			for i, v in pairs(envAdd) do
 				env[i] = v
 			end
@@ -1903,9 +1938,10 @@ local success, errorcode = pcall(function()
 											function cell:reveal()
 												cell.revealed = true
 												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+
 												for mx = -1, 1, 1 do
 													for my = -1, 1, 1 do
-														if field[x + mx] and field[x + mx][y + my] then
+														if field[x + mx] and field[x + mx][y + my] and x + mx ~= x and y + my ~= y then
 															print("Recurse revealed " .. tostring(x + mx) .. ", " .. tostring(y + my))
 															field[x + mx][y + my]:reveal()
 														end
@@ -1918,6 +1954,7 @@ local success, errorcode = pcall(function()
 												UIfieldmap[x][y].Text = cell.content
 												UIfieldmap[x][y].TextColor3 = colormap[cell.content]
 												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+												UIfieldmap[x][y].BorderSizePixel = 1
 											end
 										end
 										cell.content = localminecount
@@ -1931,7 +1968,8 @@ local success, errorcode = pcall(function()
 									local button = puter.AddElement(UIfield, "TextButton", {
 										Size = UDim2.fromOffset(25, 25);
 										Position = UDim2.fromOffset((x - 1) * 25, (y - 1) * 25);
-										BorderSizePixel = 0;
+										BorderSizePixel = 3;
+										BorderColor3 = Color3.fromRGB(80, 80, 80);
 										BackgroundColor3 = Color3.fromRGB(217, 217, 217);
 										Text = "";
 										TextScaled = true;
@@ -2008,6 +2046,8 @@ local success, errorcode = pcall(function()
 			local cmdid = nil
 			local args = {}
 			local nxt = 1
+			local WORKDIR
+			local WORKDISK
 			for i = 1, #text, 1 do
 				local curchar = string.sub(text, i, i)
 				if curchar == " " and not mode and i ~= nxt then
