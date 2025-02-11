@@ -189,10 +189,17 @@ local success, errorcode = pcall(function()
 	local voicecommands = true
 	local connections = {}
 	local function xLoadstring(code)
-		if string.sub(code, 1, 4) == "http" and availableComponents["Modem"] then
-			return loadstring(availableComponents["Modem"]:GetAsync(code, true))
-		else
+		if string.sub(code, 1, 4) == "http" and availableComponents["modem"] then
+			local code, err = loadstring(availableComponents["modem"]:GetAsync(code, true))
+			if not code then
+				print(err)
+				error()
+			end
+			return code
+		elseif availableComponents["modem"] then
 			return loadstring(code)
+		else
+			error("No modem!")
 		end
 	end
 	local function xConnect(part, eventname, func, ID)
@@ -1825,6 +1832,19 @@ local success, errorcode = pcall(function()
 					else
 						local killed = closeByName(args[1])
 						stdout("Killed " .. tostring(killed) .. " coroutines.")
+					end
+				end;
+			};
+			["granny"] = {
+				cmd = function()
+					if args[1] == "list" then
+						for i, v in pairs(JSONDecode(availableComponents.Modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
+							stdout(v)
+						end
+					elseif args[1] == "install" then
+						for i, v in pairs(JSONDecode(availableComponents.Modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
+							stdout(v)
+						end
 					end
 				end;
 			};
