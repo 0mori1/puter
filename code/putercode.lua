@@ -1838,11 +1838,11 @@ local success, errorcode = pcall(function()
 			["granny"] = {
 				cmd = function()
 					if args[1] == "list" then
-						for i, v in pairs(JSONDecode(availableComponents.Modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
+						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
 							stdout(v)
 						end
 					elseif args[1] == "install" then
-						for i, v in pairs(JSONDecode(availableComponents.Modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
+						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
 							stdout(v)
 						end
 					end
