@@ -190,7 +190,9 @@ local success, errorcode = pcall(function()
 	local connections = {}
 	local function xLoadstring(code)
 		if string.sub(code, 1, 4) == "http" and availableComponents["Modem"] then
-			availableComponents["Modem"]:GetAsync()
+			return loadstring(availableComponents["Modem"]:GetAsync(code, true))
+		else
+			return loadstring(code)
 		end
 	end
 	local function xConnect(part, eventname, func, ID)
@@ -1429,10 +1431,14 @@ local success, errorcode = pcall(function()
 				return nil
 			end
 		end
+		local function MakeWindow(icon, title, size)
+			if not size then size = UDim2.fromOffset(300, 200) end
+			return puter.CreateWindow(size.X.Offset + size.X.Scale * 800, size.Y.Offset + size.Y.Scale * 450, title)
+		end
+		local env = tableReplicate(getfenv())
 		local function luarun(codetorun)
-			local process = loadstring(codetorun)
+			local process = xLoadstring(codetorun)
 			local PID
-			local env = getfenv()
 			local securefilesystem = {
 				write = function(path, filename, disk)
 					return syscall({type = "FILESYS", path = path, filename = filename, disk = disk, PID = PID, func = "write"})
@@ -1461,6 +1467,9 @@ local success, errorcode = pcall(function()
 			setfenv(process, env)
 			PID = newCoroutine(process)
 			return PID
+		end
+		local function grannyrun()
+			
 		end
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
 		local function errorPopup(errorMessage)
