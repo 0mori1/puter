@@ -103,6 +103,7 @@ local function go(tbl)
 		end
 	end)
 	if not success then
+		print("tis not a table!")
 		print(tostring(tbl))
 	end
 end
@@ -1475,7 +1476,7 @@ local success, errorcode = pcall(function()
 				repeat wait() until PID
 				closeCoroutine(PID)
 			end}
-			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines"}
+			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines", "screen", "speaker", "keyboard", "modem", "disks"}
 			for i, v in pairs(envAdd) do
 				env[i] = v
 			end
@@ -1851,6 +1852,8 @@ local success, errorcode = pcall(function()
 					if args[1] == "list" then
 						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
 							go(v)
+							print(typeof(v))
+							stdout(v.name .. " by: " .. v.creator)
 						end
 					elseif args[1] == "install" then
 						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
@@ -1977,7 +1980,7 @@ local success, errorcode = pcall(function()
 													end
 												end
 											end
-										end
+										end	
 										if localminecount == 0 then
 											localminecount = nil
 											function cell:reveal()
@@ -1985,7 +1988,7 @@ local success, errorcode = pcall(function()
 												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
 												for mx = -1, 1, 1 do
 													for my = -1, 1, 1 do
-														if field[x + mx] and field[x + mx][y + my] and mx ~= 0 and my ~= 0 then
+														if field[x + mx] and field[x + mx][y + my] and not field[x + mx][y + my].revealed then
 															print("Recurse revealed " .. tostring(x + mx) .. ", " .. tostring(y + my))
 															field[x + mx][y + my]:reveal()
 														end
