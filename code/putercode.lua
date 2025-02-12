@@ -93,12 +93,17 @@ local function go(tbl)
 		print("nil!")
 		return
 	end
-	for i, v in pairs(tbl) do
-		if typeof(v) == "table" then
-			go(v)
-		else
-			print(tostring(i) .. ": " .. tostring(v))
-		end 
+	local success, fail = pcall(function()
+		for i, v in pairs(tbl) do
+			if typeof(v) == "table" then
+				go(v)
+			else
+				print(tostring(i) .. ": " .. tostring(v))
+			end 
+		end
+	end)
+	if not success then
+		print(tostring(tbl))
 	end
 end
 local function ReturnError(errorcode, errortype)
@@ -1366,24 +1371,30 @@ local success, errorcode = pcall(function()
 				while true do
 					wait()
 					for i, v in pairs(queue) do
-						if v.type == "GETPART" then
+						if v.type == "GETPART" and not v.responded then
 							print("Got a request to get a part!")
 							if not v.mult then
 								print("One part")
-								queue[i].response = GetPartFromPort(v.port, v.part)
+								print("Port: " .. tostring(v.port))
+								print("Part: " .. v.part)
+								v.response = GetPartFromPort(v.port, v.part)
+								v.responded = true
 								go(GetPartFromPort(v.port, v.part))
 								print("Responded")
 							else
 								print("Multiple parts")
-								queue[i].response = GetPartsFromPort(v.port, v.part)
+								v.response = GetPartsFromPort(v.port, v.part)
+								v.responded = true
 								go(GetPartsFromPort(v.port, v.part))
 								print("Responded")
 							end
-						elseif v.type == "FILESYS" then 
+						elseif v.type == "FILESYS" and not v.response then 
 							if v.func ~= "write" then
-								queue[i].response = filesystem[v.func](v.path, v.disk, true, v.PID)
+								v.response = filesystem[v.func](v.path, v.disk, true, v.PID)
+								v.responded = true
 							else
-								queue[i].response = filesystem[v.func](v.path, v.filename, v.disk, true, v.PID)
+								v.response = filesystem[v.func](v.path, v.filename, v.disk, true, v.PID)
+								v.responded = true
 							end
 						end
 					end
@@ -1839,11 +1850,11 @@ local success, errorcode = pcall(function()
 				cmd = function()
 					if args[1] == "list" then
 						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
-							stdout(v)
+							go(v)
 						end
 					elseif args[1] == "install" then
 						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
-							stdout(v)
+							go(v)
 						end
 					end
 				end;
@@ -1972,10 +1983,9 @@ local success, errorcode = pcall(function()
 											function cell:reveal()
 												cell.revealed = true
 												UIfieldmap[x][y].BackgroundColor3 = Color3.fromRGB(150, 150, 150)
-
 												for mx = -1, 1, 1 do
 													for my = -1, 1, 1 do
-														if field[x + mx] and field[x + mx][y + my] and x + mx ~= x and y + my ~= y then
+														if field[x + mx] and field[x + mx][y + my] and mx ~= 0 and my ~= 0 then
 															print("Recurse revealed " .. tostring(x + mx) .. ", " .. tostring(y + my))
 															field[x + mx][y + my]:reveal()
 														end
