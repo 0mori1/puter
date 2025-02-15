@@ -1491,23 +1491,6 @@ local success, errorcode = pcall(function()
 		local function addIcon(name, func)
 			iconsToGenerate[#iconsToGenerate + 1] = {Name = name, Function = func}
 		end
-		puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
-		local function rebuildDesktop()
-			local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
-			for i, v in pairs(iconMap) do
-				v:Destroy()
-			end
-			for i, v in pairs(staticIcons) do
-				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				iconMap[v.Name] = icon
-				icon.MouseButton1Click:Connect(v.Function)
-			end
-			for i, v in pairs(iconsToGenerate) do
-				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				iconMap[v.Name] = icon
-				icon.MouseButton1Click:Connect(v.Function)
-			end
-		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
 			puter.AddWindowElement(window, "TextLabel", {
@@ -2054,7 +2037,6 @@ local success, errorcode = pcall(function()
 										local success, fail = pcall(function()
 											if alive and not value.revealed and not value.flagged then
 												print("Click revealed ".. tostring(x), ", " ..tostring(y))
-												regen.Text = "🙂"
 												field[x][y]:reveal()
 												local completed = true
 												for x = 1, width, 1 do
@@ -2067,6 +2049,9 @@ local success, errorcode = pcall(function()
 												if completed then
 													alive = false
 													regen.Text = "😎"
+												end
+												if alive then
+													regen.Text = "🙂"
 												end
 											end
 										end)
@@ -3282,6 +3267,7 @@ local success, errorcode = pcall(function()
 				openMainExplorer()
 			end
 		end
+		local getdesktopfiles
 		if foundPrimary then
 			local foldersToDisplay = {}
 			local filesToDisplay = {}
@@ -3309,7 +3295,7 @@ local success, errorcode = pcall(function()
 					end
 				end
 			end
-			local function getdesktopfiles()
+			getdesktopfiles = function()
 				getFiles("/Desktop/", mounteddisks[foundPrimary])
 				getFolders("/Desktop/", mounteddisks[foundPrimary])
 				iconsToGenerate = {}
@@ -4061,6 +4047,24 @@ local success, errorcode = pcall(function()
 			end
 		end
 		staticIcons[2] = {Name = "Chat", Function = openChat}
+		puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
+		local function rebuildDesktop()
+			getdesktopfiles()
+			local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
+			for i, v in pairs(iconMap) do
+				v:Destroy()
+			end
+			for i, v in pairs(staticIcons) do
+				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				iconMap[v.Name] = icon
+				icon.MouseButton1Click:Connect(v.Function)
+			end
+			for i, v in pairs(iconsToGenerate) do
+				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				iconMap[v.Name] = icon
+				icon.MouseButton1Click:Connect(v.Function)
+			end
+		end
 		rebuildDesktop()
 		local postomaticOpen = false
 		local function openPostOMatic()
