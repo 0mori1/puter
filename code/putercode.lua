@@ -3274,18 +3274,22 @@ local success, errorcode = pcall(function()
 			local function getFolders(path, disk)
 				local folders = filesystem.scanPath(path, disk)
 				for i, v in pairs(folders) do
-					local folder = filesystem.read(path .. v .. "/", disk)
-					if folder ~= nil then
+					local folder, err = filesystem.read(path .. v .. "/", disk)
+					if folder then
 						foldersToDisplay[path .. v .. "/"] = folder
+					else
+						print(err)
 					end
 				end
 			end
 			local function getFiles(path, disk)
 				local files = filesystem.scanPath(path, disk)
 				for i, v in pairs(files) do
-					local file = filesystem.read(path .. v, disk)
-					if file ~= nil then
+					local file, err = filesystem.read(path .. v, disk)
+					if file then
 						filesToDisplay[path .. v] = file
+					else
+						print(err)
 					end
 				end
 			end
@@ -3297,7 +3301,6 @@ local success, errorcode = pcall(function()
 					addIcon(v:getName(), function()
 						local fileType, data, trueType = typeParser(v.data)
 						local thingToDo = knownFileTypes[fileType]
-
 						if thingToDo ~= nil then
 							thingToDo(data)
 						else
