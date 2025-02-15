@@ -3274,13 +3274,9 @@ local success, errorcode = pcall(function()
 			local function getFolders(path, disk)
 				local folders = filesystem.scanPath(path, disk)
 				for i, v in pairs(folders) do
-
 					local folder = filesystem.read(path .. v .. "/", disk)
-
 					if folder ~= nil then
-
 						foldersToDisplay[path .. v .. "/"] = folder
-
 					end
 				end
 			end
@@ -3289,9 +3285,7 @@ local success, errorcode = pcall(function()
 				for i, v in pairs(files) do
 					local file = filesystem.read(path .. v, disk)
 					if file ~= nil then
-
 						filesToDisplay[path .. v] = file
-
 					end
 				end
 			end
@@ -3300,7 +3294,7 @@ local success, errorcode = pcall(function()
 				getFolders("/Desktop/", mounteddisks[foundPrimary])
 				iconsToGenerate = {}
 				for i, v in pairs(filesToDisplay) do
-					addIcon(v:GetName(), function()
+					addIcon(v:getName(), function()
 						local fileType, data, trueType = typeParser(v.data)
 						local thingToDo = knownFileTypes[fileType]
 
