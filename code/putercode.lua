@@ -1065,12 +1065,6 @@ local success, errorcode = pcall(function()
 			Size = UDim2.fromOffset(800, 450);
 			ZIndex = 2;
 		})
-		local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
-		local explorerApp = createIcon("Explorer", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-		local chatApp = createIcon("Chat", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-		local diskUtilApp = createIcon("Disk Utility", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-		local lagOMeterApp = createIcon("Lag O'Meter", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-		local musicApp = createIcon("Music Player", Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
 		-- Paint the task bar
 		local taskbar = screen:CreateElement("Frame", {
 			Position = UDim2.fromOffset(0, 400);
@@ -1159,7 +1153,7 @@ local success, errorcode = pcall(function()
 			end
 		end)
 		-- Return all of these items
-		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon
+		return taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, terminal, background, postomatic
 	end
 	local function tableReplicate(tableToCopy)
 		local newTable = {}
@@ -1389,7 +1383,7 @@ local success, errorcode = pcall(function()
 								go(GetPartsFromPort(v.port, v.part))
 								print("Responded")
 							end
-						elseif v.type == "FILESYS" and not v.response then 
+						elseif v.type == "FILESYS" and not v.responded then 
 							if v.func ~= "write" then
 								v.response = filesystem[v.func](v.path, v.disk, true, v.PID)
 								v.responded = true
@@ -1490,7 +1484,30 @@ local success, errorcode = pcall(function()
 		local function grannyrun()
 			
 		end
-		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, explorerApp, chatApp, diskUtilApp, lagOMeterApp, musicApp, postomatic, createIcon = InitializeDesktop()
+		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, postomatic = InitializeDesktop()
+		local iconMap = {}
+		local staticIcons = {}
+		local iconsToGenerate = {}
+		local function addIcon(name, func)
+			iconsToGenerate[#iconsToGenerate + 1] = {Name = name, Function = func}
+		end
+		puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
+		local function rebuildDesktop()
+			local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
+			for i, v in pairs(iconMap) do
+				v:Destroy()
+			end
+			for i, v in pairs(staticIcons) do
+				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				iconMap[v.Name] = icon
+				icon.MouseButton1Click:Connect(v.Function)
+			end
+			for i, v in pairs(iconsToGenerate) do
+				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				iconMap[v.Name] = icon
+				icon.MouseButton1Click:Connect(v.Function)
+			end
+		end
 		local function errorPopup(errorMessage)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
 			puter.AddWindowElement(window, "TextLabel", {
@@ -1635,8 +1652,7 @@ local success, errorcode = pcall(function()
 		local pages = {
 			[1] = {
 				"Page 1 out of 4";
-				"lua run [Code]: Runs the code on an";
-				"another microcontroller";
+				"lua run [Code]: Runs custom code";
 				"lua stop: Deprecated.";
 				"shutdown: Shuts down the puter";
 				"restart: Restarts the puter";
@@ -1846,6 +1862,12 @@ local success, errorcode = pcall(function()
 						stdout("Killed " .. tostring(killed) .. " coroutines.")
 					end
 				end;
+				["refresh"] = {
+					cmd = function()
+						rebuildDesktop()
+						stdout("Desktop refreshed.")
+					end;
+				}
 			};
 			["granny"] = {
 				cmd = function()
@@ -1856,6 +1878,12 @@ local success, errorcode = pcall(function()
 							stdout(v.name .. " by: " .. v.creator)
 						end
 					elseif args[1] == "install" then
+						local prog
+						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
+							if v.name == args[2] then
+								prog = v.appid
+							end
+						end
 						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
 							go(v)
 						end
@@ -2070,14 +2098,28 @@ local success, errorcode = pcall(function()
 				end;
 			}
 		}
+		local function tableparse(text)
+			local gentable = {}
+			local tablereserve = {}
+			local pointers = {}
+			local depth = 0
+			for i = 1, #text, 1 do
+				local curchar = string.sub(text, i, i)
+				if curchar == "[" then
+					depth += 1
+				end
+			end
+		end
 		local function command(text, plr, terminalout, clear)
 			local splitSpecial = {
 				['"'] = 1;
 				["'"] = 2;
+				["{"] = 3;
 			}
 			local splitSpecialInverse = {
 				[1] = '"';
 				[2] = "'";
+				[3] = "}";
 			}
 			local function stdout(text)
 				terminalout(text, Color3.fromRGB(255,255,255))
@@ -2091,7 +2133,10 @@ local success, errorcode = pcall(function()
 			local mode
 			local cmd = nil
 			local cmdid = nil
+			local argc = {}
 			local args = {}
+			local tableparse = 1
+			local depth = 1
 			local nxt = 1
 			local WORKDIR
 			local WORKDISK
@@ -2132,25 +2177,39 @@ local success, errorcode = pcall(function()
 							break
 						end
 					end
-				elseif splitSpecial[curchar] and not mode and i ~= nxt then
-					mode = splitSpecial[string.sub(text, i, i)]
-					print("special character, entering mode " .. mode)
+				elseif splitSpecial[curchar] and not mode and i ~= nxt or splitSpecial[curchar] and mode == 3 and i ~= nxt then
+					if splitSpecial[string.sub(text, i, i)] ~= 3 then
+						mode = splitSpecial[string.sub(text, i, i)]
+						print("special character, entering mode " .. mode)
+					else
+						if not mode then
+							tableparse = i
+						end
+						mode = 3
+						print("table parse depth: " .. tostring(depth))
+						depth += 1
+					end
 					nxt = i + 1
 				elseif mode and splitSpecialInverse[mode] == string.sub(text, i, i) and i ~= nxt then
-					mode = nil
+					if mode < 3 then mode = nil end
 					print("end of arg")
-					if not cmd then
+					if not cmd and mode < 3 then
 						cmd = string.sub(text, nxt, i-1)
 						cmdid = commands[cmd]
 						if not cmdid then
 							return false, "no such command"
 						end
-					else
+					elseif mode < 3 then
 						if not cmdid.singlearg and args[#args] ~= cmdid.fflag then
 							args[#args + 1] = string.sub(text, nxt, i-1)
 						else
 							args[#args + 1] = string.sub(text, nxt, #text)
 							break
+						end
+					else
+						depth -= 1
+						if depth == 0 then
+							args[#args + 1] = tableparse(string.sub(text, tableparse, i))
 						end
 					end
 				end
@@ -3158,7 +3217,6 @@ local success, errorcode = pcall(function()
 
 											end
 											local goodjob, uhoh = pcall(function()
-
 												xAssert(mounteddisks[disk], "invalid disk, make sure that you didnt accidentally type in anything other than a number")
 												xAssert(path, "input a path")
 												specialAssert(filesystem.read(path, mounteddisks[disk]).data, "t:folder", "path specified is not a folder")
@@ -3251,12 +3309,12 @@ local success, errorcode = pcall(function()
 					end
 				end
 			end
-			getFiles("/Desktop/", mounteddisks[foundPrimary])
-			getFolders("/Desktop/", mounteddisks[foundPrimary])
-			for i, v in pairs(filesToDisplay) do
-				local fileIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				if fileIcon ~= nil then
-					fileIcon.MouseButton1Click:Connect(function()
+			local function getdesktopfiles()
+				getFiles("/Desktop/", mounteddisks[foundPrimary])
+				getFolders("/Desktop/", mounteddisks[foundPrimary])
+				iconsToGenerate = {}
+				for i, v in pairs(filesToDisplay) do
+					addIcon(v:GetName(), function()
 						local fileType, data, trueType = typeParser(v.data)
 						local thingToDo = knownFileTypes[fileType]
 
@@ -3267,11 +3325,8 @@ local success, errorcode = pcall(function()
 						end
 					end)
 				end
-			end
-			for i, v in pairs(foldersToDisplay) do
-				local folderIcon = createIcon(v:getName(), Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				if folderIcon ~= nil then
-					folderIcon.MouseButton1Click:Connect(function()
+				for i, v in pairs(foldersToDisplay) do
+					addIcon(v:getName(), function()
 						explorer(i, mounteddisks[foundPrimary])
 					end)
 				end
@@ -3390,9 +3445,7 @@ local success, errorcode = pcall(function()
 				end)
 			end
 		end
-		lagOMeterApp.MouseButton1Click:Connect(function()
-			lagometer()
-		end)
+		staticIcons[4] = {Name = "Lag O'Meter", Function = lagometer}
 		local function musicPlayer()
 			if availableComponents["speaker"] and storage then
 				if canopenmusic == true then
@@ -3697,9 +3750,7 @@ local success, errorcode = pcall(function()
 				errorPopup("Missing components")
 			end
 		end
-		musicApp.MouseButton1Click:Connect(function()
-			musicPlayer()
-		end)
+		staticIcons[5] = {Name = "Music Player", Function = musicPlayer}
 		shutdownbutton.MouseButton1Click:Connect(function()
 			shutdown()
 		end)
@@ -3712,9 +3763,7 @@ local success, errorcode = pcall(function()
 			Beep()
 			TriggerPort(3)
 		end)
-		explorerApp.MouseButton1Click:Connect(function()
-			explorer()
-		end)
+		staticIcons[1] = {Name = "Explorer", Function = explorer}
 		local canopenterminal = true
 		local canopenchat = true
 		local canopendiskutil = true
@@ -3826,9 +3875,7 @@ local success, errorcode = pcall(function()
 				end)
 			end
 		end
-		diskUtilApp.MouseButton1Click:Connect(function()
-			diskUtil()
-		end)
+		staticIcons[3] = {Name = "Disk Utility", Function = diskUtil}
 		local function openChat()
 			if chatModem ~= nil and canopenchat == true then
 				canopenchat = false
@@ -4013,9 +4060,8 @@ local success, errorcode = pcall(function()
 				end)
 			end
 		end
-		chatApp.MouseButton1Click:Connect(function()
-			openChat()
-		end)
+		staticIcons[2] = {Name = "Chat", Function = openChat}
+		rebuildDesktop()
 		local postomaticOpen = false
 		local function openPostOMatic()
 			local window, closebutton, titlebar = puter.CreateWindow(400, 225, "Post-O-Matic")
