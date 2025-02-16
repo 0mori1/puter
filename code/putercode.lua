@@ -2172,7 +2172,7 @@ local success, errorcode = pcall(function()
 						depth += 1
 					end
 					nxt = i + 1
-				elseif mode and splitSpecialInverse[mode] == string.sub(text, i, i) then
+				elseif mode and splitSpecialInverse[mode] == curchar then
 					if mode ~= 3 then mode = nil end
 					print("end of arg")
 					if not cmd and mode < 3 then
@@ -2183,9 +2183,12 @@ local success, errorcode = pcall(function()
 						end
 					elseif mode ~= 3 then
 						if not cmdid.singlearg and args[#args] ~= cmdid.fflag then
+							print(i - 1)
 							args[#args + 1] = string.sub(text, nxt, i-1)
 						else
-							args[#args + 1] = string.sub(text, nxt, #text)
+							print(i - 1)
+							print(string.sub(text, i - 1, i - 1))
+							args[#args + 1] = string.sub(text, nxt, i- 1)
 							break
 						end
 					else
