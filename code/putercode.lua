@@ -2139,7 +2139,7 @@ local success, errorcode = pcall(function()
 			for i = 1, #text, 1 do
 				local curchar = string.sub(text, i, i)
 				print(curchar)
-				print(mode)
+				print(splitSpecial[curchar], mode)
 				print(i, nxt)
 				if curchar == " " and not mode and i ~= nxt then
 					if not cmd then
@@ -2176,7 +2176,7 @@ local success, errorcode = pcall(function()
 							break
 						end
 					end
-				elseif splitSpecial[curchar] and not mode and i ~= nxt or splitSpecial[curchar] and mode == 3 and i ~= nxt then
+				elseif splitSpecial[curchar] and not mode or splitSpecial[curchar] and mode == 3 then
 					if splitSpecial[string.sub(text, i, i)] ~= 3 then
 						mode = splitSpecial[string.sub(text, i, i)]
 						print("special character, entering mode " .. mode)
