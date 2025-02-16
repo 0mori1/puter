@@ -4745,7 +4745,6 @@ local success, errorcode = pcall(function()
 				local terminalmicrocontroller = GetPartFromPort(6, "Microcontroller")
 				canopenterminal = false
 				local mode = "check"
-				--increment the version each major change
 				local ver = "wOS Codename BasicSystem, made by 0mori2"
 				puterutils.cliengine(function(text, plr, terminalout, clear)
 					local function outputstd(text)
@@ -4768,10 +4767,13 @@ local success, errorcode = pcall(function()
 							outputstd("Switching to command.")
 						end
 					else
-						local success, reason = command(text, plr, terminalout, clear)
-						if not success then
-							outputstd(reason)
-						end
+						local success, fail = pcall(function()
+							local success, reason = command(text, plr, terminalout, clear)
+							if not success then
+								outputstd(reason)
+							end
+						end)
+						if not success then print(fail) end
 					end
 				end, "Terminal", ver, function()
 					canopenterminal = true
