@@ -1863,6 +1863,8 @@ local success, errorcode = pcall(function()
 					elseif args[1] == "install" then
 						local prog
 						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
+							print(v.name)
+							print(v.app_id)
 							if v.name == args[2] then
 								prog = v.app_id
 							end
@@ -1875,9 +1877,6 @@ local success, errorcode = pcall(function()
 			};
 			["minesweeper"] = {
 				cmd = function()
-					for i, v in pairs(args) do
-						print(v)
-					end
 					local width = tonumber(args[1])
 					local height = tonumber(args[2])
 					local mines = tonumber(args[3])
