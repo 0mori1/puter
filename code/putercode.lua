@@ -2181,7 +2181,7 @@ local success, errorcode = pcall(function()
 						if not cmdid then
 							return false, "no such command"
 						end
-					elseif mode < 3 then
+					elseif mode ~= 3 then
 						if not cmdid.singlearg and args[#args] ~= cmdid.fflag then
 							args[#args + 1] = string.sub(text, nxt, i-1)
 						else
