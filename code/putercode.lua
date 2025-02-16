@@ -1823,8 +1823,10 @@ local success, errorcode = pcall(function()
 		end
 		local commands = {
 			["echo"] = {cmd = function()
-				stdout(args[1])
-			end, singlearg = true};
+				for i, v in pairs(args) do
+					stdout(v)
+				end
+			end};
 			["run"] = {
 				cmd = function()
 					local pid = luarun(args[1])
@@ -1861,6 +1863,7 @@ local success, errorcode = pcall(function()
 							stdout(v.name .. " by: " .. v.creator)
 						end
 					elseif args[1] == "install" then
+						print(args[2])
 						local prog
 						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
 							print(v.name)
@@ -1869,9 +1872,16 @@ local success, errorcode = pcall(function()
 								prog = v.app_id
 							end
 						end
+						if not prog then
+							stderr("App not found.")
+							return
+						end
 						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..prog..'"}', Enum.HttpContentType.ApplicationJson))) do
+							print(i)
 							go(v)
 						end
+					else
+						stdout("granny [list / install] [name?]")
 					end
 				end;
 			};
@@ -2176,8 +2186,8 @@ local success, errorcode = pcall(function()
 						depth += 1
 					end
 					nxt = i + 1
-				elseif mode and splitSpecialInverse[mode] == string.sub(text, i, i) and i ~= nxt then
-					if mode < 3 then mode = nil end
+				elseif mode and splitSpecialInverse[mode] == string.sub(text, i, i) then
+					if mode ~= 3 then mode = nil end
 					print("end of arg")
 					if not cmd and mode < 3 then
 						cmd = string.sub(text, nxt, i-1)
@@ -2198,6 +2208,7 @@ local success, errorcode = pcall(function()
 							args[#args + 1] = tableparse(string.sub(text, tableparse, i))
 						end
 					end
+					nxt += 1
 				end
 			end
 			if not cmd then
