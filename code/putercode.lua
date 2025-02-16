@@ -1864,10 +1864,10 @@ local success, errorcode = pcall(function()
 						local prog
 						for i, v in pairs(JSONDecode(availableComponents.modem:GetAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/Apps"))["apps"]) do
 							if v.name == args[2] then
-								prog = v.appid
+								prog = v.app_id
 							end
 						end
-						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..args[2]..'"}', Enum.HttpContentType.ApplicationJson))) do
+						for i, v in pairs(JSONDecode(availableComponents.modem:PostAsync("https://aughhhhhhhsigmasigmaboy.pythonanywhere.com/GetApp", '{"app_id" : "'..prog..'"}', Enum.HttpContentType.ApplicationJson))) do
 							go(v)
 						end
 					end
@@ -2087,6 +2087,8 @@ local success, errorcode = pcall(function()
 			local gentable = {}
 			local tablereserve = {}
 			local pointers = {}
+			local pointernum
+			local pointer
 			local depth = 0
 			for i = 1, #text, 1 do
 				local curchar = string.sub(text, i, i)
