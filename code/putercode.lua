@@ -2159,23 +2159,6 @@ local success, errorcode = pcall(function()
 						end
 					end
 					nxt = i + 1
-				elseif i == #text then
-					if not cmd then
-						cmd = string.sub(text, nxt, i)
-						cmdid = commands[cmd]
-						if not cmdid then
-							return false, "no such command"
-						end
-					else
-						if not cmdid.singlearg and args[#args] ~= cmdid.fflag or not cmdid.singlearg and cmdid.fflag == nil then
-							args[#args + 1] = string.sub(text, nxt, i)
-							print("command is not single arg and last arg is not the fflag of the command")
-						else
-							args[#args + 1] = string.sub(text, nxt, #text)
-							print("one arg")
-							break
-						end
-					end
 				elseif splitSpecial[curchar] and not mode or splitSpecial[curchar] and mode == 3 then
 					if splitSpecial[string.sub(text, i, i)] ~= 3 then
 						mode = splitSpecial[string.sub(text, i, i)]
@@ -2212,6 +2195,23 @@ local success, errorcode = pcall(function()
 						end
 					end
 					nxt += 1
+				elseif i == #text then
+					if not cmd then
+						cmd = string.sub(text, nxt, i)
+						cmdid = commands[cmd]
+						if not cmdid then
+							return false, "no such command"
+						end
+					else
+						if not cmdid.singlearg and args[#args] ~= cmdid.fflag or not cmdid.singlearg and cmdid.fflag == nil then
+							args[#args + 1] = string.sub(text, nxt, i)
+							print("command is not single arg and last arg is not the fflag of the command")
+						else
+							args[#args + 1] = string.sub(text, nxt, #text)
+							print("one arg")
+							break
+						end
+					end
 				end
 			end
 			if not cmd then
