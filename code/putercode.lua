@@ -2,6 +2,8 @@ local screen
 local coroutines = {}
 local eventLog = {}
 local running = true
+local Xres = 0
+local Yres = 0
 local function tinvert(t)
 	local newt = {}
 	for i, v in pairs(t) do
@@ -113,7 +115,7 @@ local function ReturnError(errorcode, errortype)
 	if screen ~= nil then
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
-			Size = UDim2.fromOffset(800, 450);
+			Size = UDim2.fromOffset(Xres, Yres);
 			Position = UDim2.fromOffset(0,0);
 			BackgroundColor3 = Color3.fromRGB(115, 185, 255);
 			BorderSizePixel = 0;
@@ -140,7 +142,7 @@ local function ReturnError(errorcode, errortype)
 			ZIndex = 10;
 		})
 		screen:CreateElement("TextLabel",{
-			Size = UDim2.fromOffset(800, 25);
+			Size = UDim2.fromOffset(Xres - 50, 25);
 			Position = UDim2.fromOffset(50, 250);
 			Text = errorcode;
 			BackgroundTransparency = 1;
@@ -264,7 +266,7 @@ local success, errorcode = pcall(function()
 		end
 		screen:CreateElement("TextLabel", {
 			Position = position;
-			Size = UDim2.fromOffset(800, 25);
+			Size = UDim2.fromOffset(Xres, 25);
 			Text = text;
 			TextScaled = true;
 			TextXAlignment = Enum.TextXAlignment.Left;
@@ -325,8 +327,8 @@ local success, errorcode = pcall(function()
 			local titlebarcolor = temptitlebarcolor or Color3.fromHex("#000000")
 			local textcolor = textcolor or Color3.fromHex("#FFFFFF")
 			--centers the window if the override positions are nil
-			local posy = overrideY or (450 - y) / 2 - 36
-			local posx = overrideX or (800 - x) / 2
+			local posy = overrideY or (Yres - y) / 2 - 36
+			local posx = overrideX or (Xres - x) / 2
 			local titlebar
 			local closebutton
 			local collapseButton
@@ -1017,7 +1019,7 @@ local success, errorcode = pcall(function()
 	}
 	local function createwOSboot()
 		screen:CreateElement("TextLabel", {
-			Position = UDim2.fromOffset(350, 225);
+			Position = UDim2.fromOffset((Xres - 100) / 2, (Yres - 50) / 2);
 			Size = UDim2.fromOffset(100, 50);
 			Text = "wOS";
 			TextScaled = true;
@@ -1027,14 +1029,14 @@ local success, errorcode = pcall(function()
 		})
 		for i = 0, 1, 1 do
 			screen:CreateElement("Frame", {
-				Position = UDim2.fromOffset(350, 220 + i * 60);
+				Position = UDim2.fromOffset(350, ((Yres - 50) / 2 - 2) + i * 60);
 				Size = UDim2.fromOffset(100, 5);
 				BackgroundColor3 = Color3.fromRGB(130, 204, 158);
 			})
 		end
 		screen:CreateElement("TextLabel", {
-			Position = UDim2.fromOffset(0, 295);
-			Size = UDim2.fromOffset(800, 25);
+			Position = UDim2.fromOffset(0, (Yres - 50) / 2 + 70);
+			Size = UDim2.fromOffset(Xres, 25);
 			Text = "Starting...";
 			BackgroundTransparency = 1;
 			TextScaled = true;
@@ -1055,20 +1057,20 @@ local success, errorcode = pcall(function()
 		end
 		-- Start painting the wallpaper
 		brazil = screen:CreateElement("Frame", {
-			Size = UDim2.fromOffset(800, 450);
+			Size = UDim2.fromOffset(Xres, Yres);
 			ZIndex = 1
 		})
 		iconAmount = iconAmount + 5
 		local background = screen:CreateElement("ImageLabel", {
 			BorderSizePixel = 0;
 			Image = wallpaper;
-			Size = UDim2.fromOffset(800, 450);
+			Size = UDim2.fromOffset(Xres, Yres);
 			ZIndex = 2;
 		})
 		-- Paint the task bar
 		local taskbar = screen:CreateElement("Frame", {
-			Position = UDim2.fromOffset(0, 400);
-			Size = UDim2.fromOffset(800, 50);
+			Position = UDim2.fromOffset(0, Yres - 50);
+			Size = UDim2.fromOffset(Xres, 50);
 			BackgroundTransparency = 0.3;
 			BorderSizePixel = 0;
 			ZIndex = 5;
@@ -1169,18 +1171,17 @@ local success, errorcode = pcall(function()
 	local isAR = false
 	-- Get the touch screen
 	screen = GetPartFromPort(1, "TouchScreen")
-	if not screen then
-		screen = GetPartFromPort(1, "ARController")
-		isAR = true
-	end
 	-- Check if the screen is actually existing
-	if screen ~= nil then
+	if screen then
+		local dim = screen:GetDimensions()
+		Xres = dim.X
+		Yres = dim.Y
 		-- We succeeded (hooray but not yet)
 		availableComponents["screen"] = screen
 		screen:ClearElements()
 		screen:CreateElement("Frame", {
 			BorderSizePixel = 0;
-			Size = UDim2.fromOffset(800, 450);
+			Size = UDim2.fromOffset(Xres, Yres);
 			BackgroundColor3 = Color3.fromRGB(0,0,0);
 		})
 		createwOSboot()
@@ -1193,7 +1194,7 @@ local success, errorcode = pcall(function()
 			})
 			local loadFrameOut = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(210, 27);
-				Position = UDim2.fromOffset(295, 333);
+				Position = UDim2.fromOffset((Xres - 210) / 2, Yres - 117);
 				BorderSizePixel = 3;
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 				ClipsDescendants = true;
@@ -1220,11 +1221,14 @@ local success, errorcode = pcall(function()
 		importantselftest1passed = true
 	else
 		screen = GetPartFromPort(1, "Screen")
-		if screen ~= nil then
+		if screen then
+			local dim = screen:GetDimensions()
+			Xres = dim.X
+			Yres = dim.Y
 			screen:ClearElements()
 			screen:CreateElement("Frame", {
 				BorderSizePixel = 0;
-				Size = UDim2.fromOffset(800, 450);
+				Size = UDim2.fromOffset(Xres, Yres);
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 			})
 			createwOSboot()
@@ -1237,7 +1241,6 @@ local success, errorcode = pcall(function()
 			shutdown()
 		end
 	end
-	--this thing executes if the ROM disk and the TouchScreen are detected
 	local canOpenEventViewer = true
 	local function eventViewer()
 		if canOpenEventViewer then
@@ -1446,7 +1449,7 @@ local success, errorcode = pcall(function()
 		end
 		local function MakeWindow(icon, title, size)
 			if not size then size = UDim2.fromOffset(300, 200) end
-			return puter.CreateWindow(size.X.Offset + size.X.Scale * 800, size.Y.Offset + size.Y.Scale * 450, title)
+			return puter.CreateWindow(size.X.Offset + size.X.Scale * Xres, size.Y.Offset + size.Y.Scale * Yres, title)
 		end
 		local env = tableReplicate(getfenv())
 		local function luarun(codetorun)
@@ -1957,8 +1960,8 @@ local success, errorcode = pcall(function()
 							while minecount < mines do
 								for x = 1, width, 1 do
 									for y = 1, height, 1 do
-										if math.random(1, math.floor((width * height) / 5)) == width and field[x][y].content ~= "💥" and minecount < mines then
-											if x > 1 and y > 1 or x < width and y < height or x < width and y > 1 or x > 1 and y > height then
+										if math.random(1, math.ceil(((width * height) % minecount) + 1)) == width and field[x][y].content ~= "💥" and minecount < mines then
+											if (x > 1 or y > 1) and (x < width or y < height) and (x > 1 or y < height) and (x < width or y > 1) then
 												local cell = field[x][y]
 												cell.content = "💥"
 												function cell:reveal()
@@ -2736,18 +2739,13 @@ local success, errorcode = pcall(function()
 						local folders = filesystem.scanPath(path, disk)
 						local offset = 0
 						for i, v in pairs(folders) do
-
 							local folder = filesystem.read(path .. v .. "/", disk)
-
 							if folder ~= nil then
-
 								local fileType, data, trueType = typeParser(folder.data)
 								offset = offset + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, folder.data, folder)
-
 							end
 						end
-
 						return offset * 25
 					end
 					local function getFiles(path, disk, offset)
@@ -2756,14 +2754,11 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
 							if file ~= nil then
-
 								local fileType, data, trueType = typeParser(file.data)
 								offsetv2 = offsetv2 + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, file.data, file)
-
 							end
 						end
-
 						return offsetv2 * 25
 					end
 					local function getPath(path, disk)
@@ -2812,10 +2807,8 @@ local success, errorcode = pcall(function()
 								mainScrollFrame.CanvasSize = UDim2.fromOffset(0, offset + offsetv2)
 							end)
 							if yay == false then
-
-
 								for i, v in pairs(disk:ReadAll()) do
-
+									print(i, v)
 								end
 							end
 						end
@@ -4062,10 +4055,10 @@ local success, errorcode = pcall(function()
 			end
 		end
 		staticIcons[2] = {Name = "Chat", Function = openChat}
-		puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
+		puterutils.iconEngine(100, 100, 15, 15, Xres, 400, background, false, 1)
 		local function rebuildDesktop()
 			getdesktopfiles()
-			local createIcon = puterutils.iconEngine(100, 100, 15, 15, 800, 400, background, false, 1)
+			local createIcon = puterutils.iconEngine(100, 100, 15, 15, Xres, 400, background, false, 1)
 			for i, v in pairs(iconMap) do
 				v:Destroy()
 			end
