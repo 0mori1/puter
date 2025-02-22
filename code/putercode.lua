@@ -1194,7 +1194,7 @@ local success, errorcode = pcall(function()
 			})
 			local loadFrameOut = screen:CreateElement("Frame", {
 				Size = UDim2.fromOffset(210, 27);
-				Position = UDim2.fromOffset((Xres - 210) / 2, Yres - 117);
+				Position = UDim2.fromOffset((Xres - 210) / 2, (Yres - 50) / 2 + 133);
 				BorderSizePixel = 3;
 				BackgroundColor3 = Color3.fromRGB(0,0,0);
 				ClipsDescendants = true;
