@@ -1316,6 +1316,7 @@ local success, errorcode = pcall(function()
 		local keyboard = availableComponents["keyboard"]
 		local mic = availableComponents["microphone"]
 		disks = GetPartsFromPort(1, "Disk")
+		print(#disks)
 		for i, disk in pairs(disks) do
 			if disk ~= nil then
 				mounteddisks[i] = disk
@@ -1381,6 +1382,8 @@ local success, errorcode = pcall(function()
 								print("Responded")
 							else
 								print("Multiple parts")
+								print("Port: " .. tostring(v.port))
+								print("Part: " .. v.part)
 								v.response = GetPartsFromPort(v.port, v.part)
 								v.responded = true
 								go(GetPartsFromPort(v.port, v.part))
@@ -1444,7 +1447,10 @@ local success, errorcode = pcall(function()
 				local success, fail = pcall(function()
 					return syscall({port = allowedPorts[port][1], part = part, mult = true, type = "GETPART"})
 				end)
-				return nil
+				if not success then
+					print(fail)
+					return nil
+				end
 			end
 		end
 		local function MakeWindow(icon, title, size)
