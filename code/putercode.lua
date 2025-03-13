@@ -14,7 +14,9 @@ end
 local function xtostring(input, split)
 	local output
 	if not split then split = ", " end
+	print(split)
 	if typeof(input) == "table" then
+		print("input is a table!")
 		for i, v in pairs(input) do
 			output = output .. v .. split
 		end
@@ -1506,7 +1508,7 @@ local success, errorcode = pcall(function()
 			return PID
 		end
 		local function grannyrun()
-			
+
 		end
 		local taskbar, startmenu, startbutton, shutdownbutton, restartbutton, settingsbutton, test, background, postomatic = InitializeDesktop()
 		local iconMap = {}
@@ -2773,7 +2775,7 @@ local success, errorcode = pcall(function()
 						local offsetv2 = 0
 						for i, v in pairs(files) do
 							local file = filesystem.read(path .. v, disk)
-							if file ~= nil then
+							if file then
 								local fileType, data, trueType = typeParser(file.data)
 								offsetv2 = offsetv2 + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offsetv2 * 25 + offset), data, trueType, file.data, file)
@@ -3944,30 +3946,32 @@ local success, errorcode = pcall(function()
 					local legacymode = false
 					local function addMessage(message, color)
 						local formatted = {}
-						if string.sub(message, 1, 2) == "b/" then
-							local actualMessage
-							for i = 1, #message, 1 do
-								if string.sub(message, i, i + 1) == "]:" then
-									actualMessage = i + 3
+						if typeof(message) == "string" then
+							if string.sub(message, 1, 2) == "b/" then
+								local actualMessage
+								for i = 1, #message, 1 do
+									if string.sub(message, i, i + 1) == "]:" then
+										actualMessage = i + 3
+									end
 								end
+								formatted.actualmessage = actualMessage
+								formatted.message = message
+								formatted.executable = true
+								formatted.color = Color3.fromRGB(85, 85, 255)
+							elseif string.sub(message, 1, 2) == "t/" then
+								formatted.actualmessage = nil
+								formatted.message = string.sub(message, 3, #message)
+								formatted.executable = false
+							elseif string.sub(message, 1, 2) == "e/" then
+								formatted.actualmessage = nil
+								formatted.message = string.sub(message, 3, #message)
+								formatted.executable = false
+								formatted.color = Color3.fromRGB(255, 80, 83)
+							else
+								formatted.actualmessage = nil
+								formatted.message = message
+								formatted.executable = false
 							end
-							formatted.actualmessage = actualMessage
-							formatted.message = message
-							formatted.executable = true
-							formatted.color = Color3.fromRGB(85, 85, 255)
-						elseif string.sub(message, 1, 2) == "t/" then
-							formatted.actualmessage = nil
-							formatted.message = string.sub(message, 3, #message)
-							formatted.executable = false
-						elseif string.sub(message, 1, 2) == "e/" then
-							formatted.actualmessage = nil
-							formatted.message = string.sub(message, 3, #message)
-							formatted.executable = false
-							formatted.color = Color3.fromRGB(255, 80, 83)
-						else
-							formatted.actualmessage = nil
-							formatted.message = string.sub(message, 3, #message)
-							formatted.executable = false
 						end
 						if not formatted.color then
 							formatted.color = color
@@ -3988,7 +3992,7 @@ local success, errorcode = pcall(function()
 						for i, v in pairs(chat) do
 							local color = Color3.fromRGB(0,0,0)
 							if v.color then
-								color = color
+								color = v.color
 							end
 							chatLabels[i].Text = v.message
 							chatLabels[i].TextColor3 = color
@@ -4045,8 +4049,10 @@ local success, errorcode = pcall(function()
 							receivedirregularinput = true
 							addMessage("<System> Receiving irregular input.", Color3.fromRGB(150,150,0))
 							message = xtostring(message, " ")
+							print(message)
 						end
 						if canopenchat == false then
+							print(tostring(message))
 							addMessage(message)
 							renderChat()
 						end
