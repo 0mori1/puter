@@ -487,7 +487,9 @@ local success, errorcode = pcall(function()
 			end)
 			function windowframemet:CreateElement(className, properties)
 				local element = screen:CreateElement(className, properties)
-				element.Parent = windowframe
+				if not properties.Parent then
+					element.Parent = windowframe
+				end
 				return element
 			end
 			function windowframemet:AddChild(element)
@@ -1449,7 +1451,7 @@ local success, errorcode = pcall(function()
 				end)
 				if not success then
 					print(fail)
-					return nil
+					return {}
 				end
 			end
 		end
@@ -2816,6 +2818,7 @@ local success, errorcode = pcall(function()
 								for i, v in pairs(disk:ReadAll()) do
 									print(i, v)
 								end
+								print(noooo)
 							end
 						end
 					end
