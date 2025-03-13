@@ -13,6 +13,7 @@ local function tinvert(t)
 end
 local function xtostring(input, split)
 	local output
+	print(split)
 	if not split then split = ", " end
 	print(split)
 	if typeof(input) == "table" then
@@ -3972,7 +3973,7 @@ local success, errorcode = pcall(function()
 								formatted.message = message
 								formatted.executable = false
 							end
-						end
+						end	
 						if not formatted.color then
 							formatted.color = color
 						end
