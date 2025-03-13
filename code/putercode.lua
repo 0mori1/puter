@@ -11,6 +11,19 @@ local function tinvert(t)
 	end
 	return newt
 end
+local function xtostring(input, split)
+	local output
+	if not split then split = ", " end
+	if typeof(input) == "table" then
+		for i, v in pairs(input) do
+			output = output .. v .. split
+		end
+		output = string.sub(output, 1, #output - #split)
+	else
+		output = tostring(input)
+	end
+	return output
+end
 local function nsrex(pattern, str)
 	local paz = "abcdefghijklmnopqrztuvwxyz"
 	local az = {}
@@ -1481,7 +1494,7 @@ local success, errorcode = pcall(function()
 				repeat wait() until PID
 				closeCoroutine(PID)
 			end}
-			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines", "screen", "speaker", "keyboard", "modem", "disks"}
+			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines", "screen", "speaker", "keyboard", "modem", "disks", "TriggerPort"}
 			for i, v in pairs(envAdd) do
 				env[i] = v
 			end
@@ -2732,7 +2745,6 @@ local success, errorcode = pcall(function()
 							for i = #path - 1, 1, -1 do
 								if string.sub(path, i, i) == "/" and set == false then
 									path = string.sub(path, 1, i)
-
 									set = true
 									called = true
 								end
@@ -2748,7 +2760,7 @@ local success, errorcode = pcall(function()
 						local offset = 0
 						for i, v in pairs(folders) do
 							local folder = filesystem.read(path .. v .. "/", disk)
-							if folder ~= nil then
+							if folder then
 								local fileType, data, trueType = typeParser(folder.data)
 								offset = offset + 1
 								addFile(v, fileType, UDim2.fromOffset(0, offset * 25), data, trueType, folder.data, folder)
@@ -3882,6 +3894,7 @@ local success, errorcode = pcall(function()
 		local function openChat()
 			if chatModem ~= nil and canopenchat == true then
 				canopenchat = false
+				local receivedirregularinput
 				local busyWith = nil
 				local idconnected
 				local window, closebutton, titlebar = puter.CreateWindow(400, 225, "Chat")
@@ -3929,7 +3942,7 @@ local success, errorcode = pcall(function()
 					end
 					local sendname = true
 					local legacymode = false
-					local function addMessage(message)
+					local function addMessage(message, color)
 						local formatted = {}
 						if string.sub(message, 1, 2) == "b/" then
 							local actualMessage
@@ -3941,22 +3954,23 @@ local success, errorcode = pcall(function()
 							formatted.actualmessage = actualMessage
 							formatted.message = message
 							formatted.executable = true
-							formatted.exclaim = false
+							formatted.color = Color3.fromRGB(85, 85, 255)
 						elseif string.sub(message, 1, 2) == "t/" then
 							formatted.actualmessage = nil
 							formatted.message = string.sub(message, 3, #message)
 							formatted.executable = false
-							formatted.exclaim = false
 						elseif string.sub(message, 1, 2) == "e/" then
 							formatted.actualmessage = nil
 							formatted.message = string.sub(message, 3, #message)
 							formatted.executable = false
-							formatted.exclaim = true
+							formatted.color = Color3.fromRGB(255, 80, 83)
 						else
 							formatted.actualmessage = nil
 							formatted.message = string.sub(message, 3, #message)
 							formatted.executable = false
-							formatted.exclaim = false
+						end
+						if not formatted.color then
+							formatted.color = color
 						end
 						if #chat <= 8 then
 							chat[#chat + 1] = formatted
@@ -3973,10 +3987,8 @@ local success, errorcode = pcall(function()
 						Beep()
 						for i, v in pairs(chat) do
 							local color = Color3.fromRGB(0,0,0)
-							if v.executable then
-								color = Color3.fromRGB(85, 85, 255)
-							elseif v.exclaim then
-								color = Color3.fromRGB(255, 80, 83)
+							if v.color then
+								color = color
 							end
 							chatLabels[i].Text = v.message
 							chatLabels[i].TextColor3 = color
@@ -4029,6 +4041,11 @@ local success, errorcode = pcall(function()
 						end
 					end, "chat")
 					chatModem.MessageSent:Connect(function(message)
+						if typeof(message) ~= "string" and not receivedirregularinput then
+							receivedirregularinput = true
+							addMessage("<System> Receiving irregular input.", Color3.fromRGB(150,150,0))
+							message = xtostring(message, " ")
+						end
 						if canopenchat == false then
 							addMessage(message)
 							renderChat()
