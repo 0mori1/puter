@@ -3975,6 +3975,12 @@ local success, errorcode = pcall(function()
 								formatted.executable = false
 							end
 						end	
+						if not message then
+							formatted.actualmessage = nil
+							formatted.message = "Error!"
+							formatted.executable = false
+							formatted.color = Color3.fromRGB(255, 80, 83)
+						end
 						if not formatted.color then
 							formatted.color = color
 						end
