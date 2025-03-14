@@ -11,8 +11,8 @@ local function tinvert(t)
 	end
 	return newt
 end
-local function xtostring(input, split)
-	local split = split
+local function xtostring(input, tsplit)
+	local split = tsplit
 	local output
 	print(split)
 	if not split then split = ", " end
