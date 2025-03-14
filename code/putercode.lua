@@ -12,10 +12,8 @@ local function tinvert(t)
 	return newt
 end
 local function xtostring(input, tsplit)
-	local split = tsplit
+	local split = tsplit or ", "
 	local output
-	print(split)
-	if not split then split = ", " end
 	print(split)
 	if typeof(input) == "table" then
 		print("input is a table!")
@@ -1405,6 +1403,7 @@ local success, errorcode = pcall(function()
 								print("Part: " .. v.part)
 								v.response = GetPartsFromPort(v.port, v.part)
 								v.responded = true
+								print(#GetPartsFromPort(v.port, v.part))
 								go(GetPartsFromPort(v.port, v.part))
 								print("Responded")
 							end
