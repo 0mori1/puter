@@ -14,6 +14,7 @@ end
 local function xtostring(input, tsplit)
 	local split = tsplit or ", "
 	local output
+	print(tsplit)
 	print(split)
 	if typeof(input) == "table" then
 		print("input is a table!")
@@ -4045,11 +4046,12 @@ local success, errorcode = pcall(function()
 							end
 						end
 					end, "chat")
-					chatModem.MessageSent:Connect(function(message)
+					chatModem.MessageSent:Connect(function(tmessage)
+						local message = tmessage
 						if typeof(message) ~= "string" and not receivedirregularinput then
 							receivedirregularinput = true
 							addMessage("<System> Receiving irregular input.", Color3.fromRGB(150,150,0))
-							message = xtostring(message, " ")
+							message = xtostring(message, ": ")
 							print(message)
 						end
 						if canopenchat == false then
