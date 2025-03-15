@@ -1047,7 +1047,7 @@ local success, errorcode = pcall(function()
 		})
 		for i = 0, 1, 1 do
 			screen:CreateElement("Frame", {
-				Position = UDim2.fromOffset(350, ((Yres - 50) / 2 - 2) + i * 60);
+				Position = UDim2.fromOffset((Xres - 100) / 2, ((Yres - 50) / 2 - 2) + i * 60);
 				Size = UDim2.fromOffset(100, 5);
 				BackgroundColor3 = Color3.fromRGB(130, 204, 158);
 			})
@@ -1432,10 +1432,11 @@ local success, errorcode = pcall(function()
 				local response = queue[callid].response
 				print(response)
 				queue[callid] = nil
+				print(response)
 				return response
 			end)
 			if not success then
-				print(fail)
+				print("syscall is dead! " .. fail)
 				return
 			end
 		end
