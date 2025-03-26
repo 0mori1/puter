@@ -1430,9 +1430,9 @@ local success, errorcode = pcall(function()
 				queue[callid] = call
 				repeat wait() until queue[callid].response
 				local response = queue[callid].response
-				print(response)
+				go(response)
 				queue[callid] = nil
-				print(response)
+				go(response)
 				return response
 			end)
 			if not success then
@@ -1472,12 +1472,17 @@ local success, errorcode = pcall(function()
 				return {puter.CreateWindow(250, 250, part)}
 			elseif allowedPorts[port] then
 				local success, fail = pcall(function()
-					return syscall({port = allowedPorts[port][1], part = part, mult = true, type = "GETPART"})
+					print("port is allowed and we're not getting a screen, getting parts...")
+					local part = syscall({port = allowedPorts[port][1], part = part, mult = true, type = "GETPART"})
+					go(part)
+					return part
 				end)
 				if not success then
 					print(fail)
 					return {}
 				end
+			else
+				print("wuh?")
 			end
 		end
 		local function MakeWindow(icon, title, size)
