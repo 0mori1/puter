@@ -1424,7 +1424,7 @@ local success, errorcode = pcall(function()
 				print(err)
 			end
 		end, "LA SYSCALLER", true)
-		local function syscall(call)
+		local function syscall(call, out)
 			local success, fail = pcall(function()
 				local callid = #queue + 1
 				queue[callid] = call
@@ -1433,7 +1433,7 @@ local success, errorcode = pcall(function()
 				go(response)
 				queue[callid] = nil
 				go(response)
-				return response
+				out[1] = response
 			end)
 			if not success then
 				print("syscall is dead! " .. fail)
@@ -1450,9 +1450,11 @@ local success, errorcode = pcall(function()
 				return puter.CreateWindow(250, 250, part)
 			elseif allowedPorts[port] then
 				print("Port is allowed, Initial ID " .. tostring(port) .. ", alias ID " .. tostring(allowedPorts[port][1]))
+				local parget = {}
 				local par
 				local success, fail = pcall(function()
-					par = syscall({port = allowedPorts[port][1], part = part, mult = false, type = "GETPART"})
+					syscall({port = allowedPorts[port][1], part = part, mult = false, type = "GETPART"}, parget)
+					par = parget[1]
 				end)
 				if not success then
 					print(fail)
@@ -1471,9 +1473,11 @@ local success, errorcode = pcall(function()
 			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
 				return {puter.CreateWindow(250, 250, part)}
 			elseif allowedPorts[port] then
+				local parsget = {}
 				local success, fail = pcall(function()
 					print("port is allowed and we're not getting a screen, getting parts...")
-					local part = syscall({port = allowedPorts[port][1], part = part, mult = true, type = "GETPART"})
+					local part = syscall({port = allowedPorts[port][1], part = part, mult = true, type = "GETPART"}, parsget)
+					part = parsget[1]
 					go(part)
 					return part
 				end)
@@ -1998,7 +2002,7 @@ local success, errorcode = pcall(function()
 							while minecount < mines do
 								for x = 1, width, 1 do
 									for y = 1, height, 1 do
-										if math.random(1, math.ceil(((width * height) % minecount) + 1)) == width and field[x][y].content ~= "💥" and minecount < mines then
+										if math.random(1, 10) == width and field[x][y].content ~= "💥" and minecount < mines then
 											if (x > 1 or y > 1) and (x < width or y < height) and (x > 1 or y < height) and (x < width or y > 1) then
 												local cell = field[x][y]
 												cell.content = "💥"
@@ -2131,6 +2135,11 @@ local success, errorcode = pcall(function()
 						stderr("Insufficient arguments [3 numbers required]")
 					end
 				end;
+				["nou"] = {
+					cmd = function()
+						
+					end;
+				}
 			}
 		}
 		local function tableparse(text)
