@@ -1494,6 +1494,18 @@ local success, errorcode = pcall(function()
 			return puter.CreateWindow(size.X.Offset + size.X.Scale * Xres, size.Y.Offset + size.Y.Scale * Yres, title)
 		end
 		local env = tableReplicate(getfenv())
+		local function errorPopup(errorMessage)
+			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
+			puter.AddWindowElement(window, "TextLabel", {
+				Size = UDim2.fromOffset(250, 150);
+				Position = UDim2.fromOffset(0,0);
+				BorderSizePixel = 0;
+				BackgroundTransparency = 1;
+				TextColor3 = Color3.fromRGB(255,0,0);
+				TextScaled = true;
+				Text = errorMessage
+			})
+		end
 		local function luarun(codetorun)
 			local process = xLoadstring(codetorun)
 			local PID
@@ -1514,7 +1526,7 @@ local success, errorcode = pcall(function()
 			local envAdd = {puter = puter, puterutils = puterutils, filesystem = securefilesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
 				repeat wait() until PID
 				closeCoroutine(PID)
-			end}
+			end, getfenv = function() return env end}
 			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines", "screen", "speaker", "keyboard", "modem", "disks", "TriggerPort"}
 			for i, v in pairs(envAdd) do
 				env[i] = v
@@ -1523,7 +1535,10 @@ local success, errorcode = pcall(function()
 				env[v] = nil
 			end
 			setfenv(process, env)
-			PID = newCoroutine(process)
+			PID = newCoroutine(function()
+				local success, fail = xpcall(process, debug.traceback)
+				if not success then errorPopup(fail) end
+			end)
 			return PID
 		end
 		local function grannyrun()
@@ -1535,18 +1550,6 @@ local success, errorcode = pcall(function()
 		local iconsToGenerate = {}
 		local function addIcon(name, func)
 			iconsToGenerate[#iconsToGenerate + 1] = {Name = name, Function = func}
-		end
-		local function errorPopup(errorMessage)
-			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Error", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
-			puter.AddWindowElement(window, "TextLabel", {
-				Size = UDim2.fromOffset(250, 150);
-				Position = UDim2.fromOffset(0,0);
-				BorderSizePixel = 0;
-				BackgroundTransparency = 1;
-				TextColor3 = Color3.fromRGB(255,0,0);
-				TextScaled = true;
-				Text = errorMessage
-			})
 		end
 		local function popup(message)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Info", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
