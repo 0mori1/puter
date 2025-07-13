@@ -1536,8 +1536,15 @@ local success, errorcode = pcall(function()
 			local envAdd = {puter = puter, puterutils = puterutils, filesystem = securefilesystem, GetPartFromPort = secureGetPartFromPort, GetPartsFromPort = secureGetPartsFromPort, stop = function()
 				repeat wait() until PID
 				closeCoroutine(PID)
-			end, getfenv = function() return env end}
-			local envRestrict = {"GetPart", "GetParts", "$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines", "screen", "speaker", "keyboard", "modem", "disks", "TriggerPort"}
+			end, 
+			GetPart = function(part)
+				return secureGetPartFromPort(1, part)
+			end,
+			GetParts = function(part)
+				return secureGetPartsFromPort(1, part)
+			end,
+			getfenv = function() return env end}
+			local envRestrict = {"$self", "Microcontroller", "Network", "filesystem", "filelocks", "coroutines", "screen", "speaker", "keyboard", "modem", "disks", "TriggerPort"}
 			for i, v in pairs(envAdd) do
 				env[i] = v
 			end
