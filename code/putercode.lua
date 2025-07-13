@@ -545,6 +545,9 @@ local success, errorcode = pcall(function()
 				windowframeContainer.Position = UDim2.fromOffset(0, -y)
 				collapsed = true
 			end
+			function windowframemet:GetCanvas()
+				return windowframe
+			end
 			function windowframemet:ClearElements()
 				windowframe:Destroy()
 				windowframe = screen:CreateElement("Frame", {
@@ -1355,9 +1358,15 @@ local success, errorcode = pcall(function()
 			filesystem.write("/", "DestroyBot", "t:lua/https://gist.github.com/0mori1/912fade7db01d73d4dbff7b287627e73/raw/7fca2440fb964c491a6ab86151c23ba69cf1105d/destroybot.lua", mounteddisks[1])
 		end
 		local foundPrimary
+		local diskhold
 		for i, v in pairs(mounteddisks) do
 			if v:Read("primary") == "yea" then
-				foundPrimary = i
+				if i ~= 1 then
+					diskhold = mounteddisks[1]
+					mounteddisks[1] = v
+				end
+				foundPrimary = 1
+				mounteddisks[i] = diskhold
 			end
 		end
 		if not foundPrimary then
@@ -1537,7 +1546,10 @@ local success, errorcode = pcall(function()
 			setfenv(process, env)
 			PID = newCoroutine(function()
 				local success, fail = xpcall(process, debug.traceback)
-				if not success then errorPopup(fail) end
+				if not success then
+					print(fail)
+					errorPopup(fail)
+				end
 			end)
 			return PID
 		end
@@ -2159,7 +2171,7 @@ local success, errorcode = pcall(function()
 				end
 			end
 		end
-		local function command(text, plr, terminalout, clear)
+		local function command(text, plr, terminalout, clear, chprefix)
 			local splitSpecial = {
 				['"'] = 1;
 				["'"] = 2;
@@ -4806,16 +4818,17 @@ local success, errorcode = pcall(function()
 				local polysilicon = GetPartFromPort(6, "Polysilicon")
 				local terminalmicrocontroller = GetPartFromPort(6, "Microcontroller")
 				canopenterminal = false
-				local mode = "check"
+				local shell = "check"
 				local ver = "wOS Codename BasicSystem, made by 0mori2"
-				puterutils.cliengine(function(text, plr, terminalout, clear)
+				puterutils.cliengine(function(text, plr, terminalout, clear, chprefix)
+					local shenv = {}
 					local function outputstd(text)
 						terminalout(text, Color3.fromRGB(255,255,255))
 					end
 					local function outputerr(text)
 						terminalout(text, Color3.fromRGB(255,0,0))
 					end
-					if mode == "check" then
+					if shell == "check" then
 						if text ~= "command" then
 							local failed, reason = check(text, plr, terminalout, clear)
 							if failed == true then
@@ -4825,7 +4838,7 @@ local success, errorcode = pcall(function()
 								recordedtext[#recordedtext + 1] = "[" .. plr .. "]: " .. text
 							end
 						else
-							mode = "command"
+							shell = "command"
 							outputstd("Switching to command.")
 						end
 					else
