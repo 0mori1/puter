@@ -871,6 +871,7 @@ local success, errorcode = pcall(function()
 			if string.sub(path, #path, #path) ~= "/" then
 				path = path .. "/"
 			end
+			if not disk then return {} end
 			for i, v in pairs(disk:ReadAll()) do
 				if string.sub(i, 1, #path) == path and v ~= nil then
 					buffer1[#buffer1 + 1] = string.sub(i, #path + 1, #i)
