@@ -1439,7 +1439,7 @@ local success, errorcode = pcall(function()
 				local callid = #queue + 1
 				queue[callid] = call
 				repeat wait() until queue[callid].responded
-				local response = queue[callid].responded
+				local response = queue[callid].response
 				go(response)
 				queue[callid] = nil
 				go(response)
