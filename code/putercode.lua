@@ -245,10 +245,16 @@ local success, errorcode = pcall(function()
 					end
 				end)
 			end
-			connections[part][eventname][ID or #connections[part][eventname] + 1] = func
+			local genid = #connections[part][eventname] + 1
+			if ID and connections[part][eventname][ID] == nil then genid = ID end
+			connections[part][eventname][genid] = func
+			return {part, eventname, genid}
 		else	
 			error("attempted to connect to event " .. eventname .. " of nil component " .. part)
 		end
+	end
+	local function xUnbind(handle)
+		connections[handle[1]][handle[2]][handle[3]] = nil
 	end
 	local function xAssert(asserted, ifdoesntexist)
 		if not asserted then
@@ -433,14 +439,9 @@ local success, errorcode = pcall(function()
 				["CursorMoved"] = {};
 				["WindowDragged"] = {};
 				["Closed"] = {};
+				["CursorPressed"] = {};
+				["CursorReleased"] = {}
 			}
-			closebutton.MouseButton1Click:Connect(function()
-				titlebar:Destroy()
-				for i, v in pairs(eventsConnected["Closed"]) do
-					v()
-				end
-				windows[windowID] = nil
-			end)
 			local offsetX
 			local offsetY
 			local dragging
@@ -478,7 +479,7 @@ local success, errorcode = pcall(function()
 				offsetX = nil
 				offsetY = nil
 			end)
-			xConnect("screen", "CursorMoved", function(cursor)
+			local eventCursorMoved = xConnect("screen", "CursorMoved", function(cursor)
 				if dragging == true and whodrags ~= nil then
 					if cursor.Player == whodrags then
 						posx = cursor.X + offsetX
@@ -491,15 +492,33 @@ local success, errorcode = pcall(function()
 				elseif dragging == true then
 					print("😂😂😂")
 				end
-				local cursorIsInWindow
 				if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
-					cursorIsInWindow = true
-				end
-				if cursorIsInWindow then
 					for i, func in pairs(eventsConnected["CursorMoved"]) do
 						func({X = cursor.X - posx, Y = cursor.Y - posy - 25, Player = cursor.Player, Pressed = cursor.Pressed})
 					end
 				end
+			end)
+			local eventCursorPressed = xConnect("screen", "CursorPressed", function(cursor)
+				if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
+					for i, func in pairs(eventsConnected["CursorPressed"]) do
+						func({X = cursor.X - posx, Y = cursor.Y - posy - 25, Player = cursor.Player, Pressed = cursor.Pressed})
+					end
+				end
+			end)
+			local eventCursorReleased = xConnect("screen", "CursorReleased", function(cursor)
+				if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
+					for i, func in pairs(eventsConnected["CursorReleased"]) do
+						func({X = cursor.X - posx, Y = cursor.Y - posy - 25, Player = cursor.Player, Pressed = cursor.Pressed})
+					end
+				end
+			end)
+			closebutton.MouseButton1Click:Connect(function()
+				xUnbind(eventCursorMoved)
+				titlebar:Destroy()
+				for i, v in pairs(eventsConnected["Closed"]) do
+					v()
+				end
+				windows[windowID] = nil
 			end)
 			function windowframemet:CreateElement(className, properties)
 				local element = screen:CreateElement(className, properties)
@@ -518,12 +537,21 @@ local success, errorcode = pcall(function()
 				end
 				return active
 			end
+			function windowframemet:GetCursor(plr)
+				local cursors = screen:GetCursors()
+				for i, v in pairs(cursors) do
+					if v.X < posx + x and v.X > posx and v.Y < posy + 25 + y and v.Y > posy + 25 and v.Player == plr then
+						return v
+					end
+				end
+				return nil
+			end
 			function windowframemet:GetCursors()
 				local cursorsProcessed = {}
 				local cursors = screen:GetCursors()
-				for i, v in pairs(cursors) do
-					if v.X - posx >= 0 and v.Y - posy + 25 >= 0 then
-						cursorsProcessed[#cursorsProcessed + 1] = v
+				for i, cursor in pairs(cursors) do
+					if cursor.X < posx + x and cursor.X > posx and cursor.Y < posy + 25 + y and cursor.Y > posy + 25 then
+						cursorsProcessed[#cursorsProcessed + 1] = cursor
 					end
 				end
 				return cursorsProcessed
@@ -2783,7 +2811,7 @@ local success, errorcode = pcall(function()
 									end)
 								end)
 								if yes == false then
-
+									print(bruh)
 								end
 							end
 						end)
