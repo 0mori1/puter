@@ -1497,7 +1497,7 @@ local success, errorcode = pcall(function()
 			print("Trying to get a " .. part .. " at port " .. tostring(port))
 			if allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "TouchScreen" or allowedPorts[port] and allowedPorts[port][2] == "Main" and part == "Screen" then
 				print("Tried to get a screen!")
-				return puter.CreateWindow(250, 250, part)
+				return puter.CreateWindow(250, 250, part, Color3.fromRGB(0,0,0))
 			elseif allowedPorts[port] then
 				print("Port is allowed, Initial ID " .. tostring(port) .. ", alias ID " .. tostring(allowedPorts[port][1]))
 				local parget = {}
@@ -1610,6 +1610,24 @@ local success, errorcode = pcall(function()
 		local iconsToGenerate = {}
 		local function addIcon(name, func)
 			iconsToGenerate[#iconsToGenerate + 1] = {Name = name, Function = func}
+		end
+		local getdesktopfiles
+		local function rebuildDesktop()
+			getdesktopfiles()
+			local createIcon = puterutils.iconEngine(100, 100, 15, 15, Xres, 400, background, false, 1)
+			for i, v in pairs(iconMap) do
+				v:Destroy()
+			end
+			for i, v in pairs(staticIcons) do
+				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				iconMap[v.Name] = icon
+				icon.MouseButton1Click:Connect(v.Function)
+			end
+			for i, v in pairs(iconsToGenerate) do
+				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
+				iconMap[v.Name] = icon
+				icon.MouseButton1Click:Connect(v.Function)
+			end
 		end
 		local function popup(message)
 			local window, closebutton, titlebar = puter.CreateWindow(250, 150, "Info", Color3.fromRGB(0,0,0), Color3.fromRGB(0,0,0), Color3.fromRGB(255,0,0))
@@ -1955,12 +1973,12 @@ local success, errorcode = pcall(function()
 						stdout("Killed " .. tostring(killed) .. " coroutines.")
 					end
 				end;
-				["refresh"] = {
-					cmd = function()
-						rebuildDesktop()
-						stdout("Desktop refreshed.")
-					end;
-				}
+			};
+			["refresh"] = {
+				cmd = function()
+					rebuildDesktop()
+					stdout("Desktop refreshed.")
+				end;
 			};
 			["granny"] = {
 				cmd = function()
@@ -2065,7 +2083,7 @@ local success, errorcode = pcall(function()
 							while minecount < mines do
 								for x = 1, width, 1 do
 									for y = 1, height, 1 do
-										if math.random(1, 10) == width and field[x][y].content ~= "💥" and minecount < mines then
+										if math.random(1, 10) == width % 10 and field[x][y].content ~= "💥" and minecount < mines then
 											if (x > 1 or y > 1) and (x < width or y < height) and (x > 1 or y < height) and (x < width or y > 1) then
 												local cell = field[x][y]
 												cell.content = "💥"
@@ -2198,7 +2216,7 @@ local success, errorcode = pcall(function()
 						stderr("Insufficient arguments [3 numbers required]")
 					end
 				end;
-				["nou"] = {
+				["set"] = {
 					cmd = function()
 						
 					end;
@@ -2972,6 +2990,7 @@ local success, errorcode = pcall(function()
 						else
 							mounteddisks[0] = nil
 						end
+						print(#mounteddisks)
 						for i, v in pairs(mounteddisks) do
 							if i > 0 then
 								mainScrollFrame.CanvasSize = UDim2.fromOffset(0, i + diskExists * 25)
@@ -3388,7 +3407,6 @@ local success, errorcode = pcall(function()
 				openMainExplorer()
 			end
 		end
-		local getdesktopfiles
 		if foundPrimary then
 			local foldersToDisplay = {}
 			local filesToDisplay = {}
@@ -4181,24 +4199,6 @@ local success, errorcode = pcall(function()
 			end
 		end
 		staticIcons[2] = {Name = "Chat", Function = openChat}
-		puterutils.iconEngine(100, 100, 15, 15, Xres, 400, background, false, 1)
-		local function rebuildDesktop()
-			getdesktopfiles()
-			local createIcon = puterutils.iconEngine(100, 100, 15, 15, Xres, 400, background, false, 1)
-			for i, v in pairs(iconMap) do
-				v:Destroy()
-			end
-			for i, v in pairs(staticIcons) do
-				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				iconMap[v.Name] = icon
-				icon.MouseButton1Click:Connect(v.Function)
-			end
-			for i, v in pairs(iconsToGenerate) do
-				local icon = createIcon(v.Name, Color3.fromRGB(152, 152, 152), Color3.fromRGB(0,0,0))
-				iconMap[v.Name] = icon
-				icon.MouseButton1Click:Connect(v.Function)
-			end
-		end
 		rebuildDesktop()
 		local postomaticOpen = false
 		local function openPostOMatic()
