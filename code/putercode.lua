@@ -593,6 +593,18 @@ local success, errorcode = pcall(function()
 					eventsConnected[event][#eventsConnected[event] + 1] = func
 				end
 			end
+			windowframemet.CursorMoved = {}
+			windowframemet.CursorPressed = {}
+			windowframemet.CursorReleased = {}
+			function windowframemet.CursorMoved:Connect(func)
+				windowframemet:Connect("CursorMoved", func)
+			end
+			function windowframemet.CursorPressed:Connect(func)
+				windowframemet:Connect("CursorPressed", func)
+			end
+			function windowframemet.CursorReleased:Connect(func)
+				windowframemet:Connect("CursorReleased", func)
+			end
 			function windowframemet:GetDimensions()
 				return Vector2.new(x, y)
 			end
